@@ -1,0 +1,1 @@
+Type error at TypeError03.ll line 7 col 3: operation "&&" not defined for String "4", ANY
