@@ -42,6 +42,8 @@ package com.guillermomolina.ll;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import com.guillermomolina.ll.runtime.LLContext;
+import com.guillermomolina.ll.runtime.LLLanguageView;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -49,8 +51,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.SourceSection;
-import com.guillermomolina.ll.runtime.LLContext;
-import com.guillermomolina.ll.runtime.LLLanguageView;
 
 /**
  * LL does not need a sophisticated error checking and reporting mechanism, so all unexpected
@@ -70,7 +70,6 @@ public class LLException extends RuntimeException implements TruffleException {
         this.location = location;
     }
 
-    @SuppressWarnings("sync-override")
     @Override
     public final Throwable fillInStackTrace() {
         return this;

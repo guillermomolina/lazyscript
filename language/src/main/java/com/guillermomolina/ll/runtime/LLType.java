@@ -40,6 +40,7 @@
  */
 package com.guillermomolina.ll.runtime;
 
+import com.guillermomolina.ll.LLLanguage;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -51,7 +52,6 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.guillermomolina.ll.LLLanguage;
 
 /**
  * The builtin type definitions for LazyLanguage. LL has no custom types, so it is not possible
@@ -71,7 +71,6 @@ import com.guillermomolina.ll.LLLanguage;
  * assigned using language views. See {@link LLLanguage#getLanguageView}.
  */
 @ExportLibrary(InteropLibrary.class)
-@SuppressWarnings("static-method")
 public final class LLType implements TruffleObject {
 
     /*
@@ -145,7 +144,7 @@ public final class LLType implements TruffleObject {
     }
 
     @ExportMessage(name = "toDisplayString")
-    Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
+    Object toDisplayString(boolean allowSideEffects) {
         return name;
     }
 
@@ -171,7 +170,7 @@ public final class LLType implements TruffleObject {
          * real world benchmarks.
          */
         @Specialization(guards = "type == cachedType", limit = "3")
-        static boolean doCached(@SuppressWarnings("unused") LLType type, Object value,
+        static boolean doCached(LLType type, Object value,
                         @Cached("type") LLType cachedType,
                         @CachedLibrary("value") InteropLibrary valueLib) {
             return cachedType.isInstance.check(valueLib, value);

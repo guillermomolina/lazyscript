@@ -43,6 +43,7 @@ package com.guillermomolina.ll.runtime;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.guillermomolina.ll.LLLanguage;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
@@ -53,10 +54,8 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.guillermomolina.ll.LLLanguage;
 
 @ExportLibrary(InteropLibrary.class)
-@SuppressWarnings("static-method")
 final class FunctionsObject implements TruffleObject {
 
     final Map<String, LLFunction> functions = new HashMap<>();
@@ -97,7 +96,7 @@ final class FunctionsObject implements TruffleObject {
 
     @ExportMessage
     @TruffleBoundary
-    Object getMembers(@SuppressWarnings("unused") boolean includeInternal) {
+    Object getMembers(boolean includeInternal) {
         return new FunctionNamesObject(functions.keySet().toArray());
     }
 
@@ -113,7 +112,7 @@ final class FunctionsObject implements TruffleObject {
 
     @ExportMessage
     @TruffleBoundary
-    Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
+    Object toDisplayString(boolean allowSideEffects) {
         return functions.toString();
     }
 

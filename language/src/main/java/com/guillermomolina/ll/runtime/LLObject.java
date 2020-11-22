@@ -40,6 +40,7 @@
  */
 package com.guillermomolina.ll.runtime;
 
+import com.guillermomolina.ll.LLLanguage;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -55,7 +56,6 @@ import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.utilities.TriState;
-import com.guillermomolina.ll.LLLanguage;
 
 /**
  * Represents an LL object.
@@ -77,9 +77,8 @@ import com.guillermomolina.ll.LLLanguage;
  * @see ExportMessage
  * @see InteropLibrary
  */
-@SuppressWarnings("static-method")
 @ExportLibrary(InteropLibrary.class)
-public final class LLObject extends DynamicObject implements TruffleObject {
+public final class LLObject extends DynamicObject {
     protected static final int CACHE_LIMIT = 3;
 
     public LLObject(Shape shape) {
@@ -97,7 +96,6 @@ public final class LLObject extends DynamicObject implements TruffleObject {
     }
 
     @ExportMessage
-    @SuppressWarnings("unused")
     static final class IsIdenticalOrUndefined {
         @Specialization
         static TriState doLLObject(LLObject receiver, LLObject other) {
@@ -128,7 +126,7 @@ public final class LLObject extends DynamicObject implements TruffleObject {
 
     @ExportMessage
     @TruffleBoundary
-    Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
+    Object toDisplayString(boolean allowSideEffects) {
         return "Object";
     }
 
@@ -148,7 +146,7 @@ public final class LLObject extends DynamicObject implements TruffleObject {
     }
 
     @ExportMessage
-    Object getMembers(@SuppressWarnings("unused") boolean includeInternal,
+    Object getMembers(boolean includeInternal,
                     @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
         return new Keys(objectLibrary.getKeyArray(this));
     }

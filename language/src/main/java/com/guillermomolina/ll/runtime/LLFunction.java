@@ -42,6 +42,8 @@ package com.guillermomolina.ll.runtime;
 
 import java.util.logging.Level;
 
+import com.guillermomolina.ll.LLLanguage;
+import com.guillermomolina.ll.nodes.LLUndefinedFunctionRootNode;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -62,8 +64,6 @@ import com.oracle.truffle.api.nodes.IndirectCallNode;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import com.oracle.truffle.api.utilities.TriState;
-import com.guillermomolina.ll.LLLanguage;
-import com.guillermomolina.ll.nodes.LLUndefinedFunctionRootNode;
 
 /**
  * Represents a LL function. On the Truffle level, a callable element is represented by a
@@ -83,7 +83,6 @@ import com.guillermomolina.ll.nodes.LLUndefinedFunctionRootNode;
  * encapsulates a {@link LLUndefinedFunctionRootNode}.
  */
 @ExportLibrary(InteropLibrary.class)
-@SuppressWarnings("static-method")
 public final class LLFunction implements TruffleObject {
 
     public static final int INLINE_CACHE_SIZE = 2;
@@ -153,14 +152,12 @@ public final class LLFunction implements TruffleObject {
     /**
      * {@link LLFunction} instances are always visible as executable to other languages.
      */
-    @SuppressWarnings("static-method")
     @ExportMessage
     @TruffleBoundary
     SourceSection getSourceLocation() {
         return getCallTarget().getRootNode().getSourceSection();
     }
 
-    @SuppressWarnings("static-method")
     @ExportMessage
     boolean hasSourceLocation() {
         return true;
@@ -185,7 +182,6 @@ public final class LLFunction implements TruffleObject {
     }
 
     @ExportMessage
-    @SuppressWarnings("unused")
     static final class IsIdenticalOrUndefined {
         @Specialization
         static TriState doLLFunction(LLFunction receiver, LLFunction other) {
@@ -208,7 +204,7 @@ public final class LLFunction implements TruffleObject {
     }
 
     @ExportMessage
-    Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
+    Object toDisplayString(boolean allowSideEffects) {
         return name;
     }
 
@@ -271,7 +267,6 @@ public final class LLFunction implements TruffleObject {
         @Specialization(limit = "INLINE_CACHE_SIZE", //
                         guards = "function.getCallTarget() == cachedTarget", //
                         assumptions = "callTargetStable")
-        @SuppressWarnings("unused")
         protected static Object doDirect(LLFunction function, Object[] arguments,
                         @Cached("function.getCallTargetStable()") Assumption callTargetStable,
                         @Cached("function.getCallTarget()") RootCallTarget cachedTarget,

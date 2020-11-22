@@ -839,7 +839,6 @@ public class LLInstrumentTest {
         private final Object replacedValue = new ReplacedTruffleObject();
 
         @Override
-        @SuppressWarnings("hiding")
         protected void onCreate(Env env) {
             this.env = env;
             env.registerService(this);
@@ -872,11 +871,10 @@ public class LLInstrumentTest {
         }
 
         @ExportLibrary(InteropLibrary.class)
-        @SuppressWarnings("static-method")
         static class ReplacedTruffleObject implements TruffleObject {
 
             @ExportMessage
-            final Object readMember(@SuppressWarnings("unused") String member) {
+            final Object readMember(String member) {
                 return "Replaced Value";
             }
 
@@ -886,7 +884,7 @@ public class LLInstrumentTest {
             }
 
             @ExportMessage
-            final Object getMembers(@SuppressWarnings("unused") boolean includeInternal) {
+            final Object getMembers(boolean includeInternal) {
                 return new KeysArray(new String[]{"rp1, rp2"});
             }
 
@@ -906,7 +904,6 @@ public class LLInstrumentTest {
             this.keys = keys;
         }
 
-        @SuppressWarnings("static-method")
         @ExportMessage
         boolean hasArrayElements() {
             return true;
@@ -968,7 +965,6 @@ public class LLInstrumentTest {
         @CompilationFinal private ThreadDeath unwind;
 
         @Override
-        @SuppressWarnings("hiding")
         protected void onCreate(Env env) {
             this.env = env;
             env.registerService(this);

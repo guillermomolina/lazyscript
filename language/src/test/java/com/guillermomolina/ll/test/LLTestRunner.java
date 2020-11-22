@@ -64,6 +64,11 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
+import com.guillermomolina.ll.LLLanguage;
+import com.guillermomolina.ll.builtins.LLBuiltinNode;
+import com.guillermomolina.ll.test.LLTestRunner.TestCase;
+import com.oracle.truffle.api.dsl.NodeFactory;
+
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
@@ -79,11 +84,6 @@ import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.ParentRunner;
 import org.junit.runners.model.InitializationError;
-
-import com.oracle.truffle.api.dsl.NodeFactory;
-import com.guillermomolina.ll.LLLanguage;
-import com.guillermomolina.ll.builtins.LLBuiltinNode;
-import com.guillermomolina.ll.test.LLTestRunner.TestCase;
 
 public class LLTestRunner extends ParentRunner<TestCase> {
 
@@ -238,7 +238,9 @@ public class LLTestRunner extends ParentRunner<TestCase> {
                     Files.copy(jarfile.getInputStream(e), path.toPath(), StandardCopyOption.REPLACE_EXISTING);
                 }
             }
-            return jarfileDir.toFile().getAbsolutePath();
+            final String path = jarfileDir.toFile().getAbsolutePath();
+            jarfile.close();
+            return path;
         } catch (IOException e) {
             throw new AssertionError(e);
         }

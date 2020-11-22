@@ -42,6 +42,7 @@ package com.guillermomolina.ll.runtime;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import com.guillermomolina.ll.LLLanguage;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -51,7 +52,6 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
-import com.guillermomolina.ll.LLLanguage;
 
 /**
  * Language views are needed in order to allow tools to have a consistent perspective on primitive
@@ -64,7 +64,6 @@ import com.guillermomolina.ll.LLLanguage;
  * There is more information in {@link TruffleLanguage#getLanguageView(Object, Object)}
  */
 @ExportLibrary(value = InteropLibrary.class, delegateTo = "delegate")
-@SuppressWarnings("static-method")
 public final class LLLanguageView implements TruffleObject {
 
     final Object delegate;
@@ -124,7 +123,7 @@ public final class LLLanguageView implements TruffleObject {
 
     @ExportMessage
     @ExplodeLoop
-    Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects, @CachedLibrary("this.delegate") InteropLibrary interop) {
+    Object toDisplayString(boolean allowSideEffects, @CachedLibrary("this.delegate") InteropLibrary interop) {
         for (LLType type : LLType.PRECEDENCE) {
             if (type.isInstance(this.delegate, interop)) {
                 try {

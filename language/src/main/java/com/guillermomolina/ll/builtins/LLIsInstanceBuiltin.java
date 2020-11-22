@@ -53,7 +53,6 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * may be values of the current or a foreign value.
  */
 @NodeInfo(shortName = "isInstance")
-@SuppressWarnings("unused")
 public abstract class LLIsInstanceBuiltin extends LLBuiltinNode {
 
     @Specialization(limit = "3", guards = "metaLib.isMetaObject(metaObject)")

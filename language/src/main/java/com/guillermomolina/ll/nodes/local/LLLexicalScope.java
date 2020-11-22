@@ -45,6 +45,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import com.guillermomolina.ll.nodes.LLEvalRootNode;
+import com.guillermomolina.ll.nodes.LLRootNode;
+import com.guillermomolina.ll.nodes.LLStatementNode;
+import com.guillermomolina.ll.nodes.controlflow.LLBlockNode;
+import com.guillermomolina.ll.runtime.LLNull;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
@@ -59,11 +64,6 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.nodes.NodeVisitor;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.guillermomolina.ll.nodes.LLEvalRootNode;
-import com.guillermomolina.ll.nodes.LLRootNode;
-import com.guillermomolina.ll.nodes.LLStatementNode;
-import com.guillermomolina.ll.nodes.controlflow.LLBlockNode;
-import com.guillermomolina.ll.runtime.LLNull;
 
 /**
  * Lazy language lexical scope. There can be a block scope, or function scope.
@@ -105,7 +105,6 @@ public final class LLLexicalScope {
         this.root = root;
     }
 
-    @SuppressWarnings("all") // The parameter node should not be assigned
     public static LLLexicalScope createScope(Node node) {
         LLBlockNode block = getParentBlock(node);
         if (block == null) {
@@ -327,7 +326,6 @@ public final class LLLexicalScope {
             this.frame = frame;
         }
 
-        @SuppressWarnings("static-method")
         @ExportMessage
         boolean hasMembers() {
             return true;
@@ -335,7 +333,7 @@ public final class LLLexicalScope {
 
         @ExportMessage
         @TruffleBoundary
-        Object getMembers(@SuppressWarnings("unused") boolean includeInternal) {
+        Object getMembers(boolean includeInternal) {
             return new KeysArray(slots.keySet().toArray(new String[0]));
         }
 
@@ -379,9 +377,8 @@ public final class LLLexicalScope {
             }
         }
 
-        @SuppressWarnings("static-method")
         @ExportMessage
-        boolean isMemberInsertable(@SuppressWarnings("unused") String member) {
+        boolean isMemberInsertable(String member) {
             return false;
         }
 
@@ -408,7 +405,6 @@ public final class LLLexicalScope {
             this.keys = keys;
         }
 
-        @SuppressWarnings("static-method")
         @ExportMessage
         boolean hasArrayElements() {
             return true;

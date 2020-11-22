@@ -268,7 +268,6 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
      * Still necessary for the old LL TCK to pass. We should remove with the old TCK. New language
      * should not override this.
      */
-    @SuppressWarnings("deprecation")
     @Override
     protected Object findExportedSymbol(LLContext context, String globalName, boolean onlyExplicit) {
         return context.getFunctionRegistry().lookup(globalName, false);

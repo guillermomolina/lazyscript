@@ -42,6 +42,7 @@ package com.guillermomolina.ll.runtime;
 
 import java.math.BigInteger;
 
+import com.guillermomolina.ll.LLLanguage;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -49,10 +50,8 @@ import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.guillermomolina.ll.LLLanguage;
 
 @ExportLibrary(InteropLibrary.class)
-@SuppressWarnings("static-method")
 public final class LLBigNumber implements TruffleObject, Comparable<LLBigNumber> {
 
     private static final long LONG_MAX_SAFE_DOUBLE = 9007199254740991L; // 2 ** 53 - 1
@@ -105,7 +104,6 @@ public final class LLBigNumber implements TruffleObject, Comparable<LLBigNumber>
         return value.hashCode();
     }
 
-    @SuppressWarnings("static-method")
     @ExportMessage
     boolean isNumber() {
         return fitsInLong();
@@ -229,7 +227,7 @@ public final class LLBigNumber implements TruffleObject, Comparable<LLBigNumber>
 
     @ExportMessage
     @TruffleBoundary
-    Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
+    Object toDisplayString(boolean allowSideEffects) {
         return value.toString();
     }
 

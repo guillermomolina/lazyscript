@@ -46,18 +46,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.antlr.v4.runtime.Parser;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.TerminalNode;
-
-import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotKind;
-import com.oracle.truffle.api.source.Source;
-import com.oracle.truffle.api.source.SourceSection;
 import com.guillermomolina.ll.LLLanguage;
+import com.guillermomolina.ll.NotImplementedException;
 import com.guillermomolina.ll.nodes.LLExpressionNode;
 import com.guillermomolina.ll.nodes.LLRootNode;
 import com.guillermomolina.ll.nodes.LLStatementNode;
@@ -95,12 +85,26 @@ import com.guillermomolina.ll.nodes.local.LLReadLocalVariableNodeGen;
 import com.guillermomolina.ll.nodes.local.LLWriteLocalVariableNode;
 import com.guillermomolina.ll.nodes.local.LLWriteLocalVariableNodeGen;
 import com.guillermomolina.ll.nodes.util.LLUnboxNodeGen;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotKind;
+import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.source.Source;
+import com.oracle.truffle.api.source.SourceSection;
+
+import org.antlr.v4.runtime.Parser;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.Interval;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 /**
  * Helper class used by the LL {@link Parser} to create nodes. The code is factored out of the
  * automatically generated parser to keep the attributed grammar of LL small.
  */
-public class LLNodeFactory extends LazyLanguageBaseListener {
+public class LLNodeFactory extends LazyLanguageBaseVisitor<Node> {
 
     /**
      * Local variable names that are visible in the current block. Variables are not visible outside
@@ -146,12 +150,24 @@ public class LLNodeFactory extends LazyLanguageBaseListener {
         return allFunctions;
     }
 
-    //public void startFunction(Token nameToken, Token bodyStartToken) {}
+    private static Interval srcFromContext(ParserRuleContext ctx) {
+        int a = ctx.start.getStartIndex();
+        int b = ctx.stop.getStopIndex();
+        return new Interval(a, b);
+    }
+
+    private void setSourceFromContext(LLStatementNode node, ParserRuleContext ctx) {
+        Interval sourceInterval = srcFromContext(ctx);
+        assert sourceInterval != null;
+        if (node == null) {
+            throw new LLParseError(source, ctx, "Node is null");
+        }
+        assert node != null;
+        node.setSourceSection(sourceInterval.a, sourceInterval.length());
+    }
+
     @Override 
-    public void enterFunction(LazyLanguageParser.FunctionContext ctx) {
-        Token nameToken = ctx.name;
-        Token bodyStartToken = ctx.body.getStart();
-        
+    public Node visitFunction(LazyLanguageParser.FunctionContext ctx) {
         assert functionStartPos == 0;
         assert functionName == null;
         assert functionBodyStartPos == 0;
@@ -159,6 +175,9 @@ public class LLNodeFactory extends LazyLanguageBaseListener {
         assert frameDescriptor == null;
         assert lexicalScope == null;
 
+        Token nameToken = ctx.name;
+        Token bodyStartToken = ctx.body.getStart();
+        
         functionStartPos = nameToken.getStartIndex();
         functionName = nameToken.getText();
         functionBodyStartPos = bodyStartToken.getStartIndex();
@@ -169,27 +188,15 @@ public class LLNodeFactory extends LazyLanguageBaseListener {
         for(TerminalNode nameNode: ctx.IDENTIFIER()) {
             addFormalParameter(nameNode.getSymbol());
         }
-    }
 
-    public void addFormalParameter(Token nameToken) {
-        /*
-         * Method parameters are assigned to local variables at the beginning of the method. This
-         * ensures that accesses to parameters are specialized the same way as local variables are
-         * specialized.
-         */
-        final LLReadArgumentNode readArg = new LLReadArgumentNode(parameterCount);
-        LLExpressionNode assignment = createAssignment(createStringLiteral(nameToken, false), readArg, parameterCount);
-        methodNodes.add(assignment);
-        parameterCount++;
-    }
+        LLBlockNode blockNode = (LLBlockNode)visit(ctx.body);
 
-    public void finishFunction(LLStatementNode bodyNode) {
-        if (bodyNode == null) {
+        if (blockNode == null) {
             // a state update that would otherwise be performed by finishBlock
             lexicalScope = lexicalScope.outer;
         } else {
-            methodNodes.add(bodyNode);
-            final int bodyEndPos = bodyNode.getSourceEndIndex();
+            methodNodes.add(blockNode);
+            final int bodyEndPos = blockNode.getSourceEndIndex();
             final SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
             final LLStatementNode methodBlock = finishBlock(methodNodes, functionBodyStartPos, bodyEndPos - functionBodyStartPos);
             assert lexicalScope == null : "Wrong scoping of blocks in parser";
@@ -207,6 +214,20 @@ public class LLNodeFactory extends LazyLanguageBaseListener {
         parameterCount = 0;
         frameDescriptor = null;
         lexicalScope = null;
+    
+        return null;
+    }
+
+    public void addFormalParameter(Token nameToken) {
+        /*
+         * Method parameters are assigned to local variables at the beginning of the method. This
+         * ensures that accesses to parameters are specialized the same way as local variables are
+         * specialized.
+         */
+        final LLReadArgumentNode readArg = new LLReadArgumentNode(parameterCount);
+        LLExpressionNode assignment = createAssignment(createStringLiteral(nameToken, false), readArg, parameterCount);
+        methodNodes.add(assignment);
+        parameterCount++;
     }
 
     public void startBlock() {
@@ -244,6 +265,88 @@ public class LLNodeFactory extends LazyLanguageBaseListener {
                 flattenedNodes.add(n);
             }
         }
+    }
+
+    @Override 
+    public Node visitExpression(LazyLanguageParser.ExpressionContext ctx) {
+        LLExpressionNode leftNode = null;
+        for (final LazyLanguageParser.LogicTermContext context : ctx.logicTerm()) {
+            final LLExpressionNode rightNode = (LLExpressionNode) visit(context);
+            leftNode = leftNode == null ? rightNode : createBinary(ctx.op, leftNode, rightNode);
+        }
+        setSourceFromContext(leftNode, ctx);
+        leftNode.addExpressionTag();
+        return leftNode;
+    }
+
+    @Override 
+    public Node visitLogicTerm(LazyLanguageParser.LogicTermContext ctx) {
+        LLExpressionNode leftNode = null;
+        for (final LazyLanguageParser.LogicFactorContext context : ctx.logicFactor()) {
+            final LLExpressionNode rightNode = (LLExpressionNode) visit(context);
+            leftNode = leftNode == null ? rightNode : createBinary(ctx.op, leftNode, rightNode);
+        }
+        setSourceFromContext(leftNode, ctx);
+        leftNode.addExpressionTag();
+        return leftNode;
+    }
+
+    @Override 
+    public Node visitLogicFactor(LazyLanguageParser.LogicFactorContext ctx) {
+        LLExpressionNode leftNode = null;
+        for (final LazyLanguageParser.ArithmeticContext context : ctx.arithmetic()) {
+            final LLExpressionNode rightNode = (LLExpressionNode) visit(context);
+            leftNode = leftNode == null ? rightNode : createBinary(ctx.op, leftNode, rightNode);
+        }
+        setSourceFromContext(leftNode, ctx);
+        leftNode.addExpressionTag();
+        return leftNode;
+    }
+
+    @Override 
+    public Node visitArithmetic(LazyLanguageParser.ArithmeticContext ctx) {
+        LLExpressionNode leftNode = null;
+        for (final LazyLanguageParser.TermContext context : ctx.term()) {
+            final LLExpressionNode rightNode = (LLExpressionNode) visit(context);
+            leftNode = leftNode == null ? rightNode : createBinary(ctx.op, leftNode, rightNode);
+        }
+        setSourceFromContext(leftNode, ctx);
+        leftNode.addExpressionTag();
+        return leftNode;
+    }
+
+    @Override 
+    public Node visitTerm(LazyLanguageParser.TermContext ctx) {
+        LLExpressionNode leftNode = null;
+        for (final LazyLanguageParser.FactorContext context : ctx.factor()) {
+            final LLExpressionNode rightNode = (LLExpressionNode) visit(context);
+            leftNode = leftNode == null ? rightNode : createBinary(ctx.op, leftNode, rightNode);
+        }
+        setSourceFromContext(leftNode, ctx);
+        leftNode.addExpressionTag();
+        return leftNode;
+    }
+
+    @Override 
+    public Node visitFactor(LazyLanguageParser.FactorContext ctx) {
+        if(ctx.IDENTIFIER() != null) {
+            LLExpressionNode assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol(), false);
+            if ( ctx.memberExpression() != null) {
+                new NotImplementedException();
+            } else {
+                return createRead(assignmentName);
+            }
+        }
+        else if(ctx.STRING_LITERAL() != null) {
+            return createStringLiteral(ctx.STRING_LITERAL().getSymbol(), true);
+        }
+        else if(ctx.NUMERIC_LITERAL() != null) {
+            return createNumericLiteral(ctx.NUMERIC_LITERAL().getSymbol());
+        }
+        int start = ctx.start.getStartIndex();
+        int length = ctx.stop.getStopIndex() - start + 1;
+        LLExpressionNode expressionNode = (LLExpressionNode)visit(ctx.expression());
+        return createParenExpression(expressionNode, start, length);
     }
 
     /**
@@ -287,19 +390,19 @@ public class LLNodeFactory extends LazyLanguageBaseListener {
      *
      * @param whileToken The token containing the while node's info
      * @param conditionNode The conditional node for this while loop
-     * @param bodyNode The body of the while loop
+     * @param blockNode The body of the while loop
      * @return A LLWhileNode built using the given parameters. null if either conditionNode or
-     *         bodyNode is null.
+     *         blockNode is null.
      */
-    public LLStatementNode createWhile(Token whileToken, LLExpressionNode conditionNode, LLStatementNode bodyNode) {
-        if (conditionNode == null || bodyNode == null) {
+    public LLStatementNode createWhile(Token whileToken, LLExpressionNode conditionNode, LLStatementNode blockNode) {
+        if (conditionNode == null || blockNode == null) {
             return null;
         }
 
         conditionNode.addStatementTag();
         final int start = whileToken.getStartIndex();
-        final int end = bodyNode.getSourceEndIndex();
-        final LLWhileNode whileNode = new LLWhileNode(conditionNode, bodyNode);
+        final int end = blockNode.getSourceEndIndex();
+        final LLWhileNode whileNode = new LLWhileNode(conditionNode, blockNode);
         whileNode.setSourceSection(start, end - start);
         return whileNode;
     }

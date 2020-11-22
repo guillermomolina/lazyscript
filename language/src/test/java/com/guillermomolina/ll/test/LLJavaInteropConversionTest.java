@@ -49,18 +49,17 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 import java.util.Map;
 
+import com.guillermomolina.ll.LLLanguage;
+
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.junit.Test;
 
-import com.guillermomolina.ll.LLLanguage;
-import org.graalvm.polyglot.HostAccess;
-
 public class LLJavaInteropConversionTest {
     public static class Validator {
         @HostAccess.Export
-        @SuppressWarnings("unchecked")
         public int validateObject(Object value1, Value value2) {
             assertThat(value1, instanceOf(Map.class));
             assertTrue(!((Map<?, ?>) value1).isEmpty());

@@ -40,6 +40,8 @@
  */
 package com.guillermomolina.ll.builtins;
 
+import com.guillermomolina.ll.LLLanguage;
+import com.guillermomolina.ll.runtime.LLContext;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Cached;
@@ -48,8 +50,6 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.Source;
-import com.guillermomolina.ll.LLLanguage;
-import com.guillermomolina.ll.runtime.LLContext;
 
 /**
  * Builtin function to evaluate source code in any supported language.
@@ -59,7 +59,6 @@ import com.guillermomolina.ll.runtime.LLContext;
  * possibly inlined.
  */
 @NodeInfo(shortName = "eval")
-@SuppressWarnings("unused")
 public abstract class LLEvalBuiltin extends LLBuiltinNode {
 
     @Specialization(guards = {"stringsEqual(cachedId, id)", "stringsEqual(cachedCode, code)"})

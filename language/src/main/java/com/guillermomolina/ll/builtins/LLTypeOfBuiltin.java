@@ -40,19 +40,18 @@
  */
 package com.guillermomolina.ll.builtins;
 
+import com.guillermomolina.ll.runtime.LLNull;
+import com.guillermomolina.ll.runtime.LLType;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.ll.runtime.LLNull;
-import com.guillermomolina.ll.runtime.LLType;
 
 /**
  * Built-in function that returns the type of a guest language value.
  */
 @NodeInfo(shortName = "typeOf")
-@SuppressWarnings("unused")
 public abstract class LLTypeOfBuiltin extends LLBuiltinNode {
 
     /*

@@ -40,13 +40,13 @@
  */
 package com.guillermomolina.ll.runtime;
 
+import com.guillermomolina.ll.LLLanguage;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.utilities.TriState;
-import com.guillermomolina.ll.LLLanguage;
 
 /**
  * The LL type for a {@code null} (i.e., undefined) value. In Truffle, it is generally discouraged
@@ -57,7 +57,6 @@ import com.guillermomolina.ll.LLLanguage;
  * practice.
  */
 @ExportLibrary(InteropLibrary.class)
-@SuppressWarnings("static-method")
 public final class LLNull implements TruffleObject {
 
     /**
@@ -111,7 +110,7 @@ public final class LLNull implements TruffleObject {
     }
 
     @ExportMessage
-    static TriState isIdenticalOrUndefined(@SuppressWarnings("unused") LLNull receiver, Object other) {
+    static TriState isIdenticalOrUndefined(LLNull receiver, Object other) {
         /*
          * LLNull values are identical to other LLNull values.
          */
@@ -119,7 +118,7 @@ public final class LLNull implements TruffleObject {
     }
 
     @ExportMessage
-    static int identityHashCode(@SuppressWarnings("unused") LLNull receiver) {
+    static int identityHashCode(LLNull receiver) {
         /*
          * We do not use 0, as we want consistency with System.identityHashCode(receiver).
          */
@@ -127,7 +126,7 @@ public final class LLNull implements TruffleObject {
     }
 
     @ExportMessage
-    Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
+    Object toDisplayString(boolean allowSideEffects) {
         return "NULL";
     }
 }

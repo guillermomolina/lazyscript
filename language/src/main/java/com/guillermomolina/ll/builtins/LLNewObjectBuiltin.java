@@ -40,6 +40,10 @@
  */
 package com.guillermomolina.ll.builtins;
 
+import com.guillermomolina.ll.LLLanguage;
+import com.guillermomolina.ll.runtime.LLContext;
+import com.guillermomolina.ll.runtime.LLNull;
+import com.guillermomolina.ll.runtime.LLUndefinedNameException;
 import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -52,10 +56,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.ll.LLLanguage;
-import com.guillermomolina.ll.runtime.LLContext;
-import com.guillermomolina.ll.runtime.LLNull;
-import com.guillermomolina.ll.runtime.LLUndefinedNameException;
 
 /**
  * Built-in function to create a new object. Objects in LL are simply made up of name/value pairs.
@@ -64,7 +64,6 @@ import com.guillermomolina.ll.runtime.LLUndefinedNameException;
 public abstract class LLNewObjectBuiltin extends LLBuiltinNode {
 
     @Specialization
-    @SuppressWarnings("unused")
     public Object newObject(LLNull o,
                     @CachedLanguage LLLanguage language,
                     @CachedContext(LLLanguage.class) ContextReference<LLContext> contextRef,

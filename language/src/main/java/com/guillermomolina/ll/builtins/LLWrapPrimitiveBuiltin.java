@@ -54,7 +54,6 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * Builtin function to wrap primitive values in order to increase coverage of the Truffle TCK test.
  */
 @NodeInfo(shortName = "wrapPrimitive")
-@SuppressWarnings("unused")
 public abstract class LLWrapPrimitiveBuiltin extends LLBuiltinNode {
 
     @TruffleBoundary

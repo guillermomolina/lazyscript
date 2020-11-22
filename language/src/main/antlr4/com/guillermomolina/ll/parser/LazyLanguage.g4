@@ -105,7 +105,7 @@ public static Map<String, RootCallTarget> parseLL(LLLanguage language, Source so
     parser.addErrorListener(listener);
     parser.factory = new LLNodeFactory(language, source);
     parser.source = source;
-    parser.lazylanguage();
+    parser.factory.visit( parser.lazylanguage());
     return parser.factory.getAllFunctions();
 }
 }
@@ -135,194 +135,194 @@ s='('
     )*
 )?
 ')'
-body=block[false]                               { factory.finishFunction($body.result); }
+body=block[false]                               /*{ factory.finishFunction($body.result); }*/
 ;
 
 
-block [boolean inLoop] returns [LLStatementNode result]
-:                                               { factory.startBlock();
-                                                  List<LLStatementNode> body = new ArrayList<>(); }
+block [boolean inLoop] /*returns [LLStatementNode result]*/
+:                                               /*{ factory.startBlock();
+                                                  List<LLStatementNode> body = new ArrayList<>(); }*/
 s='{'
 (
-    statement[inLoop]                           { body.add($statement.result); }
+    statement[inLoop]                           /*{ body.add($statement.result); }*/
 )*
 e='}'
-                                                { $result = factory.finishBlock(body, $s.getStartIndex(), $e.getStopIndex() - $s.getStartIndex() + 1); }
+                                                /*{ $result = factory.finishBlock(body, $s.getStartIndex(), $e.getStopIndex() - $s.getStartIndex() + 1); }*/
 ;
 
 
-statement [boolean inLoop] returns [LLStatementNode result]
+statement [boolean inLoop] /*returns [LLStatementNode result]*/
 :
 (
-    while_statement                             { $result = $while_statement.result; }
+    whileStatement                             /*{ $result = $whileStatement.result; }*/
 |
-    b='break'                                   { if (inLoop) { $result = factory.createBreak($b); } else { SemErr($b, "break used outside of loop"); } }
+    b='break'                                   /*{ if (inLoop) { $result = factory.createBreak($b); } else { SemErr($b, "break used outside of loop"); } }*/
     ';'
 |
-    c='continue'                                { if (inLoop) { $result = factory.createContinue($c); } else { SemErr($c, "continue used outside of loop"); } }
+    c='continue'                                /*{ if (inLoop) { $result = factory.createContinue($c); } else { SemErr($c, "continue used outside of loop"); } }*/
     ';'
 |
-    if_statement[inLoop]                        { $result = $if_statement.result; }
+    ifStatement[inLoop]                        /*{ $result = $ifStatement.result; }*/
 |
-    return_statement                            { $result = $return_statement.result; }
+    returnStatement                            /*{ $result = $returnStatement.result; }*/
 |
-    expression ';'                              { $result = $expression.result; }
+    expression ';'                              /*{ $result = $expression.result; }*/
 |
-    d='debugger'                                { $result = factory.createDebugger($d); }
+    d='debugger'                                /*{ $result = factory.createDebugger($d); }*/
     ';'
 )
 ;
 
 
-while_statement returns [LLStatementNode result]
+whileStatement /*returns [LLStatementNode result]*/
 :
 w='while'
 '('
 condition=expression
 ')'
-body=block[true]                                { $result = factory.createWhile($w, $condition.result, $body.result); }
+body=block[true]                                /* { $result = factory.createWhile($w, $condition.result, $body.result); } */
 ;
 
 
-if_statement [boolean inLoop] returns [LLStatementNode result]
+ifStatement [boolean inLoop] /*returns [LLStatementNode result]*/
 :
 i='if'
 '('
 condition=expression
 ')'
-then=block[inLoop]                              { LLStatementNode elsePart = null; }
+then=block[inLoop]                              /* { LLStatementNode elsePart = null; } */
 (
     'else'
-    block[inLoop]                               { elsePart = $block.result; }
-)?                                              { $result = factory.createIf($i, $condition.result, $then.result, elsePart); }
+    block[inLoop]                               /* { elsePart = $block.result; } */
+)?                                              /* { $result = factory.createIf($i, $condition.result, $then.result, elsePart); } */
 ;
 
 
-return_statement returns [LLStatementNode result]
+returnStatement /*returns [LLStatementNode result]*/
 :
-r='return'                                      { LLExpressionNode value = null; }
+r='return'                                      /* { LLExpressionNode value = null; } */
 (
-    expression                                  { value = $expression.result; }
-)?                                              { $result = factory.createReturn($r, value); }
+    expression                                  /* { value = $expression.result; } */
+)?                                              /* { $result = factory.createReturn($r, value); } */
 ';'
 ;
 
 
-expression returns [LLExpressionNode result]
+expression /*returns [LLExpressionNode result]*/
 :
-logic_term                                      { $result = $logic_term.result; }
+logicTerm                                      /* { $result = $logicTerm.result; } */
 (
     op='||'
-    logic_term                                  { $result = factory.createBinary($op, $result, $logic_term.result); }
+    logicTerm                                  /* { $result = factory.createBinary($op, $result, $logicTerm.result); } */
 )*
 ;
 
 
-logic_term returns [LLExpressionNode result]
+logicTerm /*returns [LLExpressionNode result]*/
 :
-logic_factor                                    { $result = $logic_factor.result; }
+logicFactor                                    /* { $result = $logicFactor.result; } */
 (
     op='&&'
-    logic_factor                                { $result = factory.createBinary($op, $result, $logic_factor.result); }
+    logicFactor                                /* { $result = factory.createBinary($op, $result, $logicFactor.result); } */
 )*
 ;
 
 
-logic_factor returns [LLExpressionNode result]
+logicFactor /*returns [LLExpressionNode result]*/
 :
-arithmetic                                      { $result = $arithmetic.result; }
+arithmetic                                      /* { $result = $arithmetic.result; } */
 (
     op=('<' | '<=' | '>' | '>=' | '==' | '!=' )
-    arithmetic                                  { $result = factory.createBinary($op, $result, $arithmetic.result); }
+    arithmetic                                  /* { $result = factory.createBinary($op, $result, $arithmetic.result); } */
 )?
 ;
 
 
-arithmetic returns [LLExpressionNode result]
+arithmetic /*returns [LLExpressionNode result]*/
 :
-term                                            { $result = $term.result; }
+term                                            /* { $result = $term.result; } */
 (
     op=('+' | '-')
-    term                                        { $result = factory.createBinary($op, $result, $term.result); }
+    term                                        /* { $result = factory.createBinary($op, $result, $term.result); } */
 )*
 ;
 
 
-term returns [LLExpressionNode result]
+term /*returns [LLExpressionNode result]*/
 :
-factor                                          { $result = $factor.result; }
+factor                                          /* { $result = $factor.result; } */
 (
     op=('*' | '/')
-    factor                                      { $result = factory.createBinary($op, $result, $factor.result); }
+    factor                                      /* { $result = factory.createBinary($op, $result, $factor.result); } */
 )*
 ;
 
 
-factor returns [LLExpressionNode result]
+factor /*returns [LLExpressionNode result]*/
 :
 (
-    IDENTIFIER                                  { LLExpressionNode assignmentName = factory.createStringLiteral($IDENTIFIER, false); }
+    IDENTIFIER                                  /* { LLExpressionNode assignmentName = factory.createStringLiteral($IDENTIFIER, false); } */
     (
-        member_expression[null, null, assignmentName] { $result = $member_expression.result; }
+        memberExpression[null, null, null] /* { $result = $memberExpression.result; } */
     |
-                                                { $result = factory.createRead(assignmentName); }
+                                                /* { $result = factory.createRead(assignmentName); } */
     )
 |
-    STRING_LITERAL                              { $result = factory.createStringLiteral($STRING_LITERAL, true); }
+    STRING_LITERAL                              /* { $result = factory.createStringLiteral($STRING_LITERAL, true); } */
 |
-    NUMERIC_LITERAL                             { $result = factory.createNumericLiteral($NUMERIC_LITERAL); }
+    NUMERIC_LITERAL                             /* { $result = factory.createNumericLiteral($NUMERIC_LITERAL); } */
 |
     s='('
     expr=expression
-    e=')'                                       { $result = factory.createParenExpression($expr.result, $s.getStartIndex(), $e.getStopIndex() - $s.getStartIndex() + 1); }
+    e=')'                                       /* { $result = factory.createParenExpression($expr.result, $s.getStartIndex(), $e.getStopIndex() - $s.getStartIndex() + 1); } */
 )
 ;
 
 
-member_expression [LLExpressionNode r, LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName] returns [LLExpressionNode result]
-:                                               { LLExpressionNode receiver = r;
-                                                  LLExpressionNode nestedAssignmentName = null; }
+memberExpression [LLExpressionNode r, LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName] /*returns [LLExpressionNode result]*/
+:                                               /* { LLExpressionNode receiver = r;
+                                                  LLExpressionNode nestedAssignmentName = null; } */
 (
-    '('                                         { List<LLExpressionNode> parameters = new ArrayList<>();
+    '('                                         /* { List<LLExpressionNode> parameters = new ArrayList<>();
                                                   if (receiver == null) {
                                                       receiver = factory.createRead(assignmentName);
-                                                  } }
+                                                  } } */
     (
-        expression                              { parameters.add($expression.result); }
+        expression                              /* { parameters.add($expression.result); } */
         (
             ','
-            expression                          { parameters.add($expression.result); }
+            expression                          /* { parameters.add($expression.result); } */
         )*
     )?
     e=')'
-                                                { $result = factory.createCall(receiver, parameters, $e); }
+                                                /* { $result = factory.createCall(receiver, parameters, $e); } */
 |
     '='
-    expression                                  { if (assignmentName == null) {
+    expression                                  /* { if (assignmentName == null) {
                                                       SemErr($expression.start, "invalid assignment target");
                                                   } else if (assignmentReceiver == null) {
                                                       $result = factory.createAssignment(assignmentName, $expression.result);
                                                   } else {
                                                       $result = factory.createWriteProperty(assignmentReceiver, assignmentName, $expression.result);
-                                                  } }
+                                                  } } */
 |
-    '.'                                         { if (receiver == null) {
+    '.'                                         /* { if (receiver == null) {
                                                        receiver = factory.createRead(assignmentName);
-                                                  } }
+                                                  } } */
     IDENTIFIER
-                                                { nestedAssignmentName = factory.createStringLiteral($IDENTIFIER, false);
+                                                /* { nestedAssignmentName = factory.createStringLiteral($IDENTIFIER, false);
                                                   $result = factory.createReadProperty(receiver, nestedAssignmentName); }
 |
-    '['                                         { if (receiver == null) {
+    '['                                         /* { if (receiver == null) {
                                                       receiver = factory.createRead(assignmentName);
-                                                  } }
+                                                  } } */
     expression
-                                                { nestedAssignmentName = $expression.result;
-                                                  $result = factory.createReadProperty(receiver, nestedAssignmentName); }
+                                                /* { nestedAssignmentName = $expression.result;
+                                                  $result = factory.createReadProperty(receiver, nestedAssignmentName); } */
     ']'
 )
 (
-    member_expression[$result, receiver, nestedAssignmentName] { $result = $member_expression.result; }
+    memberExpression[null, null, null]*/ /* { $result = $memberExpression.result; } */
 )?
 ;
 
