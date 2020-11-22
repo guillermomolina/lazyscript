@@ -1,13 +1,15 @@
 {
     "version": "0.2.0",
     "configurations": [
+
+
         {
             "type": "antlr-debug",
             "name": "Debug ANTLR4 grammar Current File",
             "request": "launch",
             "input": "${file}",
-            "grammar": "language/src/main/antlr4/org/guillermomolina/i4gl/parser/I4GLParser.g4",
-            "startRule": "module",
+            "grammar": "language/src/main/antlr4/com/guillermomolina/ll/parser/LazyLanguage.g4",
+            "startRule": "lazylanguage",
             "printParseTree": true,
             "visualParseTree": true
         },
@@ -15,13 +17,12 @@
             "type": "java",
             "name": "Debug (Launch) Current File",
             "request": "launch",
-            "mainClass": "org.guillermomolina.i4gl.launcher.I4GLMain",
+            "mainClass": "com.guillermomolina.ll.launcher.LLMain",
             "projectName": "launcher",
-            "args": ["--log.i4gl.level=FINEST","${file}"],
+            "args": ["--log.ll.level=FINEST","${file}"],
             "vmArgs": [
                 "-ea",
-                "-Dtruffle.class.path.append=./language/target/i4gl.jar:/opt/squirrel-sql/squirrel-sql.jar",
-                "-Dsquirrel.home=/opt/squirrel-sql"
+                "-Dtruffle.class.path.append=./language/target/lazylanguage.jar"
             ],
             "stepFilters": {
                 "skipClasses": [
@@ -36,18 +37,17 @@
         },
         {
             "type": "java",
-            "name": "Debug (Launch) I4GLMain Like3.4gl",
+            "name": "Debug (Launch) LLMain Fibonacci.lazy",
             "request": "launch",
-            "mainClass": "org.guillermomolina.i4gl.launcher.I4GLMain",
+            "mainClass": "com.guillermomolina.ll.launcher.LLMain",
             "projectName": "launcher",
             "args": [
-                "--log.i4gl.level=FINEST",
-                "${workspaceFolder}/language/tests/lazy/Like3.4gl",
+                "--log.ll.level=FINEST",
+                "${workspaceFolder}/language/tests/Fibonacci.lazy",
             ],
             "vmArgs": [
                 "-ea",
-                "-Dtruffle.class.path.append=./language/target/i4gl.jar:/opt/squirrel-sql/squirrel-sql.jar",
-                "-Dsquirrel.home=/opt/squirrel-sql"
+                "-Dtruffle.class.path.append=./language/target/lazylanguage.jar"
             ],
             "stepFilters": {
                 "skipClasses": [
@@ -64,17 +64,16 @@
             "type": "java",
             "name": "Debug (Launch and Wait) Current File",
             "request": "launch",
-            "mainClass": "org.guillermomolina.i4gl.launcher.I4GLMain",
+            "mainClass": "com.guillermomolina.ll.launcher.LLMain",
             "projectName": "launcher",
             "args": [
                 "--inspect",
-                "--log.i4gl.level=FINEST",
+                "--log.ll.level=FINEST",
                 "${file}"
             ],
             "vmArgs": [
                 "-ea",
-                "-Dtruffle.class.path.append=./language/target/i4gl.jar:/opt/squirrel-sql/squirrel-sql.jar",
-                "-Dsquirrel.home=/opt/squirrel-sql"
+                "-Dtruffle.class.path.append=./language/target/lazylanguage.jar"
             ],
             "stepFilters": {
                 "skipClasses": [
@@ -90,8 +89,8 @@
         {
             "type": "graalvm",
             "request": "launch",
-            "name": "Launch i4gl Script",
-            "runtimeExecutable": "/home/guille/Fuentes/graal/languages/graal-i4gl/i4gl",
+            "name": "Launch ll Script",
+            "runtimeExecutable": "/home/guille/Fuentes/graal/languages/lazylanguage/ll",
             "program": "${file}"
         },
         {
@@ -103,9 +102,9 @@
     ],
     "compounds": [
         {
-            "name": "Debug I4GL + Attach",
+            "name": "Debug ll + Attach",
             "configurations": [
-                "Debug (Launch and Wait) I4GLMain",
+                "Debug (Launch and Wait) LLMain",
                 "GraalVM Attach"
             ]
         }

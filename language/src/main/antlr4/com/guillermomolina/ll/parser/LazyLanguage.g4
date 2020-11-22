@@ -124,20 +124,19 @@ function function* EOF
 function
 :
 'function'
-IDENTIFIER
+name=IDENTIFIER
 s='('
-                                                { factory.startFunction($IDENTIFIER, $s); }
+                                                /*{ factory.startFunction($IDENTIFIER, $s); }*/
 (
-    IDENTIFIER                                  { factory.addFormalParameter($IDENTIFIER); }
+    IDENTIFIER                                  /*{ factory.addFormalParameter($IDENTIFIER); }*/
     (
         ','
-        IDENTIFIER                              { factory.addFormalParameter($IDENTIFIER); }
+        IDENTIFIER                              /*{ factory.addFormalParameter($IDENTIFIER); }*/
     )*
 )?
 ')'
 body=block[false]                               { factory.finishFunction($body.result); }
 ;
-
 
 
 block [boolean inLoop] returns [LLStatementNode result]

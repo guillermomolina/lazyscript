@@ -48,7 +48,6 @@ import java.util.Map;
 
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -100,7 +99,7 @@ import com.guillermomolina.ll.nodes.util.LLUnboxNodeGen;
  * Helper class used by the LL {@link Parser} to create nodes. The code is factored out of the
  * automatically generated parser to keep the attributed grammar of LL small.
  */
-public class LLNodeFactory extends LazyLanguageBaseListener {
+public class LLNodeFactory {
 
     /**
      * Local variable names that are visible in the current block. Variables are not visible outside
@@ -146,12 +145,7 @@ public class LLNodeFactory extends LazyLanguageBaseListener {
         return allFunctions;
     }
 
-    //public void startFunction(Token nameToken, Token bodyStartToken) {}
-    @Override 
-    public void enterFunction(LazyLanguageParser.FunctionContext ctx) {
-        Token nameToken = ctx.name;
-        Token bodyStartToken = ctx.body.getStart();
-        
+    public void startFunction(Token nameToken, Token bodyStartToken) {
         assert functionStartPos == 0;
         assert functionName == null;
         assert functionBodyStartPos == 0;
@@ -165,10 +159,6 @@ public class LLNodeFactory extends LazyLanguageBaseListener {
         frameDescriptor = new FrameDescriptor();
         methodNodes = new ArrayList<>();
         startBlock();
-
-        for(TerminalNode nameNode: ctx.IDENTIFIER()) {
-            addFormalParameter(nameNode.getSymbol());
-        }
     }
 
     public void addFormalParameter(Token nameToken) {
