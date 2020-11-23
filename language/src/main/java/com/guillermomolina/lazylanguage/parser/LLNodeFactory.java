@@ -211,9 +211,9 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
             assert lexicalScope == null : "Wrong scoping of blocks in parser";
 
             final LLFunctionBodyNode functionBodyNode = new LLFunctionBodyNode(methodBlock);
-            setSourceFromContext(functionBodyNode, ctx);
-            Interval sourceInterval = srcFromContext(ctx);
-            SourceSection functionSrc = source.createSection(sourceInterval.a, sourceInterval.length());
+            final int bodyEndPos = methodBlock.getSourceEndIndex();
+            SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
+            functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
             final LLRootNode rootNode = new LLRootNode(language, frameDescriptor, functionBodyNode, functionSrc,
                     functionName);
             allFunctions.put(functionName, Truffle.getRuntime().createCallTarget(rootNode));
