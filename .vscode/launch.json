@@ -8,7 +8,7 @@
             "name": "Debug ANTLR4 grammar Current File",
             "request": "launch",
             "input": "${file}",
-            "grammar": "language/src/main/antlr4/com/guillermomolina/ll/parser/LazyLanguage.g4",
+            "grammar": "language/src/main/antlr4/com/guillermomolina/ll/parser/LazyLanguageParser.g4",
             "startRule": "lazylanguage",
             "printParseTree": true,
             "visualParseTree": true
@@ -37,13 +37,13 @@
         },
         {
             "type": "java",
-            "name": "Debug (Launch) LLMain Add.lazy",
+            "name": "Debug (Launch) LLMain SumCall.lazy",
             "request": "launch",
             "mainClass": "com.guillermomolina.ll.launcher.LLMain",
             "projectName": "launcher",
             "args": [
                 "--log.ll.level=FINEST",
-                "${workspaceFolder}/language/tests/Add.lazy",
+                "${workspaceFolder}/language/tests/SumCall.lazy",
             ],
             "vmArgs": [
                 "-ea",

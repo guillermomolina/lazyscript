@@ -46,6 +46,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.guillermomolina.ll.builtins.LLBuiltinNode;
 import com.guillermomolina.ll.builtins.LLDefineFunctionBuiltin;
@@ -81,6 +82,7 @@ import com.guillermomolina.ll.nodes.local.LLLexicalScope;
 import com.guillermomolina.ll.nodes.local.LLReadLocalVariableNode;
 import com.guillermomolina.ll.nodes.local.LLWriteLocalVariableNode;
 import com.guillermomolina.ll.parser.LLNodeFactory;
+import com.guillermomolina.ll.parser.LLParser;
 import com.guillermomolina.ll.parser.LazyLanguageLexer;
 import com.guillermomolina.ll.parser.LazyLanguageParser;
 import com.guillermomolina.ll.runtime.LLBigNumber;
@@ -195,7 +197,7 @@ import com.oracle.truffle.api.source.Source;
 @ProvidedTags({StandardTags.CallTag.class, StandardTags.StatementTag.class, StandardTags.RootTag.class, StandardTags.RootBodyTag.class, StandardTags.ExpressionTag.class, DebuggerTags.AlwaysHalt.class,
                 StandardTags.ReadVariableTag.class, StandardTags.WriteVariableTag.class})
 public final class LLLanguage extends TruffleLanguage<LLContext> {
-    public static volatile int counter;
+    public static final AtomicInteger counter = new AtomicInteger();
 
     public static final String ID = "ll";
     public static final String MIME_TYPE = "application/x-sl";
@@ -203,7 +205,7 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
     private final Shape rootShape;
 
     public LLLanguage() {
-        counter++;
+        counter.incrementAndGet();
         this.rootShape = Shape.newBuilder().layout(LLObject.class).build();
     }
 
@@ -221,7 +223,8 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
          * the functions with the LLContext happens lazily in LLEvalRootNode.
          */
         if (request.getArgumentNames().isEmpty()) {
-            functions = LazyLanguageParser.parseLL(this, source);
+            LLParser parser = new LLParser(this, source);
+            functions = parser.getAllFunctions();
         } else {
             StringBuilder sb = new StringBuilder();
             sb.append("function main(");
@@ -236,7 +239,8 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
             sb.append(";}");
             String language = source.getLanguage() == null ? ID : source.getLanguage();
             Source decoratedSource = Source.newBuilder(language, sb.toString(), source.getName()).build();
-            functions = LazyLanguageParser.parseLL(this, decoratedSource);
+            LLParser parser = new LLParser(this, decoratedSource);
+            functions = parser.getAllFunctions();
         }
 
         RootCallTarget main = functions.get("main");

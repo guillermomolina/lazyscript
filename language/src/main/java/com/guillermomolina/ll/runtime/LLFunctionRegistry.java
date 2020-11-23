@@ -46,11 +46,11 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import com.guillermomolina.ll.LLLanguage;
+import com.guillermomolina.ll.parser.LLParser;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.source.Source;
-import com.guillermomolina.ll.LLLanguage;
-import com.guillermomolina.ll.parser.LazyLanguageParser;
 
 /**
  * Manages the mapping from function names to {@link LLFunction function objects}.
@@ -95,7 +95,8 @@ public final class LLFunctionRegistry {
     }
 
     public void register(Source newFunctions) {
-        register(LazyLanguageParser.parseLL(language, newFunctions));
+        LLParser parser = new LLParser(language, newFunctions);
+        register(parser.getAllFunctions());
     }
 
     public LLFunction getFunction(String name) {

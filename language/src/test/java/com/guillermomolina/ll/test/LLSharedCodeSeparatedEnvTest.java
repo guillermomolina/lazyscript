@@ -47,6 +47,10 @@ import static org.junit.Assert.assertNotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import com.guillermomolina.ll.LLLanguage;
+import com.oracle.truffle.api.instrumentation.EventBinding;
+import com.oracle.truffle.api.instrumentation.TruffleInstrument;
+
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
 import org.graalvm.polyglot.Instrument;
@@ -54,10 +58,6 @@ import org.graalvm.polyglot.PolyglotAccess;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.oracle.truffle.api.instrumentation.EventBinding;
-import com.oracle.truffle.api.instrumentation.TruffleInstrument;
-import com.guillermomolina.ll.LLLanguage;
 
 public class LLSharedCodeSeparatedEnvTest {
 
@@ -76,7 +76,7 @@ public class LLSharedCodeSeparatedEnvTest {
         os1 = new ByteArrayOutputStream();
         os2 = new ByteArrayOutputStream();
 
-        int instances = LLLanguage.counter;
+        int instances = LLLanguage.counter.get();
         // @formatter:off
         e1 = Context.newBuilder("ll").engine(engine).out(os1).allowPolyglotAccess(PolyglotAccess.ALL).build();
         e1.getPolyglotBindings().putMember("extra", 1);
@@ -84,7 +84,7 @@ public class LLSharedCodeSeparatedEnvTest {
         e2.getPolyglotBindings().putMember("extra", 2);
         e1.initialize("ll");
         e2.initialize("ll");
-        assertEquals("One LLLanguage instance created", instances + 1, LLLanguage.counter);
+        assertEquals("One LLLanguage instance created", instances + 1, LLLanguage.counter.get());
     }
 
     @After

@@ -51,7 +51,8 @@ import org.antlr.v4.runtime.Token;
 
 public class LLParseError extends RuntimeException implements TruffleException {
 
-    public static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = -8856095491491956089L;
+
     private final Source source;
     private final int line;
     private final int column;
