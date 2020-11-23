@@ -75,7 +75,7 @@ touch "$LANGUAGE_PATH/native-image.properties"
 mkdir -p "$COMPONENT_DIR/META-INF"
 {
     echo "Bundle-Name: Lazy Language";
-    echo "Bundle-Symbolic-Name: com.guillermomolina.ll";
+    echo "Bundle-Symbolic-Name: com.guillermomolina.lazylanguage";
     echo "Bundle-Version: $GRAALVM_VERSION";
     echo "Bundle-RequireCapability: org.graalvm; filter:=\"(&(graalvm_version=$GRAALVM_VERSION)(os_arch=amd64))\"";
     echo "x-GraalVM-Polyglot-Part: True"

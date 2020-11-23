@@ -47,5 +47,5 @@ fi
 "$JAVA_HOME"/bin/native-image \
     --macro:truffle --no-fallback --initialize-at-build-time \
     -cp ../language/target/lazylanguage.jar:../launcher/target/ll-launcher.jar \
-    com.guillermomolina.ll.launcher.LLMain \
+    com.guillermomolina.lazylanguage.launcher.LLMain \
     llnative
