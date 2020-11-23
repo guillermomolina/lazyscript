@@ -59,7 +59,7 @@ public class LLParseError extends RuntimeException implements TruffleException {
     private final int length;
 
     public LLParseError(Source source, int line, int column, int length, String message) {
-        super(message);
+        super(String.format("Error(s) parsing script:%n" + "-- line " + line + " col " + column + ": " + message));
         this.source = source;
         this.line = line;
         this.column = column;
