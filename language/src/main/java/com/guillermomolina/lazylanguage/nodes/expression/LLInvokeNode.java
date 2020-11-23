@@ -55,7 +55,7 @@ import com.guillermomolina.lazylanguage.runtime.LLFunction;
 import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
 
 /**
- * The node for function invocation in LL. Since LL has first class functions, the {@link LLFunction
+ * The node for function invocation in Lazy. Since Lazy has first class functions, the {@link LLFunction
  * target function} can be computed by an arbitrary expression. This node is responsible for
  * evaluating this expression, as well as evaluating the {@link #argumentNodes arguments}. The
  * actual invocation is delegated to a {@link InteropLibrary} instance.

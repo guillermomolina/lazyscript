@@ -57,10 +57,10 @@ import com.guillermomolina.lazylanguage.runtime.LLNull;
  *
  * <ul>
  * <li>Lazily registration of functions on first execution. This fulfills the semantics of
- * "evaluating" source code in LL.</li>
- * <li>Conversion of arguments to types understood by LL. The LL source code can be evaluated from a
+ * "evaluating" source code in Lazy.</li>
+ * <li>Conversion of arguments to types understood by Lazy. The Lazy source code can be evaluated from a
  * different language, i.e., the caller can be a node from a different language that uses types not
- * understood by LL.</li>
+ * understood by Lazy.</li>
  * </ul>
  */
 public final class LLEvalRootNode extends RootNode {
@@ -110,7 +110,7 @@ public final class LLEvalRootNode extends RootNode {
             /* The source code did not have a "main" function, so nothing to execute. */
             return LLNull.SINGLETON;
         } else {
-            /* Conversion of arguments to types understood by LL. */
+            /* Conversion of arguments to types understood by Lazy. */
             Object[] arguments = frame.getArguments();
             for (int i = 0; i < arguments.length; i++) {
                 arguments[i] = LLContext.fromForeignValue(arguments[i]);

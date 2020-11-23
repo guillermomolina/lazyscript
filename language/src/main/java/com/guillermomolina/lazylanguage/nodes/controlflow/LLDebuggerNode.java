@@ -47,7 +47,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
 
 /**
- * Implementation of the LL debugger statement. When under the debugger, execution suspends here.
+ * Implementation of the Lazy debugger statement. When under the debugger, execution suspends here.
  */
 @NodeInfo(shortName = "debugger", description = "The node implementing a debugger statement")
 public class LLDebuggerNode extends LLStatementNode {

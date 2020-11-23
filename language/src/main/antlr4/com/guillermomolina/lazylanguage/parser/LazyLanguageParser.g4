@@ -45,50 +45,51 @@ function:
 
 functionParameters: IDENTIFIER ( COMMA IDENTIFIER)*;
 
-block:
-	LCURLY (statement)* RCURLY;
+block: LCURLY (statement)* RCURLY;
 
 statement:
 	(
 		whileStatement
-		| breakStatement
-		| continueStatement
 		| ifStatement
-		| returnStatement
-		| expressionStatement
-		| debuggerStatement
+		| breakStatement SEMI
+		| continueStatement SEMI
+		| expression SEMI
+		| returnStatement SEMI
+		| debuggerStatement SEMI
 	);
 
 whileStatement:
 	WHILE LPAREN condition = expression RPAREN block;
 
-breakStatement:  BREAK SEMI;
+breakStatement: BREAK;
 
-continueStatement:  CONTINUE SEMI;
+continueStatement: CONTINUE;
 
 ifStatement:
 	IF LPAREN condition = expression RPAREN then = block (
 		ELSE block
 	)?;
 
-returnStatement: RETURN expression? SEMI;
+returnStatement: RETURN expression?;
 
-expressionStatement: expression SEMI;
+debuggerStatement: DEBUGGER;
 
-debuggerStatement: DEBUGGER SEMI;
+expression: logicTerm ( OR logicTerm)*;
 
-expression: logicTerm ( op = OR logicTerm)*;
-
-logicTerm: logicFactor ( op = AND logicFactor)*;
+logicTerm: logicFactor ( AND logicFactor)*;
 
 logicFactor:
-	arithmetic (
-		op = (LT | LE | GT | GE | EQUAL | NOT_EQUAL) arithmetic
+	left = arithmetic (
+		op = (LT | LE | GT | GE | EQUAL | NOT_EQUAL) right = arithmetic
 	)?;
 
-arithmetic: term ( op = (ADD | SUB) term)*;
+arithmetic: term (termOperator term)*;
 
-term: factor ( op = (MUL | DIV) factor)*;
+termOperator: ADD | SUB;
+
+term: factor ( factorOperator factor)*;
+
+factorOperator: MUL | DIV;
 
 factor:
 	(

@@ -47,7 +47,7 @@ import com.guillermomolina.lazylanguage.LLException;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 
 /**
- * Logical operations in LL use short circuit evaluation: if the evaluation of the left operand
+ * Logical operations in Lazy use short circuit evaluation: if the evaluation of the left operand
  * already decides the result of the operation, the right operand must not be executed. This is
  * expressed in using this base class for {@link LLLogicalAndNode} and {@link LLLogicalOrNode}.
  */

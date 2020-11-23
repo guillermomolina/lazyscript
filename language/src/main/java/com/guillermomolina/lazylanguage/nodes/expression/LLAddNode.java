@@ -51,7 +51,7 @@ import com.guillermomolina.lazylanguage.nodes.LLTypes;
 import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
 
 /**
- * LL node that performs the "+" operation, which performs addition on arbitrary precision numbers,
+ * Lazy node that performs the "+" operation, which performs addition on arbitrary precision numbers,
  * as well as String concatenation if one of the operands is a String.
  * <p>
  * Type specialization on the input values is essential for the performance. This is achieved via
@@ -102,7 +102,7 @@ public abstract class LLAddNode extends LLBinaryNode {
     }
 
     /**
-     * Specialization for String concatenation. The LL specification says that String concatenation
+     * Specialization for String concatenation. The Lazy specification says that String concatenation
      * works if either the left or the right operand is a String. The non-string operand is
      * converted then automatically converted to a String.
      * <p>

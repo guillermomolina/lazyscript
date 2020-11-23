@@ -37,13 +37,13 @@
         },
         {
             "type": "java",
-            "name": "Debug (Launch) LLMain SumCall.lazy",
+            "name": "Debug (Launch) LLMain Arithmetic.lazy",
             "request": "launch",
             "mainClass": "com.guillermomolina.lazylanguage.launcher.LLMain",
             "projectName": "launcher",
             "args": [
                 "--log.lazylanguage.level=FINEST",
-                "${workspaceFolder}/language/tests/SumCall.lazy",
+                "${workspaceFolder}/language/tests/Arithmetic.lazy",
             ],
             "vmArgs": [
                 "-ea",
@@ -104,7 +104,7 @@
         {
             "name": "Debug Lazy Language + Attach",
             "configurations": [
-                "Debug (Launch and Wait) LLMain",
+                "Debug (Launch and Wait) Current File",
                 "GraalVM Attach"
             ]
         }

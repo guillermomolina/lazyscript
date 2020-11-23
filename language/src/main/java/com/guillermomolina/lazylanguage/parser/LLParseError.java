@@ -65,16 +65,16 @@ public class LLParseError extends RuntimeException implements TruffleException {
         this.column = column;
         this.length = length;
     }
+
     public LLParseError(Source source, ParserRuleContext ctx, String message) {
         this(source, ctx.start.getLine(), ctx.start.getCharPositionInLine() + 1,
                 ctx.stop.getStopIndex() - ctx.start.getStartIndex(), message);
     }
 
     public LLParseError(Source source, Token token, String message) {
-        this(source, token.getLine(), token.getCharPositionInLine() + 1, token.getStopIndex() - token.getStartIndex(),
-                message);
+        this(source, token.getLine(), token.getCharPositionInLine() + 1,
+                token == null ? 1 : Math.max(token.getStopIndex() - token.getStartIndex(), 0), message);
     }
-
 
     @Override
     public SourceSection getSourceLocation() {

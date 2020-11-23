@@ -117,7 +117,7 @@ public final class LLWhileRepeatingNode extends Node implements RepeatingNode {
             return conditionNode.executeBoolean(frame);
         } catch (UnexpectedResultException ex) {
             /*
-             * The condition evaluated to a non-boolean result. This is a type error in the LL
+             * The condition evaluated to a non-boolean result. This is a type error in the Lazy
              * program. We report it with the same exception that Truffle DLL generated nodes use to
              * report type errors.
              */

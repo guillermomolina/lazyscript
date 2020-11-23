@@ -333,7 +333,7 @@ public class LLDebugDirectTest {
 
         String val = value.toString();
         assertNotNull(val);
-        assertEquals("LL displays null as NULL", "NULL", val);
+        assertEquals("Lazy displays null as NULL", "NULL", val);
     }
 
     private void performWork() {

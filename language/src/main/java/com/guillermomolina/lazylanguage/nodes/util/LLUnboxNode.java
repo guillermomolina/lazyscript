@@ -55,7 +55,7 @@ import com.guillermomolina.lazylanguage.runtime.LLFunction;
 import com.guillermomolina.lazylanguage.runtime.LLNull;
 
 /**
- * The node to normalize any value to an LL value. This is useful to reduce the number of values
+ * The node to normalize any value to an Lazy value. This is useful to reduce the number of values
  * expression nodes need to expect.
  */
 @TypeSystemReference(LLTypes.class)

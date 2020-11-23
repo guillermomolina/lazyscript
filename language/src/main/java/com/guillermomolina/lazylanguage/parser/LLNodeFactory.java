@@ -100,9 +100,9 @@ import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 /**
- * Helper class used by the LL {@link Parser} to create nodes. The code is
+ * Helper class used by the Lazy {@link Parser} to create nodes. The code is
  * factored out of the automatically generated parser to keep the attributed
- * grammar of LL small.
+ * grammar of Lazy small.
  */
 public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
 
@@ -269,8 +269,12 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitExpressionStatement(LazyLanguageParser.ExpressionStatementContext ctx) {
-        return visit(ctx.expression());
+    public Node visitStatement(LazyLanguageParser.StatementContext ctx) {
+        // Tricky: avoid calling visit on ctx.SEMI()
+        if(ctx.getChild(0) != null && ctx.getChild(0) != ctx.SEMI()) {
+            return visit(ctx.getChild(0));
+        }
+        throw new LLParseError(source, ctx, "Malformed statement");
     }
 
     public LLExpressionNode createMemberExpression(LazyLanguageParser.MemberExpressionContext ctx, LLExpressionNode r,
@@ -323,7 +327,15 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
         LLExpressionNode leftNode = null;
         for (final LazyLanguageParser.LogicTermContext context : ctx.logicTerm()) {
             final LLExpressionNode rightNode = (LLExpressionNode) visit(context);
-            leftNode = leftNode == null ? rightNode : createBinary(ctx, ctx.op, leftNode, rightNode);
+            if (leftNode == null) {
+                leftNode = rightNode;
+            } else {
+                final LLExpressionNode leftUnboxed = LLUnboxNodeGen.create(leftNode);
+                final LLExpressionNode rightUnboxed = LLUnboxNodeGen.create(rightNode);
+                leftNode = new LLLogicalOrNode(leftUnboxed, rightUnboxed);
+                setSourceFromContext(leftNode, ctx);
+                leftNode.addExpressionTag();
+            }
         }
         return leftNode;
     }
@@ -333,17 +345,51 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
         LLExpressionNode leftNode = null;
         for (final LazyLanguageParser.LogicFactorContext context : ctx.logicFactor()) {
             final LLExpressionNode rightNode = (LLExpressionNode) visit(context);
-            leftNode = leftNode == null ? rightNode : createBinary(ctx, ctx.op, leftNode, rightNode);
+            if (leftNode == null) {
+                leftNode = rightNode;
+            } else {
+                final LLExpressionNode leftUnboxed = LLUnboxNodeGen.create(leftNode);
+                final LLExpressionNode rightUnboxed = LLUnboxNodeGen.create(rightNode);
+                leftNode = new LLLogicalAndNode(leftUnboxed, rightUnboxed);
+                setSourceFromContext(leftNode, ctx);
+                leftNode.addExpressionTag();
+            }
         }
         return leftNode;
     }
 
     @Override
     public Node visitLogicFactor(LazyLanguageParser.LogicFactorContext ctx) {
-        LLExpressionNode leftNode = null;
-        for (final LazyLanguageParser.ArithmeticContext context : ctx.arithmetic()) {
-            final LLExpressionNode rightNode = (LLExpressionNode) visit(context);
-            leftNode = leftNode == null ? rightNode : createBinary(ctx, ctx.op, leftNode, rightNode);
+        LLExpressionNode leftNode = (LLExpressionNode) visit(ctx.left);
+        if (ctx.op != null) {
+            final LLExpressionNode rightNode = (LLExpressionNode) visit(ctx.right);
+            final LLExpressionNode leftUnboxed = LLUnboxNodeGen.create(leftNode);
+            final LLExpressionNode rightUnboxed = LLUnboxNodeGen.create(rightNode);
+            final String operator = ctx.op.getText();
+            switch (operator) {
+                case "<":
+                    leftNode = LLLessThanNodeGen.create(leftUnboxed, rightUnboxed);
+                    break;
+                case "<=":
+                    leftNode = LLLessOrEqualNodeGen.create(leftUnboxed, rightUnboxed);
+                    break;
+                case ">":
+                    leftNode = LLLogicalNotNodeGen.create(LLLessOrEqualNodeGen.create(leftUnboxed, rightUnboxed));
+                    break;
+                case ">=":
+                    leftNode = LLLogicalNotNodeGen.create(LLLessThanNodeGen.create(leftUnboxed, rightUnboxed));
+                    break;
+                case "==":
+                    leftNode = LLEqualNodeGen.create(leftUnboxed, rightUnboxed);
+                    break;
+                case "!=":
+                    leftNode = LLLogicalNotNodeGen.create(LLEqualNodeGen.create(leftUnboxed, rightUnboxed));
+                    break;
+                default:
+                    throw new LLParseError(source, ctx, "Invalid operator: " + operator);
+            }
+            setSourceFromContext(leftNode, ctx);
+            leftNode.addExpressionTag();
         }
         return leftNode;
     }
@@ -351,9 +397,25 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     @Override
     public Node visitArithmetic(LazyLanguageParser.ArithmeticContext ctx) {
         LLExpressionNode leftNode = null;
-        for (final LazyLanguageParser.TermContext context : ctx.term()) {
-            final LLExpressionNode rightNode = (LLExpressionNode) visit(context);
-            leftNode = leftNode == null ? rightNode : createBinary(ctx, ctx.op, leftNode, rightNode);
+        int index = 0;
+        for (final LazyLanguageParser.TermContext termCtx : ctx.term()) {
+            final LLExpressionNode rightNode = (LLExpressionNode) visit(termCtx);
+            if (leftNode == null) {
+                leftNode = rightNode;
+            } else {
+                final LazyLanguageParser.TermOperatorContext operatorCtx = ctx.termOperator(index++);
+                final LLExpressionNode leftUnboxed = LLUnboxNodeGen.create(leftNode);
+                final LLExpressionNode rightUnboxed = LLUnboxNodeGen.create(rightNode);
+                if (operatorCtx.ADD() != null) {
+                    leftNode = LLAddNodeGen.create(leftUnboxed, rightUnboxed);
+                } else if (operatorCtx.SUB() != null) {
+                    leftNode = LLSubNodeGen.create(leftUnboxed, rightUnboxed);
+                } else {
+                    throw new LLParseError(source, ctx, "Invalid operator: " + operatorCtx.getText());
+                }
+                setSourceFromContext(leftNode, ctx);
+                leftNode.addExpressionTag();
+            }
         }
         return leftNode;
     }
@@ -361,9 +423,25 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     @Override
     public Node visitTerm(LazyLanguageParser.TermContext ctx) {
         LLExpressionNode leftNode = null;
-        for (final LazyLanguageParser.FactorContext context : ctx.factor()) {
-            final LLExpressionNode rightNode = (LLExpressionNode) visit(context);
-            leftNode = leftNode == null ? rightNode : createBinary(ctx, ctx.op, leftNode, rightNode);
+        int index = 0;
+        for (final LazyLanguageParser.FactorContext factorCtx : ctx.factor()) {
+            final LLExpressionNode rightNode = (LLExpressionNode) visit(factorCtx);
+            if (leftNode == null) {
+                leftNode = rightNode;
+            } else {
+                final LazyLanguageParser.FactorOperatorContext operatorCtx = ctx.factorOperator(index++);
+                final LLExpressionNode leftUnboxed = LLUnboxNodeGen.create(leftNode);
+                final LLExpressionNode rightUnboxed = LLUnboxNodeGen.create(rightNode);
+                if (operatorCtx.MUL() != null) {
+                    leftNode = LLMulNodeGen.create(leftUnboxed, rightUnboxed);
+                } else if (operatorCtx.DIV() != null) {
+                    leftNode = LLDivNodeGen.create(leftUnboxed, rightUnboxed);
+                } else {
+                    throw new LLParseError(source, ctx, "Invalid operator: " + operatorCtx.getText());
+                }
+                setSourceFromContext(leftNode, ctx);
+                leftNode.addExpressionTag();
+            }
         }
         return leftNode;
     }
@@ -467,75 +545,6 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     }
 
     /**
-     * Returns the corresponding subclass of {@link LLExpressionNode} for binary
-     * expressions. </br>
-     * These nodes are currently not instrumented.
-     *
-     * @param opToken   The operator of the binary expression
-     * @param leftNode  The left node of the expression
-     * @param rightNode The right node of the expression
-     * @return A subclass of LLExpressionNode using the given parameters based on
-     *         the given opToken. null if either leftNode or rightNode is null.
-     */
-    public LLExpressionNode createBinary(ParserRuleContext ctx, Token opToken, LLExpressionNode leftNode,
-            LLExpressionNode rightNode) {
-        if (leftNode == null || rightNode == null) {
-            return null;
-        }
-        final LLExpressionNode leftUnboxed = LLUnboxNodeGen.create(leftNode);
-        final LLExpressionNode rightUnboxed = LLUnboxNodeGen.create(rightNode);
-
-        final LLExpressionNode result;
-        switch (opToken.getText()) {
-            case "+":
-                result = LLAddNodeGen.create(leftUnboxed, rightUnboxed);
-                break;
-            case "*":
-                result = LLMulNodeGen.create(leftUnboxed, rightUnboxed);
-                break;
-            case "/":
-                result = LLDivNodeGen.create(leftUnboxed, rightUnboxed);
-                break;
-            case "-":
-                result = LLSubNodeGen.create(leftUnboxed, rightUnboxed);
-                break;
-            case "<":
-                result = LLLessThanNodeGen.create(leftUnboxed, rightUnboxed);
-                break;
-            case "<=":
-                result = LLLessOrEqualNodeGen.create(leftUnboxed, rightUnboxed);
-                break;
-            case ">":
-                result = LLLogicalNotNodeGen.create(LLLessOrEqualNodeGen.create(leftUnboxed, rightUnboxed));
-                break;
-            case ">=":
-                result = LLLogicalNotNodeGen.create(LLLessThanNodeGen.create(leftUnboxed, rightUnboxed));
-                break;
-            case "==":
-                result = LLEqualNodeGen.create(leftUnboxed, rightUnboxed);
-                break;
-            case "!=":
-                result = LLLogicalNotNodeGen.create(LLEqualNodeGen.create(leftUnboxed, rightUnboxed));
-                break;
-            case "&&":
-                result = new LLLogicalAndNode(leftUnboxed, rightUnboxed);
-                break;
-            case "||":
-                result = new LLLogicalOrNode(leftUnboxed, rightUnboxed);
-                break;
-            default:
-                throw new LLParseError(source, ctx, "unexpected operation: " + opToken.getText());
-        }
-
-        int start = leftNode.getSourceCharIndex();
-        int length = rightNode.getSourceEndIndex() - start;
-        result.setSourceSection(start, length);
-        result.addExpressionTag();
-
-        return result;
-    }
-
-    /**
      * Returns an {@link LLInvokeNode} for the given parameters.
      *
      * @param functionNode   The function being called
@@ -607,7 +616,7 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
 
     /**
      * Returns a {@link LLReadLocalVariableNode} if this read is a local variable or
-     * a {@link LLFunctionLiteralNode} if this read is global. In LL, the only
+     * a {@link LLFunctionLiteralNode} if this read is global. In Lazy, the only
      * global names are functions.
      *
      * @param nameNode The name of the variable/function being read

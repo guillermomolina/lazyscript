@@ -100,7 +100,7 @@ public final class LLBlockNode extends LLStatementNode implements BlockNode.Elem
      * tells the framework how block element nodes should be executed. The executor allows to add a
      * custom exception handler for each element, e.g. to handle a specific
      * {@link ControlFlowException} or to pass a customizable argument, that allows implement
-     * startsWith semantics if needed. For LL we don't need to pass any argument as we just have
+     * startsWith semantics if needed. For Lazy we don't need to pass any argument as we just have
      * plain block nodes, therefore we pass {@link BlockNode#NO_ARGUMENT}. In our case the executor
      * does not need to remember any state so we reuse a singleton instance.
      */

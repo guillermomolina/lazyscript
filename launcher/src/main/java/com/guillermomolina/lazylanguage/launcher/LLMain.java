@@ -55,7 +55,7 @@ import org.graalvm.polyglot.Value;
 
 public final class LLMain {
 
-    private static final String LL = "lazy";
+    private static final String Lazy = "lazy";
 
     /**
      * The main entry point.
@@ -76,10 +76,10 @@ public final class LLMain {
 
         if (file == null) {
             // @formatter:off
-            source = Source.newBuilder(LL, new InputStreamReader(System.in), "<stdin>").build();
+            source = Source.newBuilder(Lazy, new InputStreamReader(System.in), "<stdin>").build();
             // @formatter:on
         } else {
-            source = Source.newBuilder(LL, new File(file)).build();
+            source = Source.newBuilder(Lazy, new File(file)).build();
         }
 
         System.exit(executeSource(source, System.in, System.out, options));
@@ -89,7 +89,7 @@ public final class LLMain {
         Context context;
         PrintStream err = System.err;
         try {
-            context = Context.newBuilder(LL).in(in).out(out).options(options).build();
+            context = Context.newBuilder(Lazy).in(in).out(out).options(options).build();
         } catch (IllegalArgumentException e) {
             err.println(e.getMessage());
             return 1;
@@ -98,8 +98,8 @@ public final class LLMain {
 
         try {
             Value result = context.eval(source);
-            if (context.getBindings(LL).getMember("main") == null) {
-                err.println("No function main() defined in LL source file.");
+            if (context.getBindings(Lazy).getMember("main") == null) {
+                err.println("No function main() defined in Lazy source file.");
                 return 1;
             }
             if (!result.isNull()) {

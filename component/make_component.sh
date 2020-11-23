@@ -85,7 +85,7 @@ mkdir -p "$COMPONENT_DIR/META-INF"
 cd $COMPONENT_DIR || exit 1
 jar cfm ../ll-component.jar META-INF/MANIFEST.MF .
 
-echo "bin/lazy= ../$JRE/languages/lazylanguage/bin/lazy" > META-INF/symlinks
+echo "bin/lazy = ../$JRE/languages/lazylanguage/bin/lazy" > META-INF/symlinks
 if [[ $INCLUDE_LLNATIVE = "TRUE" ]]; then
     echo "bin/llnative = ../$JRE/languages/lazylanguage/bin/llnative" >> META-INF/symlinks
 fi

@@ -90,7 +90,7 @@ public final class LLIfNode extends LLStatementNode {
             /* Execute the then-branch. */
             thenPartNode.executeVoid(frame);
         } else {
-            /* Execute the else-branch (which is optional according to the LL syntax). */
+            /* Execute the else-branch (which is optional according to the Lazy syntax). */
             if (elsePartNode != null) {
                 elsePartNode.executeVoid(frame);
             }
@@ -106,7 +106,7 @@ public final class LLIfNode extends LLStatementNode {
             return conditionNode.executeBoolean(frame);
         } catch (UnexpectedResultException ex) {
             /*
-             * The condition evaluated to a non-boolean result. This is a type error in the LL
+             * The condition evaluated to a non-boolean result. This is a type error in the Lazy
              * program.
              */
             throw LLException.typeError(this, ex.getResult());

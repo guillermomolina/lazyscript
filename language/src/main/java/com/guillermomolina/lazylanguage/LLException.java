@@ -53,8 +53,8 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.SourceSection;
 
 /**
- * LL does not need a sophisticated error checking and reporting mechanism, so all unexpected
- * conditions just abort execution. This exception class is used when we abort from within the LL
+ * Lazy does not need a sophisticated error checking and reporting mechanism, so all unexpected
+ * conditions just abort execution. This exception class is used when we abort from within the Lazy
  * implementation.
  */
 public class LLException extends RuntimeException implements TruffleException {
@@ -80,7 +80,7 @@ public class LLException extends RuntimeException implements TruffleException {
     }
 
     /**
-     * Provides a user-readable message for run-time type errors. LL is strongly typed, i.e., there
+     * Provides a user-readable message for run-time type errors. Lazy is strongly typed, i.e., there
      * are no automatic type conversions of values.
      */
     @TruffleBoundary

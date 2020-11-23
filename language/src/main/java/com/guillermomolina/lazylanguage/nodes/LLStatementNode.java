@@ -54,11 +54,11 @@ import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 /**
- * The base class of all Truffle nodes for LL. All nodes (even expressions) can be used as
+ * The base class of all Truffle nodes for Lazy. All nodes (even expressions) can be used as
  * statements, i.e., without returning a value. The {@link VirtualFrame} provides access to the
  * local variables.
  */
-@NodeInfo(language = "LL", description = "The abstract base node for all LL statements")
+@NodeInfo(language = "Lazy", description = "The abstract base node for all Lazy statements")
 @GenerateWrapper
 public abstract class LLStatementNode extends Node implements InstrumentableNode {
 

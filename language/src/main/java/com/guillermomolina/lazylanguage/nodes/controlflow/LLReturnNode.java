@@ -47,7 +47,7 @@ import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
 import com.guillermomolina.lazylanguage.runtime.LLNull;
 
 /**
- * Implementation of the LL return statement. We need to unwind an unknown number of interpreter
+ * Implementation of the Lazy return statement. We need to unwind an unknown number of interpreter
  * frames that are between this {@link LLReturnNode} and the {@link LLFunctionBodyNode} of the
  * method we are exiting. This is done by throwing an {@link LLReturnException exception} that is
  * caught by the {@link LLFunctionBodyNode#executeGeneric function body}. The exception transports
@@ -69,7 +69,7 @@ public final class LLReturnNode extends LLStatementNode {
             result = valueNode.executeGeneric(frame);
         } else {
             /*
-             * Return statement that was not followed by an expression, so return the LL null value.
+             * Return statement that was not followed by an expression, so return the Lazy null value.
              */
             result = LLNull.SINGLETON;
         }

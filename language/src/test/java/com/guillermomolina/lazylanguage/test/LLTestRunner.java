@@ -326,7 +326,7 @@ public class LLTestRunner extends ParentRunner<TestCase> {
 
     private static void run(Context context, Path path, PrintWriter out) throws IOException {
         try {
-            /* Parse the LL source file. */
+            /* Parse the Lazy source file. */
             Source source = Source.newBuilder(LLLanguage.ID, path.toFile()).interactive(true).build();
 
             /* Call the main entry point, without any arguments. */

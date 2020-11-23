@@ -55,7 +55,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public abstract class LLTypeOfBuiltin extends LLBuiltinNode {
 
     /*
-     * This returns the LL type for a particular operand value.
+     * This returns the Lazy type for a particular operand value.
      */
     @Specialization(limit = "3")
     @ExplodeLoop

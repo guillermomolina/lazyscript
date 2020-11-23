@@ -31,16 +31,19 @@ public class LLParser {
     public Map<String, RootCallTarget> getAllFunctions() {
         return factory.getAllFunctions();
     }
-    
+
     private static final class BailoutErrorListener extends BaseErrorListener {
         private final Source source;
+
         BailoutErrorListener(Source source) {
             this.source = source;
         }
+
         @Override
-        public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
+        public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
+                String msg, RecognitionException e) {
             Token token = (Token) offendingSymbol;
             throw new LLParseError(source, token, msg);
-            }
+        }
     }
 }

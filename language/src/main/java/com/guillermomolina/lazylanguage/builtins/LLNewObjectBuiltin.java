@@ -58,7 +58,7 @@ import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
- * Built-in function to create a new object. Objects in LL are simply made up of name/value pairs.
+ * Built-in function to create a new object. Objects in Lazy are simply made up of name/value pairs.
  */
 @NodeInfo(shortName = "new")
 public abstract class LLNewObjectBuiltin extends LLBuiltinNode {

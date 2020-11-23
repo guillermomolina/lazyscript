@@ -52,7 +52,7 @@ import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
 import com.guillermomolina.lazylanguage.runtime.LLNull;
 
 /**
- * The type system of LL, as explained in {@link LLLanguage}. Based on the {@link TypeSystem}
+ * The type system of Lazy, as explained in {@link LLLanguage}. Based on the {@link TypeSystem}
  * annotation, the Truffle DLL generates the subclass {@link LLTypesGen} with type test and type
  * conversion methods for some types. In this class, we only cover types where the automatically
  * generated ones would not be sufficient.
@@ -84,7 +84,7 @@ public abstract class LLTypes {
 
     /**
      * Informs the Truffle DLL that a primitive {@code long} value can be used in all
-     * specializations where a {@link LLBigNumber} is expected. This models the semantic of LL: It
+     * specializations where a {@link LLBigNumber} is expected. This models the semantic of Lazy: It
      * only has an arbitrary precision Number type (implemented as {@link LLBigNumber}, and
      * {@code long} is only used as a performance optimization to avoid the costly
      * {@link LLBigNumber} arithmetic for values that fit into a 64-bit primitive value.

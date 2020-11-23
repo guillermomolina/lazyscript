@@ -96,7 +96,7 @@ import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
 import com.oracle.truffle.tck.DebuggerTester;
 
 /**
- * Test of LL instrumentation.
+ * Test of Lazy instrumentation.
  */
 public class LLInstrumentTest {
 

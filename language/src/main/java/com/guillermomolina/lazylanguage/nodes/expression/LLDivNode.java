@@ -50,7 +50,7 @@ import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
 
 /**
  * This class is similar to the extensively documented {@link LLAddNode}. Divisions by 0 throw the
- * same {@link ArithmeticException exception} as in Java, LL has no special handling for it to keep
+ * same {@link ArithmeticException exception} as in Java, Lazy has no special handling for it to keep
  * the code lazy.
  */
 @NodeInfo(shortName = "/")

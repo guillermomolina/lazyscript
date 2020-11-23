@@ -45,7 +45,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
 
 /**
- * Implementation of the LL break statement. We need to unwind an unknown number of interpreter
+ * Implementation of the Lazy break statement. We need to unwind an unknown number of interpreter
  * frames that are between this {@link LLBreakNode} and the {@link LLWhileNode} of the loop we are
  * breaking out. This is done by throwing an {@link LLBreakException exception} that is caught by
  * the {@link LLWhileNode#executeVoid loop node}.

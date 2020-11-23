@@ -85,7 +85,7 @@ import com.guillermomolina.lazylanguage.nodes.LLRootNode;
 import com.guillermomolina.lazylanguage.nodes.local.LLReadArgumentNode;
 
 /**
- * The run-time state of LL during execution. The context is created by the {@link LLLanguage}. It
+ * The run-time state of Lazy during execution. The context is created by the {@link LLLanguage}. It
  * is used, for example, by {@link LLBuiltinNode#getContext() builtin functions}.
  * <p>
  * It would be an error to have two different context instances during the execution of one script.
@@ -94,7 +94,7 @@ import com.guillermomolina.lazylanguage.nodes.local.LLReadArgumentNode;
  */
 public final class LLContext {
 
-    private static final Source BUILTIN_SOURCE = Source.newBuilder(LLLanguage.ID, "", "LL builtin").build();
+    private static final Source BUILTIN_SOURCE = Source.newBuilder(LLLanguage.ID, "", "Lazy builtin").build();
 
     private final Env env;
     private final BufferedReader input;

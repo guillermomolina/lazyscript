@@ -54,7 +54,7 @@ import com.guillermomolina.lazylanguage.runtime.LLFunction;
 import com.guillermomolina.lazylanguage.runtime.LLNull;
 
 /**
- * The {@code ==} operator of LL is defined on all types. Therefore, we need a
+ * The {@code ==} operator of Lazy is defined on all types. Therefore, we need a
  * {@link #equal(Object, Object) implementation} that can handle all possible types including
  * interop types.
  * <p>

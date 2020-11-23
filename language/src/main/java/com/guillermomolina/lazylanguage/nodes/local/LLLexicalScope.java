@@ -78,7 +78,7 @@ public final class LLLexicalScope {
     private Map<String, FrameSlot> varSlots;
 
     /**
-     * Create a new block LL lexical scope.
+     * Create a new block Lazy lexical scope.
      *
      * @param current the current node
      * @param block a nearest block enclosing the current node
@@ -92,7 +92,7 @@ public final class LLLexicalScope {
     }
 
     /**
-     * Create a new functional LL lexical scope.
+     * Create a new functional Lazy lexical scope.
      *
      * @param current the current node, or <code>null</code> when it would be above the block
      * @param block a nearest block enclosing the current node
@@ -111,9 +111,9 @@ public final class LLLexicalScope {
             // We're in the root.
             block = findChildrenBlock(node);
             if (block == null) {
-                // Corrupted LL AST, no block was found
+                // Corrupted Lazy AST, no block was found
                 RootNode root = node.getRootNode();
-                assert root instanceof LLEvalRootNode || root instanceof LLRootNode : "Corrupted LL AST under " + node;
+                assert root instanceof LLEvalRootNode || root instanceof LLRootNode : "Corrupted Lazy AST under " + node;
                 return new LLLexicalScope(null, null, (LLBlockNode) null);
             }
             node = null; // node is above the block
@@ -303,7 +303,7 @@ public final class LLLexicalScope {
                     args.put(name, slot);
                     return true;
                 } else if (wn == null && (node instanceof LLStatementNode)) {
-                    // A different LL node - we're done.
+                    // A different Lazy node - we're done.
                     return false;
                 } else {
                     return NodeUtil.forEachChild(node, this);

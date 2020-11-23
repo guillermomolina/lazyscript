@@ -45,7 +45,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
 
 /**
- * Implementation of the LL continue statement. We need to unwind an unknown number of interpreter
+ * Implementation of the Lazy continue statement. We need to unwind an unknown number of interpreter
  * frames that are between this {@link LLContinueNode} and the {@link LLWhileNode} of the loop we
  * are continuing. This is done by throwing an {@link LLContinueException exception} that is caught
  * by the {@link LLWhileNode#executeVoid loop node}.

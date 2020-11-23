@@ -50,12 +50,12 @@ import com.guillermomolina.lazylanguage.builtins.LLBuiltinNode;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLFunctionBodyNode;
 
 /**
- * The root of all LL execution trees. It is a Truffle requirement that the tree root extends the
+ * The root of all Lazy execution trees. It is a Truffle requirement that the tree root extends the
  * class {@link RootNode}. This class is used for both builtin and user-defined functions. For
  * builtin functions, the {@link #bodyNode} is a subclass of {@link LLBuiltinNode}. For user-defined
  * functions, the {@link #bodyNode} is a {@link LLFunctionBodyNode}.
  */
-@NodeInfo(language = "LL", description = "The root of all LL execution trees")
+@NodeInfo(language = "Lazy", description = "The root of all Lazy execution trees")
 public class LLRootNode extends RootNode {
     /** The function body that is executed, and specialized during execution. */
     @Child private LLExpressionNode bodyNode;

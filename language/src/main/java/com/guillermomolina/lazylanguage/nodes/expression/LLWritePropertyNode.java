@@ -79,7 +79,7 @@ public abstract class LLWritePropertyNode extends LLExpressionNode {
         try {
             arrays.writeArrayElement(receiver, numbers.asLong(index), value);
         } catch (UnsupportedMessageException | UnsupportedTypeException | InvalidArrayIndexException e) {
-            // read was not successful. In LL we only have basic support for errors.
+            // read was not successful. In Lazy we only have basic support for errors.
             throw LLUndefinedNameException.undefinedProperty(this, index);
         }
         return value;
@@ -92,7 +92,7 @@ public abstract class LLWritePropertyNode extends LLExpressionNode {
         try {
             objectLibrary.writeMember(receiver, asMember.execute(name), value);
         } catch (UnsupportedMessageException | UnknownIdentifierException | UnsupportedTypeException e) {
-            // write was not successful. In LL we only have basic support for errors.
+            // write was not successful. In Lazy we only have basic support for errors.
             throw LLUndefinedNameException.undefinedProperty(this, name);
         }
         return value;

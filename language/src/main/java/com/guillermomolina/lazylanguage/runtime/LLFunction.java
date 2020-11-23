@@ -66,9 +66,9 @@ import com.oracle.truffle.api.utilities.CyclicAssumption;
 import com.oracle.truffle.api.utilities.TriState;
 
 /**
- * Represents a LL function. On the Truffle level, a callable element is represented by a
+ * Represents a Lazy function. On the Truffle level, a callable element is represented by a
  * {@link RootCallTarget call target}. This class encapsulates a call target, and adds version
- * support: functions in LL can be redefined, i.e. changed at run time. When a function is
+ * support: functions in Lazy can be redefined, i.e. changed at run time. When a function is
  * redefined, the call target managed by this function object is changed (and {@link #callTarget} is
  * therefore not a final field).
  * <p>
@@ -132,7 +132,7 @@ public final class LLFunction implements TruffleObject {
 
     /**
      * This method is, e.g., called when using a function literal in a string concatenation. So
-     * changing it has an effect on LL programs.
+     * changing it has an effect on Lazy programs.
      */
     @Override
     public String toString() {
@@ -228,13 +228,13 @@ public final class LLFunction implements TruffleObject {
          * Inline cached specialization of the dispatch.
          *
          * <p>
-         * Since LL is a quite lazy language, the benefit of the inline cache seems small: after
+         * Since Lazy is a quite lazy language, the benefit of the inline cache seems small: after
          * checking that the actual function to be executed is the same as the cachedFuntion, we can
          * safely execute the cached call target. You can reasonably argue that caching the call
          * target is overkill, since we could just retrieve it via {@code function.getCallTarget()}.
          * However, caching the call target and using a {@link DirectCallNode} allows Truffle to
          * perform method inlining. In addition, in a more complex language the lookup of the call
-         * target is usually much more complicated than in LL.
+         * target is usually much more complicated than in Lazy.
          * </p>
          *
          * <p>
@@ -286,7 +286,7 @@ public final class LLFunction implements TruffleObject {
         protected static Object doIndirect(LLFunction function, Object[] arguments,
                         @Cached IndirectCallNode callNode) {
             /*
-             * LL has a quite lazy call lookup: just ask the function for the current call target,
+             * Lazy has a quite lazy call lookup: just ask the function for the current call target,
              * and call it.
              */
             return callNode.call(function.getCallTarget(), arguments);

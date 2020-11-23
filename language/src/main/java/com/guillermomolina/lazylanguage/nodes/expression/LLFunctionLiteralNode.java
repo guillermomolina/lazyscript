@@ -53,7 +53,7 @@ import com.guillermomolina.lazylanguage.runtime.LLFunctionRegistry;
 
 /**
  * Constant literal for a {@link LLFunction function} value, created when a function name occurs as
- * a literal in LL source code. Note that function redefinition can change the {@link CallTarget
+ * a literal in Lazy source code. Note that function redefinition can change the {@link CallTarget
  * call target} that is executed when calling the function, but the {@link LLFunction} for a name
  * never changes. This is guaranteed by the {@link LLFunctionRegistry}.
  */
