@@ -271,7 +271,7 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     @Override
     public Node visitStatement(LazyLanguageParser.StatementContext ctx) {
         // Tricky: avoid calling visit on ctx.SEMI()
-        if(ctx.getChild(0) != null && ctx.getChild(0) != ctx.SEMI()) {
+        if (ctx.getChild(0) != null && ctx.getChild(0) != ctx.SEMI()) {
             return visit(ctx.getChild(0));
         }
         throw new LLParseError(source, ctx, "Malformed statement");
