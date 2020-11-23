@@ -19,7 +19,7 @@
             "request": "launch",
             "mainClass": "com.guillermomolina.lazylanguage.launcher.LLMain",
             "projectName": "launcher",
-            "args": ["--log.lazylanguage.level=FINEST","${file}"],
+            "args": ["--log.lazy.level=FINEST","${file}"],
             "vmArgs": [
                 "-ea",
                 "-Dtruffle.class.path.append=./language/target/lazylanguage.jar"
@@ -42,7 +42,7 @@
             "mainClass": "com.guillermomolina.lazylanguage.launcher.LLMain",
             "projectName": "launcher",
             "args": [
-                "--log.lazylanguage.level=FINEST",
+                "--log.lazy.level=FINEST",
                 "${workspaceFolder}/language/tests/Arithmetic.lazy",
             ],
             "vmArgs": [
@@ -68,7 +68,7 @@
             "projectName": "launcher",
             "args": [
                 "--inspect",
-                "--log.lazylanguage.level=FINEST",
+                "--log.lazy.level=FINEST",
                 "${file}"
             ],
             "vmArgs": [

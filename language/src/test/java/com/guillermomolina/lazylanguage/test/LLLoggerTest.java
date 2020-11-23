@@ -241,7 +241,7 @@ public class LLLoggerTest {
     }
 
     private static Set<String> functionNames(final List<? extends LogRecord> records) {
-        return records.stream().filter((lr) -> "ll.com.guillermomolina.lazylanguage.runtime.LLFunction".equals(lr.getLoggerName())).map((lr) -> (String) lr.getParameters()[0]).collect(Collectors.toSet());
+        return records.stream().filter((lr) -> "lazy.com.guillermomolina.lazylanguage.runtime.LLFunction".equals(lr.getLoggerName())).map((lr) -> (String) lr.getParameters()[0]).collect(Collectors.toSet());
     }
 
     private static final class TestHandler extends Handler {
