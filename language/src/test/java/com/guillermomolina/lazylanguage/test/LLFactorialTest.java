@@ -57,7 +57,7 @@ public class LLFactorialTest {
     public void initEngine() throws Exception {
         context = Context.create();
         // @formatter:off
-        context.eval("ll", "\n" +
+        context.eval("lazy", "\n" +
                 "function fac(n) {\n" +
                 "  if (n <= 1) {\n" +
                 "    return 1;\n" +
@@ -67,7 +67,7 @@ public class LLFactorialTest {
                 "}\n"
         );
         // @formatter:on
-        factorial = context.getBindings("ll").getMember("fac");
+        factorial = context.getBindings("lazy").getMember("fac");
     }
 
     @After

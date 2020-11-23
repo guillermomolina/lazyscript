@@ -116,11 +116,14 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
         protected final LexicalScope outer;
         protected final Map<String, FrameSlot> locals;
         protected final boolean inLoop;
+        protected final List<LLStatementNode> statementNodes;
 
         LexicalScope(LexicalScope outer, boolean inLoop) {
             this.outer = outer;
             this.inLoop = inLoop;
             this.locals = new HashMap<>();
+            this.statementNodes = new ArrayList<>();
+
             if (outer != null) {
                 locals.putAll(outer.locals);
             }
@@ -167,6 +170,14 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
         node.setSourceSection(sourceInterval.a, sourceInterval.length());
     }
 
+    public void pushScope(boolean inLoop) {
+        lexicalScope = new LexicalScope(lexicalScope, inLoop);
+    }
+
+    public void popScope() {
+        lexicalScope = lexicalScope.outer;
+    }
+
     @Override
     public Node visitFunction(LazyLanguageParser.FunctionContext ctx) {
         assert functionStartPos == 0;
@@ -182,25 +193,21 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
         functionName = nameToken.getText();
         functionBodyStartPos = bodyStartToken.getStartIndex();
         frameDescriptor = new FrameDescriptor();
-        startBlock(false);
+        pushScope(false);
 
         int parameterCount = 0;
-        List<LLStatementNode> methodNodes = new ArrayList<>();
-        if(ctx.functionParameters() != null) {
+        if (ctx.functionParameters() != null) {
             for (TerminalNode nameNode : ctx.functionParameters().IDENTIFIER()) {
                 final LLReadArgumentNode readArg = new LLReadArgumentNode(parameterCount);
                 final LLExpressionNode stringLiteral = createStringLiteral(nameNode.getSymbol(), false);
                 LLExpressionNode assignment = createAssignment(stringLiteral, readArg, parameterCount);
-                methodNodes.add(assignment);
+                lexicalScope.statementNodes.add(assignment);
                 parameterCount++;
-            }    
+            }
         }
 
-        if (ctx.block() == null) {
-            // a state update that would otherwise be performed by finishBlock
-            lexicalScope = lexicalScope.outer;
-        } else {
-            final LLStatementNode methodBlock = finishBlock(methodNodes, ctx.block());
+        final LLStatementNode methodBlock = (LLStatementNode) visit(ctx.block());
+        if (methodBlock != null) {
             assert lexicalScope == null : "Wrong scoping of blocks in parser";
 
             final LLFunctionBodyNode functionBodyNode = new LLFunctionBodyNode(methodBlock);
@@ -221,16 +228,15 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
         return null;
     }
 
-    public void startBlock(boolean inLoop) {
-        lexicalScope = new LexicalScope(lexicalScope, inLoop);
-    }
+    @Override
+    public Node visitBlock(LazyLanguageParser.BlockContext ctx) {
+        List<LLStatementNode> bodyNodes = lexicalScope.statementNodes;
 
-    public LLStatementNode finishBlock(List<LLStatementNode> bodyNodes, LazyLanguageParser.BlockContext ctx) {
         for (LazyLanguageParser.StatementContext statement : ctx.statement()) {
             bodyNodes.add((LLStatementNode) visit(statement));
         }
 
-        lexicalScope = lexicalScope.outer;
+        popScope();
 
         if (containsNull(bodyNodes)) {
             return null;
@@ -268,7 +274,7 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     }
 
     public LLExpressionNode createMemberExpression(LazyLanguageParser.MemberExpressionContext ctx, LLExpressionNode r,
-     LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName) {
+            LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName) {
         LLExpressionNode nestedAssignmentName = null;
         LLExpressionNode receiver = r;
         LLExpressionNode result = null;
@@ -277,17 +283,17 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
                 receiver = createRead(assignmentName);
             }
             List<LLExpressionNode> parameters = new ArrayList<>();
-            if(ctx.parameterList() != null) {
+            if (ctx.parameterList() != null) {
                 for (LazyLanguageParser.ExpressionContext expression : ctx.parameterList().expression()) {
                     parameters.add((LLExpressionNode) visit(expression));
-                }    
+                }
             }
             result = createCall(receiver, parameters, ctx.RPAREN().getSymbol());
         } else if (ctx.ASSIGN() != null) {
             if (assignmentName == null) {
                 throw new LLParseError(source, ctx.expression(), "invalid assignment target");
-            } 
-            result = (LLExpressionNode)visit(ctx.expression());
+            }
+            result = (LLExpressionNode) visit(ctx.expression());
             if (assignmentReceiver == null) {
                 result = createAssignment(assignmentName, result);
             } else {
@@ -303,7 +309,7 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
             if (receiver == null) {
                 receiver = createRead(assignmentName);
             }
-            nestedAssignmentName = (LLExpressionNode)visit(ctx.expression());
+            nestedAssignmentName = (LLExpressionNode) visit(ctx.expression());
             result = createReadProperty(receiver, nestedAssignmentName);
         }
         if (ctx.memberExpression() != null) {
@@ -311,8 +317,6 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
         }
         return result;
     }
-
-
 
     @Override
     public Node visitExpression(LazyLanguageParser.ExpressionContext ctx) {
@@ -393,22 +397,30 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
 
     @Override
     public Node visitBreakStatement(LazyLanguageParser.BreakStatementContext ctx) {
-        final LLBreakNode breakNode = new LLBreakNode();
-        setSourceFromContext(breakNode, ctx);
-        return breakNode;
+        if (lexicalScope.inLoop) {
+            final LLBreakNode breakNode = new LLBreakNode();
+            setSourceFromContext(breakNode, ctx);
+            return breakNode;
+        }
+        throw new LLParseError(source, ctx, "break used outside of loop");
     }
 
     @Override
     public Node visitContinueStatement(LazyLanguageParser.ContinueStatementContext ctx) {
-        final LLContinueNode continueNode = new LLContinueNode();
-        setSourceFromContext(continueNode, ctx);
-        return continueNode;
+        if (lexicalScope.inLoop) {
+            final LLContinueNode continueNode = new LLContinueNode();
+            setSourceFromContext(continueNode, ctx);
+            return continueNode;
+        }
+        throw new LLParseError(source, ctx, "continue used outside of loop");
     }
 
     @Override
     public Node visitWhileStatement(LazyLanguageParser.WhileStatementContext ctx) {
-        LLExpressionNode conditionNode = (LLExpressionNode)visit(ctx.condition);
-        LLStatementNode blockNode = (LLExpressionNode)visit(ctx.block());
+        LLExpressionNode conditionNode = (LLExpressionNode) visit(ctx.condition);
+
+        pushScope(true);
+        LLStatementNode blockNode = (LLStatementNode) visit(ctx.block());
 
         if (conditionNode == null || blockNode == null) {
             return null;
@@ -422,12 +434,15 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
 
     @Override
     public Node visitIfStatement(LazyLanguageParser.IfStatementContext ctx) {
-        LLExpressionNode conditionNode = (LLExpressionNode)visit(ctx.condition);
-        LLStatementNode thenPartNode = (LLExpressionNode)visit(ctx.then);
+        LLExpressionNode conditionNode = (LLExpressionNode) visit(ctx.condition);
+
+        pushScope(lexicalScope.inLoop);
+        LLStatementNode thenPartNode = (LLStatementNode) visit(ctx.then);
+
         LLStatementNode elsePartNode = null;
-        
-        if(ctx.ELSE() != null) {
-            elsePartNode = (LLExpressionNode)visit(ctx.block(1));
+        if (ctx.ELSE() != null) {
+            pushScope(lexicalScope.inLoop);
+            elsePartNode = (LLStatementNode) visit(ctx.block(1));
         }
 
         if (conditionNode == null || thenPartNode == null) {
@@ -439,12 +454,12 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
         setSourceFromContext(ifNode, ctx);
         return ifNode;
     }
-    
+
     @Override
     public Node visitReturnStatement(LazyLanguageParser.ReturnStatementContext ctx) {
         LLExpressionNode valueNode = null;
-        if(ctx.expression() != null) {
-            valueNode = (LLExpressionNode)visit(ctx.expression());
+        if (ctx.expression() != null) {
+            valueNode = (LLExpressionNode) visit(ctx.expression());
         }
         final LLReturnNode returnNode = new LLReturnNode(valueNode);
         setSourceFromContext(returnNode, ctx);

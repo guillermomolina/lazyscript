@@ -75,7 +75,7 @@ GRAALVM_VERSION=$(extractGraalVMVersion "$SCRIPT_HOME/../release")
 if [[ "$GRAALVM_VERSION" != "" ]]; then
     LANGUAGE_PATH=""
     # contains paths for both jdk8 and jdk11
-    LAUNCHER_PATH="$SCRIPT_HOME/../jre/languages/ll/launcher/ll-launcher.jar:$SCRIPT_HOME/../languages/ll/launcher/ll-launcher.jar"
+    LAUNCHER_PATH="$SCRIPT_HOME/../jre/languages/lazylanguage/launcher/ll-launcher.jar:$SCRIPT_HOME/../languages/lazylanguage/launcher/ll-launcher.jar"
     JAVACMD="$SCRIPT_HOME/java"
     versionCheck "Installed in wrong version of GraalVM. Expected: $VERSION, found $GRAALVM_VERSION"
 else

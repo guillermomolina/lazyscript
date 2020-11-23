@@ -199,7 +199,7 @@ import com.oracle.truffle.api.source.Source;
 public final class LLLanguage extends TruffleLanguage<LLContext> {
     public static final AtomicInteger counter = new AtomicInteger();
 
-    public static final String ID = "ll";
+    public static final String ID = "lazy";
     public static final String MIME_TYPE = "application/x-sl";
 
     private final Shape rootShape;

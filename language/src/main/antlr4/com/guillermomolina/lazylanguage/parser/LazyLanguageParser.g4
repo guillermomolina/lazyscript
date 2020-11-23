@@ -41,34 +41,34 @@ options {
 lazylanguage: function function* EOF;
 
 function:
-	FUNCTION IDENTIFIER LPAREN functionParameters? RPAREN block[false];
+	FUNCTION IDENTIFIER LPAREN functionParameters? RPAREN block;
 
 functionParameters: IDENTIFIER ( COMMA IDENTIFIER)*;
 
-block[boolean inLoop]:
-	LCURLY (statement[inLoop])* RCURLY;
+block:
+	LCURLY (statement)* RCURLY;
 
-statement[boolean inLoop]:
+statement:
 	(
 		whileStatement
 		| breakStatement
 		| continueStatement
-		| ifStatement[inLoop]
+		| ifStatement
 		| returnStatement
 		| expressionStatement
 		| debuggerStatement
 	);
 
 whileStatement:
-	WHILE LPAREN condition = expression RPAREN body = block[true];
+	WHILE LPAREN condition = expression RPAREN block;
 
 breakStatement:  BREAK SEMI;
 
 continueStatement:  CONTINUE SEMI;
 
-ifStatement[boolean inLoop]:
-	IF LPAREN condition = expression RPAREN then = block[inLoop] (
-		ELSE block[inLoop]
+ifStatement:
+	IF LPAREN condition = expression RPAREN then = block (
+		ELSE block
 	)?;
 
 returnStatement: RETURN expression? SEMI;

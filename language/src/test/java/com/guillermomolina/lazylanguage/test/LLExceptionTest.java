@@ -73,7 +73,7 @@ public class LLExceptionTest {
 
     @Before
     public void setUp() {
-        this.ctx = Context.create("ll");
+        this.ctx = Context.create("lazy");
     }
 
     @After
@@ -107,7 +107,7 @@ public class LLExceptionTest {
     private void assertException(boolean failImmediately, String source, String... expectedFrames) {
         boolean initialExecute = true;
         try {
-            Value value = ctx.eval("ll", source);
+            Value value = ctx.eval("lazy", source);
             initialExecute = false;
             if (failImmediately) {
                 Assert.fail("Should not reach here.");
@@ -128,7 +128,7 @@ public class LLExceptionTest {
         for (StackFrame frame : e.getPolyglotStackTrace()) {
             if (i < expectedFrames.length && expectedFrames[i] != null) {
                 Assert.assertTrue(frame.isGuestFrame());
-                Assert.assertEquals("ll", frame.getLanguage().getId());
+                Assert.assertEquals("lazy", frame.getLanguage().getId());
                 Assert.assertEquals(expectedFrames[i], frame.getRootName());
                 Assert.assertTrue(frame.getSourceLocation() != null);
                 firstHostFrame = true;
@@ -147,7 +147,7 @@ public class LLExceptionTest {
         boolean initialExecute = true;
         RuntimeException[] exception = new RuntimeException[1];
         try {
-            Value value = ctx.eval("ll", source);
+            Value value = ctx.eval("lazy", source);
             initialExecute = false;
             ProxyExecutable proxy = (args) -> {
                 throw exception[0] = new RuntimeException();
@@ -167,15 +167,15 @@ public class LLExceptionTest {
             String source = "function bar() { x = 1 / \"asdf\"; }\n" +
                             "function foo() { return bar(); }\n" +
                             "function main() { foo(); }";
-            ctx.eval(Source.newBuilder("ll", source, "script.ll").buildLiteral());
+            ctx.eval(Source.newBuilder("lazy", source, "script.lazy").buildLiteral());
             fail();
         } catch (PolyglotException e) {
             assertTrue(e.isGuestException());
 
             Iterator<StackFrame> frames = e.getPolyglotStackTrace().iterator();
-            assertGuestFrame(frames, "ll", "bar", "script.ll", 21, 31);
-            assertGuestFrame(frames, "ll", "foo", "script.ll", 59, 64);
-            assertGuestFrame(frames, "ll", "main", "script.ll", 86, 91);
+            assertGuestFrame(frames, "lazy", "bar", "script.lazy", 21, 31);
+            assertGuestFrame(frames, "lazy", "foo", "script.lazy", 59, 64);
+            assertGuestFrame(frames, "lazy", "main", "script.lazy", 86, 91);
             assertHostFrame(frames, Context.class.getName(), "eval");
             assertHostFrame(frames, LLExceptionTest.class.getName(), "testGuestLanguageError");
 
@@ -217,7 +217,7 @@ public class LLExceptionTest {
 
     @Test
     public void testProxyGuestLanguageStack() {
-        Value bar = ctx.eval("ll", "function foo(f) { f(); } function bar(f) { return foo(f); } function main() { return bar; }");
+        Value bar = ctx.eval("lazy", "function foo(f) { f(); } function bar(f) { return foo(f); } function main() { return bar; }");
 
         TestProxy proxy = new TestProxy(3, bar);
         try {
@@ -244,15 +244,15 @@ public class LLExceptionTest {
         Iterator<StackFrame> frames = e.getPolyglotStackTrace().iterator();
         assertHostFrame(frames, TestProxy.class.getName(), "execute");
         for (int i = 0; i < 2; i++) {
-            assertGuestFrame(frames, "ll", "foo", "Unnamed", 18, 21);
-            assertGuestFrame(frames, "ll", "bar", "Unnamed", 50, 56);
+            assertGuestFrame(frames, "lazy", "foo", "Unnamed", 18, 21);
+            assertGuestFrame(frames, "lazy", "bar", "Unnamed", 50, 56);
 
             assertHostFrame(frames, Value.class.getName(), "execute");
             assertHostFrame(frames, TestProxy.class.getName(), "execute");
         }
 
-        assertGuestFrame(frames, "ll", "foo", "Unnamed", 18, 21);
-        assertGuestFrame(frames, "ll", "bar", "Unnamed", 50, 56);
+        assertGuestFrame(frames, "lazy", "foo", "Unnamed", 18, 21);
+        assertGuestFrame(frames, "lazy", "bar", "Unnamed", 50, 56);
 
         assertHostFrame(frames, Value.class.getName(), "execute");
         assertHostFrame(frames, LLExceptionTest.class.getName(), "testProxyGuestLanguageStack");
@@ -311,7 +311,7 @@ public class LLExceptionTest {
 
     @Test
     public void testGuestOverHostPropagation() {
-        Context context = Context.newBuilder("ll").allowAllAccess(true).build();
+        Context context = Context.newBuilder("lazy").allowAllAccess(true).build();
         String code = "" +
                         "function other(x) {" +
                         "   return invalidFunction();" +
@@ -321,19 +321,19 @@ public class LLExceptionTest {
                         "test.methodThatTakesFunction(other);" +
                         "}";
 
-        context.eval("ll", code);
+        context.eval("lazy", code);
         try {
-            context.getBindings("ll").getMember("f").execute(this);
+            context.getBindings("lazy").getMember("f").execute(this);
             fail();
         } catch (PolyglotException e) {
             assertFalse(e.isHostException());
             assertTrue(e.isGuestException());
             Iterator<StackFrame> frames = e.getPolyglotStackTrace().iterator();
             assertTrue(frames.next().isGuestFrame());
-            assertGuestFrame(frames, "ll", "other", "Unnamed", 29, 46);
+            assertGuestFrame(frames, "lazy", "other", "Unnamed", 29, 46);
             assertHostFrame(frames, "com.oracle.truffle.polyglot.PolyglotFunction", "apply");
             assertHostFrame(frames, "com.guillermomolina.lazylanguage.test.LLExceptionTest", "methodThatTakesFunction");
-            assertGuestFrame(frames, "ll", "f", "Unnamed", 66, 101);
+            assertGuestFrame(frames, "lazy", "f", "Unnamed", 66, 101);
 
             // rest is just unit test host frames
             while (frames.hasNext()) {

@@ -87,7 +87,7 @@ import org.junit.runners.model.InitializationError;
 
 public class LLTestRunner extends ParentRunner<TestCase> {
 
-    private static final String SOURCE_SUFFIX = ".ll";
+    private static final String SOURCE_SUFFIX = ".lazy";
     private static final String INPUT_SUFFIX = ".input";
     private static final String OUTPUT_SUFFIX = ".output";
 

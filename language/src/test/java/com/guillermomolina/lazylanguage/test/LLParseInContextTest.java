@@ -43,13 +43,6 @@ package com.guillermomolina.lazylanguage.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.PolyglotAccess;
-import org.graalvm.polyglot.Value;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -60,6 +53,13 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
+
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotAccess;
+import org.graalvm.polyglot.Value;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 public class LLParseInContextTest {
     private Context context;
@@ -106,7 +106,7 @@ public class LLParseInContextTest {
                         CompilerDirectives.transferToInterpreterAndInvalidate();
                         this.reference = lookupContextReference(EvalLang.class);
                     }
-                    Source aPlusB = Source.newBuilder("ll", "a + b", "plus.ll").build();
+                    Source aPlusB = Source.newBuilder("lazy", "a + b", "plus.lazy").build();
                     return reference.get().parsePublic(aPlusB, "a", "b").call(30, 12);
                 }
             });

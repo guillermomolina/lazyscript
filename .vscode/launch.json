@@ -19,7 +19,7 @@
             "request": "launch",
             "mainClass": "com.guillermomolina.lazylanguage.launcher.LLMain",
             "projectName": "launcher",
-            "args": ["--log.ll.level=FINEST","${file}"],
+            "args": ["--log.lazylanguage.level=FINEST","${file}"],
             "vmArgs": [
                 "-ea",
                 "-Dtruffle.class.path.append=./language/target/lazylanguage.jar"
@@ -42,7 +42,7 @@
             "mainClass": "com.guillermomolina.lazylanguage.launcher.LLMain",
             "projectName": "launcher",
             "args": [
-                "--log.ll.level=FINEST",
+                "--log.lazylanguage.level=FINEST",
                 "${workspaceFolder}/language/tests/SumCall.lazy",
             ],
             "vmArgs": [
@@ -68,7 +68,7 @@
             "projectName": "launcher",
             "args": [
                 "--inspect",
-                "--log.ll.level=FINEST",
+                "--log.lazylanguage.level=FINEST",
                 "${file}"
             ],
             "vmArgs": [
@@ -89,8 +89,8 @@
         {
             "type": "graalvm",
             "request": "launch",
-            "name": "Launch ll Script",
-            "runtimeExecutable": "/home/guille/Fuentes/graal/languages/lazylanguage/ll",
+            "name": "Launch Lazy Language Script",
+            "runtimeExecutable": "/home/guille/Fuentes/graal/languages/lazylanguage/lazy",
             "program": "${file}"
         },
         {
@@ -102,7 +102,7 @@
     ],
     "compounds": [
         {
-            "name": "Debug ll + Attach",
+            "name": "Debug Lazy Language + Attach",
             "configurations": [
                 "Debug (Launch and Wait) LLMain",
                 "GraalVM Attach"

@@ -53,7 +53,7 @@ public class LLParseErrorTest {
 
     @Before
     public void setUp() {
-        context = Context.create("ll");
+        context = Context.create("lazy");
     }
 
     @After
@@ -64,7 +64,7 @@ public class LLParseErrorTest {
     @Test
     public void testParseError() {
         try {
-            final Source src = Source.newBuilder("ll", "function testSyntaxError(a) {break;} function main() {return testSyntaxError;}", "testSyntaxError.ll").buildLiteral();
+            final Source src = Source.newBuilder("lazy", "function testSyntaxError(a) {break;} function main() {return testSyntaxError;}", "testSyntaxError.lazy").buildLiteral();
             context.eval(src);
             Assert.assertTrue("Should not reach here.", false);
         } catch (PolyglotException e) {
@@ -76,7 +76,7 @@ public class LLParseErrorTest {
     @Test
     public void testParseErrorEmpty() {
         try {
-            final Source src = Source.newBuilder("ll", "", "testSyntaxErrorEmpty.ll").buildLiteral();
+            final Source src = Source.newBuilder("lazy", "", "testSyntaxErrorEmpty.lazy").buildLiteral();
             context.eval(src);
             Assert.assertTrue("Should not reach here.", false);
         } catch (PolyglotException e) {
@@ -88,7 +88,7 @@ public class LLParseErrorTest {
     @Test
     public void testParseErrorEOF1() {
         try {
-            final Source src = Source.newBuilder("ll", "function main", "testSyntaxErrorEOF1.ll").buildLiteral();
+            final Source src = Source.newBuilder("lazy", "function main", "testSyntaxErrorEOF1.lazy").buildLiteral();
             context.eval(src);
             Assert.assertTrue("Should not reach here.", false);
         } catch (PolyglotException e) {
@@ -100,7 +100,7 @@ public class LLParseErrorTest {
     @Test
     public void testParseErrorEOF2() {
         try {
-            final Source src = Source.newBuilder("ll", "function\n", "testSyntaxErrorEOF2.ll").buildLiteral();
+            final Source src = Source.newBuilder("lazy", "function\n", "testSyntaxErrorEOF2.lazy").buildLiteral();
             context.eval(src);
             Assert.assertTrue("Should not reach here.", false);
         } catch (PolyglotException e) {

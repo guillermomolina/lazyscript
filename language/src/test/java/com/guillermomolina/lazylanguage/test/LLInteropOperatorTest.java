@@ -53,7 +53,7 @@ public class LLInteropOperatorTest {
 
     @Before
     public void setUp() {
-        context = Context.create("ll");
+        context = Context.create("lazy");
     }
 
     @After
@@ -63,7 +63,7 @@ public class LLInteropOperatorTest {
 
     @Test
     public void testAdd() {
-        final Source src = Source.newBuilder("ll", "function testAdd(a,b) {return a + b;} function main() {return testAdd;}", "testAdd.ll").buildLiteral();
+        final Source src = Source.newBuilder("lazy", "function testAdd(a,b) {return a + b;} function main() {return testAdd;}", "testAdd.lazy").buildLiteral();
         final Value fnc = context.eval(src);
         Assert.assertTrue(fnc.canExecute());
         final Value res = fnc.execute(1, 2);
@@ -73,7 +73,7 @@ public class LLInteropOperatorTest {
 
     @Test
     public void testSub() {
-        final Source src = Source.newBuilder("ll", "function testSub(a,b) {return a - b;} function main() {return testSub;}", "testSub.ll").buildLiteral();
+        final Source src = Source.newBuilder("lazy", "function testSub(a,b) {return a - b;} function main() {return testSub;}", "testSub.lazy").buildLiteral();
         final Value fnc = context.eval(src);
         final Value res = fnc.execute(1, 2);
         Assert.assertTrue(res.isNumber());

@@ -58,7 +58,7 @@ import org.graalvm.polyglot.tck.TypeDescriptor;
 import org.junit.Assert;
 
 public class LLTCKLanguageProvider implements LanguageProvider {
-    private static final String ID = "ll";
+    private static final String ID = "lazy";
     private static final String PATTERN_VALUE_FNC = "function %s() {return %s;}";
     private static final String PATTERN_BIN_OP_FNC = "function %s(a,b) {return a %s b;}";
     private static final String PATTERN_POST_OP_FNC = "function %s(a) {a %s;}";
@@ -222,8 +222,8 @@ public class LLTCKLanguageProvider implements LanguageProvider {
     @Override
     public Collection<? extends Snippet> createScripts(Context context) {
         final Collection<Snippet> res = new ArrayList<>();
-        res.add(loadScript(context, "resources/Ackermann.ll", TypeDescriptor.NULL, null));
-        res.add(loadScript(context, "resources/Fibonacci.ll", TypeDescriptor.NULL, null));
+        res.add(loadScript(context, "resources/Ackermann.lazy", TypeDescriptor.NULL, null));
+        res.add(loadScript(context, "resources/Fibonacci.lazy", TypeDescriptor.NULL, null));
         return Collections.unmodifiableCollection(res);
     }
 
@@ -231,8 +231,8 @@ public class LLTCKLanguageProvider implements LanguageProvider {
     public Collection<? extends Source> createInvalidSyntaxScripts(Context context) {
         try {
             final Collection<Source> res = new ArrayList<>();
-            res.add(createSource("resources/InvalidSyntax01.ll"));
-            res.add(createSource("resources/InvalidSyntax02.ll"));
+            res.add(createSource("resources/InvalidSyntax01.lazy"));
+            res.add(createSource("resources/InvalidSyntax02.lazy"));
             return Collections.unmodifiableCollection(res);
         } catch (IOException ioe) {
             throw new AssertionError("IOException while creating a test script.", ioe);

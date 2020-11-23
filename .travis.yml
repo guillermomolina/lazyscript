@@ -46,15 +46,15 @@ install:
 
 script:
     - mvn package
-    - ./ll language/tests/Add.ll
-    - if [[ "$GRAALVM_VERSION" != "NONE" ]]; then ./native/llnative language/tests/Add.ll; fi
+    - ./lazylanguage/tests/Add.lazy
+    - if [[ "$GRAALVM_VERSION" != "NONE" ]]; then ./native/llnative language/tests/Add.lazy; fi
     - if [[ "$GRAALVM_VERSION" != "NONE" ]]; then "$JAVA_HOME/bin/gu" install -L component/ll-component.jar ; fi
-    - if [[ "$GRAALVM_VERSION" != "NONE" ]]; then "$JAVA_HOME/bin/ll" language/tests/Add.ll; fi
-    - if [[ "$GRAALVM_VERSION" != "NONE" ]]; then "$JAVA_HOME/bin/llnative" language/tests/Add.ll; fi
-    - if [[ "$GRAALVM_VERSION" != "NONE" ]]; then "$JAVA_HOME/bin/polyglot" --jvm --language sl --file language/tests/Add.ll; fi
+    - if [[ "$GRAALVM_VERSION" != "NONE" ]]; then "$JAVA_HOME/bin/lazy" language/tests/Add.lazy; fi
+    - if [[ "$GRAALVM_VERSION" != "NONE" ]]; then "$JAVA_HOME/bin/llnative" language/tests/Add.lazy; fi
+    - if [[ "$GRAALVM_VERSION" != "NONE" ]]; then "$JAVA_HOME/bin/polyglot" --jvm --language sl --file language/tests/Add.lazy; fi
     - if [[ "$GRAALVM_VERSION" != "NONE" ]]; then "$JAVA_HOME/bin/gu" remove sl; fi
     - ./generate_parser.sh
     - mvn package
-    - ./ll language/tests/Add.ll
+    - ./lazylanguage/tests/Add.lazy
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then shellcheck sl; fi
     - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then (find . -name '*.sh' | grep -v graalvm | xargs shellcheck); fi

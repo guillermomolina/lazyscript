@@ -78,12 +78,12 @@ public class LLSharedCodeSeparatedEnvTest {
 
         int instances = LLLanguage.counter.get();
         // @formatter:off
-        e1 = Context.newBuilder("ll").engine(engine).out(os1).allowPolyglotAccess(PolyglotAccess.ALL).build();
+        e1 = Context.newBuilder("lazy").engine(engine).out(os1).allowPolyglotAccess(PolyglotAccess.ALL).build();
         e1.getPolyglotBindings().putMember("extra", 1);
-        e2 = Context.newBuilder("ll").engine(engine).out(os2).allowPolyglotAccess(PolyglotAccess.ALL).build();
+        e2 = Context.newBuilder("lazy").engine(engine).out(os2).allowPolyglotAccess(PolyglotAccess.ALL).build();
         e2.getPolyglotBindings().putMember("extra", 2);
-        e1.initialize("ll");
-        e2.initialize("ll");
+        e1.initialize("lazy");
+        e2.initialize("lazy");
         assertEquals("One LLLanguage instance created", instances + 1, LLLanguage.counter.get());
     }
 
@@ -101,11 +101,11 @@ public class LLSharedCodeSeparatedEnvTest {
             "}";
         // @formatter:on
 
-        e1.eval("ll", sayHello);
+        e1.eval("lazy", sayHello);
         assertEquals("Ahoj1\n", toUnixString(os1));
         assertEquals("", toUnixString(os2));
 
-        e2.eval("ll", sayHello);
+        e2.eval("lazy", sayHello);
         assertEquals("Ahoj1\n", toUnixString(os1));
         assertEquals("Ahoj2\n", toUnixString(os2));
     }
@@ -121,11 +121,11 @@ public class LLSharedCodeSeparatedEnvTest {
                         "}";
         // @formatter:on
 
-        e1.eval("ll", sayHello);
+        e1.eval("lazy", sayHello);
         assertEquals("Ahoj1\n", toUnixString(os1));
         assertEquals("", toUnixString(os2));
 
-        e2.eval("ll", sayHello);
+        e2.eval("lazy", sayHello);
         assertEquals("Ahoj1\n", toUnixString(os1));
         assertEquals("Ahoj2\n", toUnixString(os2));
 

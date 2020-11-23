@@ -55,7 +55,7 @@ public class LLInteropObjectTest {
 
     @Before
     public void setUp() {
-        context = Context.create("ll");
+        context = Context.create("lazy");
     }
 
     @After
@@ -66,7 +66,7 @@ public class LLInteropObjectTest {
 
     @Test
     public void testObject() {
-        final Source src = Source.newBuilder("ll", "function main() {o = new(); o.a = 10; o.b = \"B\"; return o;}", "testObject.ll").buildLiteral();
+        final Source src = Source.newBuilder("lazy", "function main() {o = new(); o.a = 10; o.b = \"B\"; return o;}", "testObject.lazy").buildLiteral();
         final Value obj = context.eval(src);
         Assert.assertTrue(obj.hasMembers());
 
@@ -93,9 +93,9 @@ public class LLInteropObjectTest {
 
     @Test
     public void testNewForeign() {
-        final Source src = Source.newBuilder("ll", "function getValue(type) {o = new(type); o.a = 10; return o.value;}", "testObject.ll").buildLiteral();
+        final Source src = Source.newBuilder("lazy", "function getValue(type) {o = new(type); o.a = 10; return o.value;}", "testObject.lazy").buildLiteral();
         context.eval(src);
-        Value getValue = context.getBindings("ll").getMember("getValue");
+        Value getValue = context.getBindings("lazy").getMember("getValue");
         Value ret = getValue.execute(new TestType());
         Assert.assertEquals(20, ret.asLong());
     }

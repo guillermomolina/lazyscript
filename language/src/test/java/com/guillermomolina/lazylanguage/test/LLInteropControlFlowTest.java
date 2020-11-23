@@ -53,7 +53,7 @@ public class LLInteropControlFlowTest {
 
     @Before
     public void setUp() {
-        context = Context.create("ll");
+        context = Context.create("lazy");
     }
 
     @After
@@ -63,7 +63,7 @@ public class LLInteropControlFlowTest {
 
     @Test
     public void testWhile() {
-        final Source src = Source.newBuilder("ll", "function testWhile(a) {while(a) {break;}} function main() {return testWhile;}", "testWhile.ll").buildLiteral();
+        final Source src = Source.newBuilder("lazy", "function testWhile(a) {while(a) {break;}} function main() {return testWhile;}", "testWhile.lazy").buildLiteral();
         final Value fnc = context.eval(src);
         Assert.assertTrue(fnc.canExecute());
         fnc.execute(false);
@@ -71,7 +71,7 @@ public class LLInteropControlFlowTest {
 
     @Test
     public void testIf() {
-        final Source src = Source.newBuilder("ll", "function testIf(a) {if(a) {return 1;} else {return 0;}} function main() {return testIf;}", "testIf.ll").buildLiteral();
+        final Source src = Source.newBuilder("lazy", "function testIf(a) {if(a) {return 1;} else {return 0;}} function main() {return testIf;}", "testIf.lazy").buildLiteral();
         final Value fnc = context.eval(src);
         fnc.execute(false);
     }

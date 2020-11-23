@@ -6,7 +6,7 @@
 function add(a, b) {
   return a + b;
 }
-/*
+
 function loop(n) {
   i = 0;  
   sum = 0;  
@@ -25,7 +25,3 @@ function main() {
   }
   println(loop(10000));  
 }  
-*/
-function main() {
-  println(add(1,2));
-}

@@ -95,7 +95,7 @@ public class LLSeparatedClassLoadersTest {
         assertNotNull("Engine has been created", engine);
 
         Map<?, ?> languages = (Map<?, ?>) engineClass.getMethod("getLanguages").invoke(engine);
-        Object lang = languages.get("ll");
+        Object lang = languages.get("lazy");
         assertNotNull("LL language found: " + languages, lang);
     }
 

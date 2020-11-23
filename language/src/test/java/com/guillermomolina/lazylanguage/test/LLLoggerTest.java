@@ -65,8 +65,8 @@ public class LLLoggerTest {
     private static final Source ADD_LL;
     private static final Source MUL_LL;
     static {
-        ADD_LL = Source.newBuilder("ll", "function add(a,b) {return a + b;} function main() {return add(1,1);}", "add.ll").buildLiteral();
-        MUL_LL = Source.newBuilder("ll", "function mul(a,b) {return a * b;} function main() {return mul(1,1);}", "mul.ll").buildLiteral();
+        ADD_LL = Source.newBuilder("lazy", "function add(a,b) {return a + b;} function main() {return add(1,1);}", "add.lazy").buildLiteral();
+        MUL_LL = Source.newBuilder("lazy", "function mul(a,b) {return a * b;} function main() {return mul(1,1);}", "mul.lazy").buildLiteral();
     }
 
     private TestHandler testHandler;
@@ -89,7 +89,7 @@ public class LLLoggerTest {
         if (currentContext != null) {
             throw new IllegalStateException("Context already created");
         }
-        currentContext = Context.newBuilder("ll").options(options).logHandler(testHandler).build();
+        currentContext = Context.newBuilder("lazy").options(options).logHandler(testHandler).build();
         return currentContext;
     }
 
@@ -102,21 +102,21 @@ public class LLLoggerTest {
 
     @Test
     public void testLoggerSlFunctionLevelFine() {
-        final Context context = createContext(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE"));
+        final Context context = createContext(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE"));
         executeSlScript(context);
         Assert.assertFalse(functionNames(testHandler.getRecords()).isEmpty());
     }
 
     @Test
     public void testLoggerSlFunctionParentLevelFine() {
-        final Context context = createContext(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime", "FINE"));
+        final Context context = createContext(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime", "FINE"));
         executeSlScript(context);
         Assert.assertFalse(functionNames(testHandler.getRecords()).isEmpty());
     }
 
     @Test
     public void testLoggerSlFunctionSiblingLevelFine() {
-        final Context context = createContext(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime.LLContext", "FINE"));
+        final Context context = createContext(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime.LLContext", "FINE"));
         executeSlScript(context);
         Assert.assertTrue(functionNames(testHandler.getRecords()).isEmpty());
     }
@@ -124,15 +124,15 @@ public class LLLoggerTest {
     @Test
     public void testMultipleContextsExclusiveFineLevel() {
         final TestHandler handler1 = new TestHandler();
-        try (Context ctx = Context.newBuilder("ll").options(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler1).build()) {
+        try (Context ctx = Context.newBuilder("lazy").options(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler1).build()) {
             executeSlScript(ctx, ADD_LL, 2);
         }
         final TestHandler handler2 = new TestHandler();
-        try (Context ctx = Context.newBuilder("ll").options(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler2).build()) {
+        try (Context ctx = Context.newBuilder("lazy").options(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler2).build()) {
             executeSlScript(ctx, MUL_LL, 1);
         }
         final TestHandler handler3 = new TestHandler();
-        try (Context ctx = Context.newBuilder("ll").options(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler3).build()) {
+        try (Context ctx = Context.newBuilder("lazy").options(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler3).build()) {
             executeSlScript(ctx, ADD_LL, 2);
         }
         Set<String> functionNames = functionNames(handler1.getRecords());
@@ -149,15 +149,15 @@ public class LLLoggerTest {
     @Test
     public void testMultipleContextsExclusiveDifferentLogLevel() {
         final TestHandler handler1 = new TestHandler();
-        try (Context ctx = Context.newBuilder("ll").options(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler1).build()) {
+        try (Context ctx = Context.newBuilder("lazy").options(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler1).build()) {
             executeSlScript(ctx, ADD_LL, 2);
         }
         final TestHandler handler2 = new TestHandler();
-        try (Context ctx = Context.newBuilder("ll").logHandler(handler2).build()) {
+        try (Context ctx = Context.newBuilder("lazy").logHandler(handler2).build()) {
             executeSlScript(ctx, MUL_LL, 1);
         }
         final TestHandler handler3 = new TestHandler();
-        try (Context ctx = Context.newBuilder("ll").options(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler3).build()) {
+        try (Context ctx = Context.newBuilder("lazy").options(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler3).build()) {
             executeSlScript(ctx, ADD_LL, 2);
         }
         Set<String> functionNames = functionNames(handler1.getRecords());
@@ -175,9 +175,9 @@ public class LLLoggerTest {
         final TestHandler handler1 = new TestHandler();
         final TestHandler handler2 = new TestHandler();
         final TestHandler handler3 = new TestHandler();
-        try (Context ctx1 = Context.newBuilder("ll").options(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler1).build()) {
-            try (Context ctx2 = Context.newBuilder("ll").options(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler2).build()) {
-                try (Context ctx3 = Context.newBuilder("ll").options(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler3).build()) {
+        try (Context ctx1 = Context.newBuilder("lazy").options(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler1).build()) {
+            try (Context ctx2 = Context.newBuilder("lazy").options(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler2).build()) {
+                try (Context ctx3 = Context.newBuilder("lazy").options(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler3).build()) {
                     executeSlScript(ctx1, ADD_LL, 2);
                     executeSlScript(ctx2, MUL_LL, 1);
                     executeSlScript(ctx3, ADD_LL, 2);
@@ -200,9 +200,9 @@ public class LLLoggerTest {
         final TestHandler handler1 = new TestHandler();
         final TestHandler handler2 = new TestHandler();
         final TestHandler handler3 = new TestHandler();
-        try (Context ctx1 = Context.newBuilder("ll").options(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler1).build()) {
-            try (Context ctx2 = Context.newBuilder("ll").options(createLoggingOptions("ll", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler2).build()) {
-                try (Context ctx3 = Context.newBuilder("ll").logHandler(handler3).build()) {
+        try (Context ctx1 = Context.newBuilder("lazy").options(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler1).build()) {
+            try (Context ctx2 = Context.newBuilder("lazy").options(createLoggingOptions("lazy", "com.guillermomolina.lazylanguage.runtime.LLFunction", "FINE")).logHandler(handler2).build()) {
+                try (Context ctx3 = Context.newBuilder("lazy").logHandler(handler3).build()) {
                     executeSlScript(ctx1, ADD_LL, 2);
                     executeSlScript(ctx2, MUL_LL, 1);
                     executeSlScript(ctx3, ADD_LL, 2);

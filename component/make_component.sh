@@ -51,7 +51,7 @@ else
     exit 1
 fi
 readonly COMPONENT_DIR="component_temp_dir"
-readonly LANGUAGE_PATH="$COMPONENT_DIR/$JRE/languages/ll"
+readonly LANGUAGE_PATH="$COMPONENT_DIR/$JRE/languages/lazy"
 if [[ -f ../native/llnative ]]; then
     INCLUDE_LLNATIVE="TRUE"
 fi
@@ -65,7 +65,7 @@ mkdir -p "$LANGUAGE_PATH/launcher"
 cp ../launcher/target/ll-launcher.jar "$LANGUAGE_PATH/launcher/"
 
 mkdir -p "$LANGUAGE_PATH/bin"
-cp ../ll $LANGUAGE_PATH/bin/
+cp ../lazy$LANGUAGE_PATH/bin/
 if [[ $INCLUDE_LLNATIVE = "TRUE" ]]; then
     cp ../native/llnative $LANGUAGE_PATH/bin/
 fi
@@ -85,15 +85,15 @@ mkdir -p "$COMPONENT_DIR/META-INF"
 cd $COMPONENT_DIR || exit 1
 jar cfm ../ll-component.jar META-INF/MANIFEST.MF .
 
-echo "bin/ll = ../$JRE/languages/ll/bin/ll" > META-INF/symlinks
+echo "bin/lazy= ../$JRE/languages/lazylanguage/bin/lazy" > META-INF/symlinks
 if [[ $INCLUDE_LLNATIVE = "TRUE" ]]; then
-    echo "bin/llnative = ../$JRE/languages/ll/bin/llnative" >> META-INF/symlinks
+    echo "bin/llnative = ../$JRE/languages/lazylanguage/bin/llnative" >> META-INF/symlinks
 fi
 jar uf ../ll-component.jar META-INF/symlinks
 
 {
-    echo "$JRE"'languages/ll/bin/ll = rwxrwxr-x'
-    echo "$JRE"'languages/ll/bin/llnative = rwxrwxr-x'
+    echo "$JRE"'languages/lazylanguage/bin/lazy= rwxrwxr-x'
+    echo "$JRE"'languages/lazylanguage/bin/llnative = rwxrwxr-x'
 } > META-INF/permissions
 jar uf ../ll-component.jar META-INF/permissions
 )

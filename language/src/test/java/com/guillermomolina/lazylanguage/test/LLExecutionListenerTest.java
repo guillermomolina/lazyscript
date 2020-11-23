@@ -66,7 +66,7 @@ public class LLExecutionListenerTest {
 
     @Before
     public void setUp() {
-        context = Context.create("ll");
+        context = Context.create("lazy");
     }
 
     @After
@@ -170,8 +170,8 @@ public class LLExecutionListenerTest {
                         "  return fac(n - 1) * n;" +
                         "}";
         // @formatter:on
-        context.eval("ll", "function " + characters);
-        Value factorial = context.getBindings("ll").getMember("fac");
+        context.eval("lazy", "function " + characters);
+        Value factorial = context.getBindings("lazy").getMember("fac");
         ExecutionListener.newBuilder().onReturn(this::add).onEnter(this::add).//
                         expressions(true).statements(true).roots(true).//
                         collectExceptions(true).collectInputValues(true).collectReturnValue(true).//
@@ -185,8 +185,8 @@ public class LLExecutionListenerTest {
 
     private Value eval(String s) {
         expectedRootName = "wrapper";
-        context.eval("ll", wrapInFunction(s));
-        return context.getBindings("ll").getMember("wrapper").execute();
+        context.eval("lazy", wrapInFunction(s));
+        return context.getBindings("lazy").getMember("wrapper").execute();
     }
 
     private static String wrapInFunction(String s) {

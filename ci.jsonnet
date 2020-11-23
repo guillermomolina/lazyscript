@@ -5,7 +5,7 @@
     run: [
       ['mvn', 'clean'],
       ['mvn', 'package'],
-      ['./ll', 'language/tests/Add.ll'],
+      ['./lazy', 'language/tests/Add.lazy'],
     ],
 
     environment+: {
@@ -20,16 +20,16 @@
       ["$JAVA_HOME/bin/gu", 'install', 'native-image'],
       ['mvn', 'clean'],
       ['mvn', 'package'],
-      ['./ll', 'language/tests/Add.ll'],
-      ['./native/llnative', 'language/tests/Add.ll'],
+      ['./lazy', 'language/tests/Add.lazy'],
+      ['./native/llnative', 'language/tests/Add.lazy'],
       ["$JAVA_HOME/bin/gu", 'install', '-L', 'component/ll-component.jar'],
-      ["$JAVA_HOME/bin/ll", 'language/tests/Add.ll'],
-      ["$JAVA_HOME/bin/llnative", 'language/tests/Add.ll'],
-      ["$JAVA_HOME/bin/polyglot", '--jvm', '--language', 'sl', '--file', 'language/tests/Add.ll'],
+      ["$JAVA_HOME/bin/lazy", 'language/tests/Add.lazy'],
+      ["$JAVA_HOME/bin/llnative", 'language/tests/Add.lazy'],
+      ["$JAVA_HOME/bin/polyglot", '--jvm', '--language', 'sl', '--file', 'language/tests/Add.lazy'],
       ["$JAVA_HOME/bin/gu", 'remove', 'sl'],
       ['./generate_parser.sh'],
       ['mvn', 'package'],
-      ['./ll', 'language/tests/Add.ll'],
+      ['./lazy', 'language/tests/Add.lazy'],
     ]
   },
 

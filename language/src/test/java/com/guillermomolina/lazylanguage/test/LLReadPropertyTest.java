@@ -56,8 +56,8 @@ public class LLReadPropertyTest {
 
     @Before
     public void setUp() {
-        this.ctx = Context.create("ll");
-        this.llObject = ctx.eval("ll", "function createObject() {\n" +
+        this.ctx = Context.create("lazy");
+        this.llObject = ctx.eval("lazy", "function createObject() {\n" +
                         "obj1 = new();\n" +
                         "obj1.number = 42;\n" +
                         "return obj1;\n" +

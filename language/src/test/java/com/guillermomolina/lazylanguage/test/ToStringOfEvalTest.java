@@ -65,9 +65,9 @@ public class ToStringOfEvalTest {
 
     @Test
     public void checkToStringOnAFunction() {
-        context.eval("ll", "function checkName() {}");
-        Value value1 = context.getBindings("ll").getMember("checkName");
-        Value value2 = context.getBindings("ll").getMember("checkName");
+        context.eval("lazy", "function checkName() {}");
+        Value value1 = context.getBindings("lazy").getMember("checkName");
+        Value value2 = context.getBindings("lazy").getMember("checkName");
 
         assertNotNull("Symbol is not null", value1);
         assertNotNull("Symbol is not null either", value2);

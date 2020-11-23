@@ -55,7 +55,7 @@ import org.graalvm.polyglot.Value;
 
 public final class LLMain {
 
-    private static final String LL = "ll";
+    private static final String LL = "lazy";
 
     /**
      * The main entry point.

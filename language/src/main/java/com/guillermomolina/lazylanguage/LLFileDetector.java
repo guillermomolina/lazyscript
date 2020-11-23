@@ -40,16 +40,17 @@
  */
 package com.guillermomolina.lazylanguage;
 
-import com.oracle.truffle.api.TruffleFile;
 import java.io.IOException;
 import java.nio.charset.Charset;
+
+import com.oracle.truffle.api.TruffleFile;
 
 public final class LLFileDetector implements TruffleFile.FileTypeDetector {
 
     @Override
     public String findMimeType(TruffleFile file) throws IOException {
         String name = file.getName();
-        if (name != null && name.endsWith(".ll")) {
+        if (name != null && name.endsWith(".lazy")) {
             return LLLanguage.MIME_TYPE;
         }
         return null;

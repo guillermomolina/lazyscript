@@ -91,8 +91,8 @@ public class PassItselfBackViaContextTest {
         myObj = new MyObj();
         context = Context.newBuilder().allowPolyglotAccess(PolyglotAccess.ALL).build();
         context.getPolyglotBindings().putMember("myObj", myObj);
-        context.eval("ll", "function main() {\n" + "  return import(\"myObj\");\n" + "}\n");
-        myObjWrapped = context.getBindings("ll").getMember("main").execute();
+        context.eval("lazy", "function main() {\n" + "  return import(\"myObj\");\n" + "}\n");
+        myObjWrapped = context.getBindings("lazy").getMember("main").execute();
         assertFalse(myObjWrapped.isNull());
         myObjCall = myObjWrapped.as(CallWithValue.class);
     }

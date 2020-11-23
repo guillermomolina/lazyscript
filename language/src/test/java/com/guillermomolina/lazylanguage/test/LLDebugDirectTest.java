@@ -109,7 +109,7 @@ public class LLDebugDirectTest {
     }
 
     private static Source createFactorial() {
-        return Source.newBuilder("ll", "function test() {\n" +
+        return Source.newBuilder("lazy", "function test() {\n" +
                         "  res = fac(2);\n" + "  println(res);\n" +
                         "  return res;\n" +
                         "}\n" +
@@ -119,11 +119,11 @@ public class LLDebugDirectTest {
                         "  nMinusOne = n - 1;\n" +
                         "  nMOFact = fac(nMinusOne);\n" +
                         "  res = n * nMOFact;\n" +
-                        "  return res;\n" + "}\n", "factorial.ll").buildLiteral();
+                        "  return res;\n" + "}\n", "factorial.lazy").buildLiteral();
     }
 
     private static Source createFactorialWithDebugger() {
-        return Source.newBuilder("ll", "function test() {\n" +
+        return Source.newBuilder("lazy", "function test() {\n" +
                         "  res = fac(2);\n" +
                         "  println(res);\n" +
                         "  return res;\n" +
@@ -137,11 +137,11 @@ public class LLDebugDirectTest {
                         "  debugger;\n" +
                         "  res = n * nMOFact;\n" +
                         "  return res;\n" +
-                        "}\n", "factorial.ll").buildLiteral();
+                        "}\n", "factorial.lazy").buildLiteral();
     }
 
     private static Source createInteropComputation() {
-        return Source.newBuilder("ll", "function test() {\n" +
+        return Source.newBuilder("lazy", "function test() {\n" +
                         "}\n" +
                         "function interopFunction(notifyHandler) {\n" +
                         "  executing = true;\n" +
@@ -149,7 +149,7 @@ public class LLDebugDirectTest {
                         "    executing = notifyHandler.isExecuting;\n" +
                         "  }\n" +
                         "  return executing;\n" +
-                        "}\n", "interopComputation.ll").buildLiteral();
+                        "}\n", "interopComputation.lazy").buildLiteral();
     }
 
     protected final String getOut() {
@@ -179,7 +179,7 @@ public class LLDebugDirectTest {
                         UNASSIGNED, "res", UNASSIGNED);
         continueExecution();
 
-        Value value = context.getBindings("ll").getMember("test").execute();
+        Value value = context.getBindings("lazy").getMember("test").execute();
         assertExecutedOK();
         Assert.assertEquals("2\n", getOut());
         Assert.assertTrue(value.isNumber());
@@ -201,7 +201,7 @@ public class LLDebugDirectTest {
                         "1", "res", UNASSIGNED);
         continueExecution();
 
-        Value value = context.getBindings("ll").getMember("test").execute();
+        Value value = context.getBindings("lazy").getMember("test").execute();
         assertExecutedOK();
         Assert.assertEquals("2\n", getOut());
         Assert.assertTrue(value.isNumber());
@@ -252,7 +252,7 @@ public class LLDebugDirectTest {
         assertLocation("test", 3, true, "println(res)", "res", "2");
         stepOut();
 
-        Value value = context.getBindings("ll").getMember("test");
+        Value value = context.getBindings("lazy").getMember("test");
         assertTrue(value.canExecute());
         Value resultValue = value.execute();
         String resultStr = resultValue.toString();
@@ -299,7 +299,7 @@ public class LLDebugDirectTest {
             nh.pauseDone();
         });
 
-        Value value = context.getBindings("ll").getMember("interopFunction").execute(nh);
+        Value value = context.getBindings("lazy").getMember("interopFunction").execute(nh);
 
         assertExecutedOK();
         assertTrue(value.isBoolean());
@@ -308,12 +308,12 @@ public class LLDebugDirectTest {
     }
 
     private static Source createNull() {
-        return Source.newBuilder("ll", "function nullTest() {\n" +
+        return Source.newBuilder("lazy", "function nullTest() {\n" +
                         "  res = doNull();\n" +
                         "  return res;\n" +
                         "}\n" +
                         "function doNull() {\n" +
-                        "}\n", "nullTest.ll").buildLiteral();
+                        "}\n", "nullTest.lazy").buildLiteral();
     }
 
     @Test
@@ -328,7 +328,7 @@ public class LLDebugDirectTest {
         assertLocation("nullTest", 3, true, "return res", "res", "NULL");
         continueExecution();
 
-        Value value = context.getBindings("ll").getMember("nullTest").execute();
+        Value value = context.getBindings("lazy").getMember("nullTest").execute();
         assertExecutedOK();
 
         String val = value.toString();

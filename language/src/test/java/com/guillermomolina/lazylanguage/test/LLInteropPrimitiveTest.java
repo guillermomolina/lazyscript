@@ -53,7 +53,7 @@ public class LLInteropPrimitiveTest {
 
     @Before
     public void setUp() {
-        context = Context.create("ll");
+        context = Context.create("lazy");
     }
 
     @After
@@ -63,7 +63,7 @@ public class LLInteropPrimitiveTest {
 
     @Test
     public void testBoolean() {
-        final Source src = Source.newBuilder("ll", "function testBoolean(a,b) {return a == b;} function main() {return testBoolean;}", "testBoolean.ll").buildLiteral();
+        final Source src = Source.newBuilder("lazy", "function testBoolean(a,b) {return a == b;} function main() {return testBoolean;}", "testBoolean.lazy").buildLiteral();
         final Value fnc = context.eval(src);
         Assert.assertTrue(fnc.canExecute());
         fnc.execute(true, false);
@@ -71,7 +71,7 @@ public class LLInteropPrimitiveTest {
 
     @Test
     public void testChar() {
-        final Source src = Source.newBuilder("ll", "function testChar(a,b) {return a == b;} function main() {return testChar;}", "testChar.ll").buildLiteral();
+        final Source src = Source.newBuilder("lazy", "function testChar(a,b) {return a == b;} function main() {return testChar;}", "testChar.lazy").buildLiteral();
         final Value fnc = context.eval(src);
         Assert.assertTrue(fnc.canExecute());
         fnc.execute('a', 'b');

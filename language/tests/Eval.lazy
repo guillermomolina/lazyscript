@@ -4,6 +4,6 @@
  */
 
 function main() {  
-  eval("ll", "function foo() { return 14 + 2; }");
+  eval("lazy", "function foo() { return 14 + 2; }");
   println(foo());
 }

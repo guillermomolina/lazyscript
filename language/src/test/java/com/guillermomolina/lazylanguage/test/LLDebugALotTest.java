@@ -53,7 +53,7 @@ import org.junit.Test;
  */
 public class LLDebugALotTest {
 
-    private final Source llCode = Source.create("ll", "function main() {\n" +
+    private final Source llCode = Source.create("lazy", "function main() {\n" +
                     "  n = 2;\n" +
                     "  return types(n);\n" +
                     "}\n" +

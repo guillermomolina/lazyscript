@@ -101,7 +101,7 @@ public class LLDebugTest {
     }
 
     private static Source llCode(String code) {
-        return Source.create("ll", code);
+        return Source.create("lazy", code);
     }
 
     private DebuggerSession startSession() {
@@ -436,7 +436,7 @@ public class LLDebugTest {
                         "  return i; \n" +
                         "}\n");
 
-        final Context context = Context.create("ll");
+        final Context context = Context.create("lazy");
         Debugger debugger = context.getEngine().getInstruments().get("debugger").lookup(Debugger.class);
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
@@ -789,9 +789,9 @@ public class LLDebugTest {
                         "  return multiply.multiply(n, fac, n - 1);\n" +
                         "}\n");
 
-        Context context = Context.create("ll");
+        Context context = Context.create("lazy");
         context.eval(stackSource);
-        Value fac = context.getBindings("ll").getMember("fac");
+        Value fac = context.getBindings("lazy").getMember("fac");
         Object multiply = new Multiply();
         Debugger debugger = context.getEngine().getInstruments().get("debugger").lookup(Debugger.class);
         boolean[] done = new boolean[1];
@@ -976,7 +976,7 @@ public class LLDebugTest {
             public boolean testLineColumn(int line, int column) {
                 return testLine(line);
             }
-        }, "R", "ll");
+        }, "R", "lazy");
     }
 
     @Test
@@ -1013,7 +1013,7 @@ public class LLDebugTest {
                         "  return invocable(1) + invocable(2);\n" +
                         "}\n" +
                         "\n";
-        tester.assertColumnBreakpointsResolution(sourceStr, "B", "R", "ll");
+        tester.assertColumnBreakpointsResolution(sourceStr, "B", "R", "lazy");
     }
 
     @Test
@@ -1050,7 +1050,7 @@ public class LLDebugTest {
                         "  return invocable(1) + invocable(2);\n" +
                         "}\n" +
                         "\n";
-        Source source = Source.newBuilder("ll", sourceCode, "testBreakpointsAnywhere.ll").build();
+        Source source = Source.newBuilder("lazy", sourceCode, "testBreakpointsAnywhere.lazy").build();
         tester.assertBreakpointsBreakEverywhere(source, new DebuggerTester.PositionPredicate() {
             @Override
             public boolean testLine(int line) {
