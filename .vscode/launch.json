@@ -37,13 +37,13 @@
         },
         {
             "type": "java",
-            "name": "Debug (Launch) LLMain Arithmetic.lazy",
+            "name": "Debug (Launch) LLMain Literal.lazy",
             "request": "launch",
             "mainClass": "com.guillermomolina.lazylanguage.launcher.LLMain",
             "projectName": "launcher",
             "args": [
                 "--log.lazy.level=FINEST",
-                "${workspaceFolder}/language/tests/Arithmetic.lazy",
+                "${workspaceFolder}/language/tests/Literal.lazy",
             ],
             "vmArgs": [
                 "-ea",

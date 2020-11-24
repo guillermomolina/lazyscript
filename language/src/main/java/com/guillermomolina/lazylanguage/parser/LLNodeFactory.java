@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.NotImplementedException;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.nodes.LLRootNode;
 import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
@@ -132,7 +133,7 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
 
     /* State while parsing a source unit. */
     private final Source source;
-    private final Map<String, RootCallTarget> allFunctions;
+    private RootCallTarget function;
 
     /* State while parsing a function. */
     private int functionStartPos;
@@ -147,11 +148,10 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     public LLNodeFactory(LLLanguage language, Source source) {
         this.language = language;
         this.source = source;
-        this.allFunctions = new HashMap<>();
     }
 
-    public Map<String, RootCallTarget> getAllFunctions() {
-        return allFunctions;
+    public RootCallTarget getFunction() {
+        return function;
     }
 
     private static Interval srcFromContext(ParserRuleContext ctx) {
@@ -179,8 +179,66 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitFunction(LazyLanguageParser.FunctionContext ctx) {
+    public Node visitModule(LazyLanguageParser.ModuleContext ctx) {
         assert functionStartPos == 0;
+        assert functionName == null;
+        assert functionBodyStartPos == 0;
+        assert frameDescriptor == null;
+        assert lexicalScope == null;
+
+        frameDescriptor = new FrameDescriptor();
+        pushScope(false);
+
+        List<LLStatementNode> bodyNodes = lexicalScope.statementNodes;
+
+        for (LazyLanguageParser.StatementContext statement : ctx.statement()) {
+            bodyNodes.add((LLStatementNode) visit(statement));
+        }
+
+        popScope();
+
+        if (containsNull(bodyNodes)) {
+            return null;
+        }
+
+        List<LLStatementNode> flattenedNodes = new ArrayList<>(bodyNodes.size());
+        flattenBlocks(bodyNodes, flattenedNodes);
+        for (LLStatementNode statement : flattenedNodes) {
+            if (statement.hasSource() && !isHaltInCondition(statement)) {
+                statement.addStatementTag();
+            }
+        }
+        LLStatementNode methodBlock = new LLBlockNode(flattenedNodes.toArray(new LLStatementNode[flattenedNodes.size()]));
+        setSourceFromContext(methodBlock, ctx);
+
+        if (methodBlock != null) {
+            assert lexicalScope == null : "Wrong scoping of blocks in parser";
+
+            final LLFunctionBodyNode functionBodyNode = new LLFunctionBodyNode(methodBlock);
+            final int bodyEndPos = methodBlock.getSourceEndIndex();
+            SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
+            functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
+            final LLRootNode rootNode = new LLRootNode(language, frameDescriptor, functionBodyNode, functionSrc,
+                    functionName);
+            function = Truffle.getRuntime().createCallTarget(rootNode);
+        }
+
+        functionStartPos = 0;
+        functionName = null;
+        functionBodyStartPos = 0;
+        frameDescriptor = null;
+        lexicalScope = null;
+
+        return null;
+    }
+
+    @Override
+    public Node visitFunction(LazyLanguageParser.FunctionContext ctx) {
+        throw new NotImplementedException();
+    }
+    
+    public Node visitFunction2(LazyLanguageParser.FunctionContext ctx) {
+            assert functionStartPos == 0;
         assert functionName == null;
         assert functionBodyStartPos == 0;
         assert frameDescriptor == null;

@@ -1,7 +1,5 @@
 package com.guillermomolina.lazylanguage.parser;
 
-import java.util.Map;
-
 import com.guillermomolina.lazylanguage.LLLanguage;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.source.Source;
@@ -25,11 +23,11 @@ public class LLParser {
         lexer.addErrorListener(listener);
         parser.addErrorListener(listener);
         factory = new LLNodeFactory(language, source);
-        factory.visit(parser.lazylanguage());
+        factory.visit(parser.module());
     }
 
-    public Map<String, RootCallTarget> getAllFunctions() {
-        return factory.getAllFunctions();
+    public RootCallTarget getFunction() {
+        return factory.getFunction();
     }
 
     private static final class BailoutErrorListener extends BaseErrorListener {

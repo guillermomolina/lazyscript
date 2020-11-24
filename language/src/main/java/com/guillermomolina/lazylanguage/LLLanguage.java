@@ -44,7 +44,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -217,14 +216,14 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
     @Override
     protected CallTarget parse(ParsingRequest request) throws Exception {
         Source source = request.getSource();
-        Map<String, RootCallTarget> functions;
+        RootCallTarget main;
         /*
          * Parse the provided source. At this point, we do not have a LLContext yet. Registration of
          * the functions with the LLContext happens lazily in LLEvalRootNode.
          */
         if (request.getArgumentNames().isEmpty()) {
             LLParser parser = new LLParser(this, source);
-            functions = parser.getAllFunctions();
+            main = parser.getFunction();
         } else {
             StringBuilder sb = new StringBuilder();
             sb.append("function main(");
@@ -240,10 +239,9 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
             String language = source.getLanguage() == null ? ID : source.getLanguage();
             Source decoratedSource = Source.newBuilder(language, sb.toString(), source.getName()).build();
             LLParser parser = new LLParser(this, decoratedSource);
-            functions = parser.getAllFunctions();
+            main = parser.getFunction();
         }
 
-        RootCallTarget main = functions.get("main");
         RootNode evalMain;
         if (main != null) {
             /*

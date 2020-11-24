@@ -38,7 +38,7 @@ options {
 	tokenVocab = LazyLanguageLexer;
 }
 
-lazylanguage: function function* EOF;
+module: statement* EOF;
 
 function:
 	FUNCTION IDENTIFIER LPAREN functionParameters? RPAREN block;
@@ -49,7 +49,8 @@ block: LCURLY (statement)* RCURLY;
 
 statement:
 	(
-		whileStatement
+		function
+		| whileStatement
 		| ifStatement
 		| breakStatement SEMI
 		| continueStatement SEMI
