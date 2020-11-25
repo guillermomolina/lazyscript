@@ -69,7 +69,7 @@ final class FunctionsObject implements TruffleObject {
     }
 
     @ExportMessage
-    Class<? extends TruffleLanguage<?>> getLanguage() {
+    Class<? extends TruffleLanguage<LLContext>> getLanguage() {
         return LLLanguage.class;
     }
 

@@ -48,18 +48,6 @@ import java.io.PrintWriter;
 import java.util.Collections;
 import java.util.List;
 
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.Scope;
-import com.oracle.truffle.api.Truffle;
-import com.oracle.truffle.api.TruffleLanguage;
-import com.oracle.truffle.api.TruffleLanguage.Env;
-import com.oracle.truffle.api.dsl.NodeFactory;
-import com.oracle.truffle.api.frame.FrameDescriptor;
-import com.oracle.truffle.api.instrumentation.AllocationReporter;
-import com.oracle.truffle.api.interop.TruffleObject;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.source.Source;
 import com.guillermomolina.lazylanguage.LLLanguage;
 import com.guillermomolina.lazylanguage.builtins.LLBuiltinNode;
 import com.guillermomolina.lazylanguage.builtins.LLDefineFunctionBuiltinFactory;
@@ -83,14 +71,26 @@ import com.guillermomolina.lazylanguage.builtins.LLWrapPrimitiveBuiltinFactory;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.nodes.LLRootNode;
 import com.guillermomolina.lazylanguage.nodes.local.LLReadArgumentNode;
+import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.Scope;
+import com.oracle.truffle.api.Truffle;
+import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.TruffleLanguage.Env;
+import com.oracle.truffle.api.dsl.NodeFactory;
+import com.oracle.truffle.api.frame.FrameDescriptor;
+import com.oracle.truffle.api.instrumentation.AllocationReporter;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.source.Source;
 
 /**
- * The run-time state of Lazy during execution. The context is created by the {@link LLLanguage}. It
+ * The run-time state of Lazy during execution. The topContext is created by the {@link LLLanguage}. It
  * is used, for example, by {@link LLBuiltinNode#getContext() builtin functions}.
  * <p>
- * It would be an error to have two different context instances during the execution of one script.
+ * It would be an error to have two different topContext instances during the execution of one script.
  * However, if two separate scripts run in one Java VM at the same time, they have a different
- * context. Therefore, the context is not a singleton.
+ * topContext. Therefore, the topContext is not a singleton.
  */
 public final class LLContext {
 
@@ -99,7 +99,7 @@ public final class LLContext {
     private final Env env;
     private final BufferedReader input;
     private final PrintWriter output;
-    private final LLFunctionRegistry functionRegistry;
+    private final LLObject topContext;
     private final LLLanguage language;
     private final AllocationReporter allocationReporter;
     private final Iterable<Scope> topScopes; // Cache the top scopes
@@ -110,8 +110,8 @@ public final class LLContext {
         this.output = new PrintWriter(env.out(), true);
         this.language = language;
         this.allocationReporter = env.lookup(AllocationReporter.class);
-        this.functionRegistry = new LLFunctionRegistry(language);
-        this.topScopes = Collections.singleton(Scope.newBuilder("global", functionRegistry.getFunctionsObject()).build());
+        this.topContext = new LLObject(language.getRootShape(), language);
+        this.topScopes = Collections.singleton(Scope.newBuilder("global", new FunctionsObject()).build());
         installBuiltins();
         for (NodeFactory<? extends LLBuiltinNode> builtin : externalBuiltins) {
             installBuiltin(builtin);
@@ -144,8 +144,8 @@ public final class LLContext {
     /**
      * Returns the registry of all functions that are currently defined.
      */
-    public LLFunctionRegistry getFunctionRegistry() {
-        return functionRegistry;
+    public LLObject getTopContext() {
+        return topContext;
     }
 
     public Iterable<Scope> getTopScopes() {
@@ -203,7 +203,7 @@ public final class LLContext {
         LLRootNode rootNode = new LLRootNode(language, new FrameDescriptor(), builtinBodyNode, BUILTIN_SOURCE.createUnavailableSection(), name);
 
         /* Register the builtin function in our function registry. */
-        getFunctionRegistry().register(name, Truffle.getRuntime().createCallTarget(rootNode));
+        topContext.register(name, Truffle.getRuntime().createCallTarget(rootNode));
     }
 
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {

@@ -40,23 +40,15 @@
  */
 package com.guillermomolina.lazylanguage.nodes.expression;
 
-import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.NodeInfo;
 import com.guillermomolina.lazylanguage.LLLanguage;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
 import com.guillermomolina.lazylanguage.runtime.LLFunction;
-import com.guillermomolina.lazylanguage.runtime.LLFunctionRegistry;
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeInfo;
 
-/**
- * Constant literal for a {@link LLFunction function} value, created when a function name occurs as
- * a literal in Lazy source code. Note that function redefinition can change the {@link CallTarget
- * call target} that is executed when calling the function, but the {@link LLFunction} for a name
- * never changes. This is guaranteed by the {@link LLFunctionRegistry}.
- */
 @NodeInfo(shortName = "func")
 public final class LLFunctionLiteralNode extends LLExpressionNode {
 
@@ -81,7 +73,7 @@ public final class LLFunctionLiteralNode extends LLExpressionNode {
             /* We are about to change a @CompilationFinal field. */
             CompilerDirectives.transferToInterpreterAndInvalidate();
             /* First execution of the node: lookup the function in the function registry. */
-            cachedFunction = lookupContextReference(LLLanguage.class).get().getFunctionRegistry().lookup(functionName, true);
+            cachedFunction = lookupContextReference(LLLanguage.class).get().getTopContext().lookup(functionName, true);
         }
         return cachedFunction;
     }

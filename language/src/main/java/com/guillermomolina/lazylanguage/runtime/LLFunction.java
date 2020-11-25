@@ -65,23 +65,6 @@ import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import com.oracle.truffle.api.utilities.TriState;
 
-/**
- * Represents a Lazy function. On the Truffle level, a callable element is represented by a
- * {@link RootCallTarget call target}. This class encapsulates a call target, and adds version
- * support: functions in Lazy can be redefined, i.e. changed at run time. When a function is
- * redefined, the call target managed by this function object is changed (and {@link #callTarget} is
- * therefore not a final field).
- * <p>
- * Function redefinition is expected to be rare, therefore optimized call nodes want to speculate
- * that the call target is stable. This is possible with the help of a Truffle {@link Assumption}: a
- * call node can keep the call target returned by {@link #getCallTarget()} cached until the
- * assumption returned by {@link #getCallTargetStable()} is valid.
- * <p>
- * The {@link #callTarget} can be {@code null}. To ensure that only one {@link LLFunction} instance
- * per name exists, the {@link LLFunctionRegistry} creates an instance also when performing name
- * lookup. A function that has been looked up, i.e., used, but not defined, has a call target that
- * encapsulates a {@link LLUndefinedFunctionRootNode}.
- */
 @ExportLibrary(InteropLibrary.class)
 public final class LLFunction implements TruffleObject {
 
@@ -145,7 +128,7 @@ public final class LLFunction implements TruffleObject {
     }
 
     @ExportMessage
-    Class<? extends TruffleLanguage<?>> getLanguage() {
+    Class<? extends TruffleLanguage<LLContext>> getLanguage() {
         return LLLanguage.class;
     }
 

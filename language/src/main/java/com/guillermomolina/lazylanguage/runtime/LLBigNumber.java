@@ -211,7 +211,7 @@ public final class LLBigNumber implements TruffleObject, Comparable<LLBigNumber>
     }
 
     @ExportMessage
-    Class<? extends TruffleLanguage<?>> getLanguage() {
+    Class<? extends TruffleLanguage<LLContext>> getLanguage() {
         return LLLanguage.class;
     }
 

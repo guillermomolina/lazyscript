@@ -40,24 +40,14 @@
  */
 package com.guillermomolina.lazylanguage.builtins;
 
+import com.guillermomolina.lazylanguage.LLException;
+import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.oracle.truffle.api.dsl.GenerateNodeFactory;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.UnsupportedSpecializationException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
-import com.guillermomolina.lazylanguage.LLException;
-import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
-import com.guillermomolina.lazylanguage.runtime.LLContext;
-import com.guillermomolina.lazylanguage.runtime.LLFunctionRegistry;
 
-/**
- * Base class for all builtin functions. It contains the Truffle DLL annotation {@link NodeChild}
- * that defines the function arguments.<br>
- * The builtin functions are registered in {@link LLContext#installBuiltins}. Every builtin node
- * subclass is instantiated there, wrapped into a function, and added to the
- * {@link LLFunctionRegistry}. This ensures that builtin functions can be called like user-defined
- * functions; there is no special function lookup or call node for builtin functions.
- */
 @NodeChild(value = "arguments", type = LLExpressionNode[].class)
 @GenerateNodeFactory
 public abstract class LLBuiltinNode extends LLExpressionNode {

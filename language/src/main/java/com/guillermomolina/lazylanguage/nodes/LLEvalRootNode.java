@@ -42,15 +42,15 @@ package com.guillermomolina.lazylanguage.nodes;
 
 import java.util.Map;
 
+import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.runtime.LLContext;
+import com.guillermomolina.lazylanguage.runtime.LLNull;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.guillermomolina.lazylanguage.LLLanguage;
-import com.guillermomolina.lazylanguage.runtime.LLContext;
-import com.guillermomolina.lazylanguage.runtime.LLNull;
 
 /**
  * This class performs two additional tasks:
@@ -102,7 +102,7 @@ public final class LLEvalRootNode extends RootNode {
         if (!registered) {
             /* Function registration is a slow-path operation that must not be compiled. */
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            lookupContextReference(LLLanguage.class).get().getFunctionRegistry().register(functions);
+            lookupContextReference(LLLanguage.class).get().getTopContext().register(functions);
             registered = true;
         }
 

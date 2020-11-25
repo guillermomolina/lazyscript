@@ -82,7 +82,7 @@ public final class LLLanguageView implements TruffleObject {
      * tooling to take a primitive or foreign value and create a value of lazy language of it.
      */
     @ExportMessage
-    Class<? extends TruffleLanguage<?>> getLanguage() {
+    Class<? extends TruffleLanguage<LLContext>> getLanguage() {
         return LLLanguage.class;
     }
 

@@ -107,12 +107,6 @@ public final class LLMain {
 
         try {
             final Value result = context.eval(source);
-            final String moduleName = getModuleName(source);
-            final Value bindings = context.getBindings(Lazy);
-            if (bindings.getMember(moduleName) == null) {
-                err.println("No code defined in Lazy source file.");
-                return 1;
-            }
             if (!result.isNull()) {
                 out.println(result.toString());
             }

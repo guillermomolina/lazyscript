@@ -40,11 +40,30 @@
  */
 package com.guillermomolina.lazylanguage.runtime;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+
+import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.parser.LLParser;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.InvalidArrayIndexException;
+import com.oracle.truffle.api.interop.TruffleObject;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.object.DynamicObject;
+import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.utilities.TriState;
 
 /**
  * Represents an Lazy object.
@@ -67,8 +86,208 @@ import com.oracle.truffle.api.object.Shape;
  * @see InteropLibrary
  */
 @ExportLibrary(InteropLibrary.class)
-public final class LLObject extends LLObjectBase {
-    public LLObject(Shape shape) {
+public final class LLObject extends DynamicObject {
+    protected static final int CACHE_LIMIT = 3;
+    private final LLLanguage language;
+    private final FunctionsObject functionsObject = new FunctionsObject();
+
+    public LLObject(Shape shape, LLLanguage language) {
         super(shape);
+        this.language = language;
+    }
+
+    /**
+     * Returns the canonical {@link LLFunction} object for the given name. If it does not exist yet,
+     * it is created.
+     */
+    public LLFunction lookup(String name, boolean createIfNotPresent) {
+        LLFunction result = functionsObject.functions.get(name);
+        if (result == null && createIfNotPresent) {
+            result = new LLFunction(language, name);
+            functionsObject.functions.put(name, result);
+        }
+        return result;
+    }
+
+    /**
+     * Associates the {@link LLFunction} with the given name with the given implementation root
+     * node. If the function did not exist before, it defines the function. If the function existed
+     * before, it redefines the function and the old implementation is discarded.
+     */
+    public LLFunction register(String name, RootCallTarget callTarget) {
+        LLFunction function = lookup(name, true);
+        function.setCallTarget(callTarget);
+        return function;
+    }
+
+    public void register(Map<String, RootCallTarget> newFunctions) {
+        for (Map.Entry<String, RootCallTarget> entry : newFunctions.entrySet()) {
+            register(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public void register(Source newFunctions) {
+        LLParser parser = new LLParser(language, newFunctions);
+        register(parser.getAllFunctions());
+    }
+
+    public LLFunction getFunction(String name) {
+        return functionsObject.functions.get(name);
+    }
+
+    /**
+     * Returns the sorted list of all functions, for printing purposes only.
+     */
+    public List<LLFunction> getFunctions() {
+        List<LLFunction> result = new ArrayList<>(functionsObject.functions.values());
+        Collections.sort(result, new Comparator<LLFunction>() {
+            public int compare(LLFunction f1, LLFunction f2) {
+                return f1.toString().compareTo(f2.toString());
+            }
+        });
+        return result;
+    }
+
+    public TruffleObject getFunctionsObject() {
+        return functionsObject;
+    }
+
+    @ExportMessage
+    boolean hasLanguage() {
+        return true;
+    }
+
+    @ExportMessage
+    Class<? extends TruffleLanguage<LLContext>> getLanguage() {
+        return LLLanguage.class;
+    }
+
+    @ExportMessage
+    static final class IsIdenticalOrUndefined {
+        private IsIdenticalOrUndefined() {
+        }
+
+        @Specialization
+        static TriState doLLObject(LLObject receiver, LLObject other) {
+            return TriState.valueOf(receiver == other);
+        }
+
+        @Fallback
+        static TriState doOther(LLObject receiver, Object other) {
+            return TriState.UNDEFINED;
+        }
+    }
+
+    @ExportMessage
+    @TruffleBoundary
+    int identityHashCode() {
+        return System.identityHashCode(this);
+    }
+
+    @ExportMessage
+    boolean hasMetaObject() {
+        return true;
+    }
+
+    @ExportMessage
+    Object getMetaObject() {
+        return LLType.OBJECT;
+    }
+
+    @ExportMessage
+    @TruffleBoundary
+    Object toDisplayString(boolean allowSideEffects) {
+        return "Object";
+    }
+
+    @ExportMessage
+    boolean hasMembers() {
+        return true;
+    }
+
+    @ExportMessage
+    void removeMember(String member,
+                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
+        if (objectLibrary.containsKey(this, member)) {
+            objectLibrary.removeKey(this, member);
+        } else {
+            throw UnknownIdentifierException.create(member);
+        }
+    }
+
+    @ExportMessage
+    Object getMembers(boolean includeInternal,
+                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+        return new Keys(objectLibrary.getKeyArray(this));
+    }
+
+    @ExportMessage(name = "isMemberReadable")
+    @ExportMessage(name = "isMemberModifiable")
+    @ExportMessage(name = "isMemberRemovable")
+    boolean existsMember(String member,
+                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+        return objectLibrary.containsKey(this, member);
+    }
+
+    @ExportMessage
+    boolean isMemberInsertable(String member,
+                    @CachedLibrary("this") InteropLibrary receivers) {
+        return !receivers.isMemberExisting(this, member);
+    }
+
+    @ExportLibrary(InteropLibrary.class)
+    static final class Keys implements TruffleObject {
+
+        private final Object[] data;
+
+        Keys(Object[] keys) {
+            this.data = keys;
+        }
+
+        @ExportMessage
+        Object readArrayElement(long index) throws InvalidArrayIndexException {
+            if (!isArrayElementReadable(index)) {
+                throw InvalidArrayIndexException.create(index);
+            }
+            return data[(int) index];
+        }
+
+        @ExportMessage
+        boolean hasArrayElements() {
+            return true;
+        }
+
+        @ExportMessage
+        long getArraySize() {
+            return data.length;
+        }
+
+        @ExportMessage
+        boolean isArrayElementReadable(long index) {
+            return index >= 0 && index < data.length;
+        }
+    }
+
+    /**
+     * {@link DynamicObjectLibrary} provides the polymorphic inline cache for reading properties.
+     */
+    @ExportMessage
+    Object readMember(String name,
+                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
+        Object result = objectLibrary.getOrDefault(this, name, null);
+        if (result == null) {
+            /* Property does not exist. */
+            throw UnknownIdentifierException.create(name);
+        }
+        return result;
+    }
+
+    /**
+     * {@link DynamicObjectLibrary} provides the polymorphic inline cache for writing properties.
+     */
+    @ExportMessage
+    void writeMember(String name, Object value,
+                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+        objectLibrary.put(this, name, value);
     }
 }
