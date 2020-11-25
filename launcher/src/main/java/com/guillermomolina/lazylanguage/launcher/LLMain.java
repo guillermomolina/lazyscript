@@ -85,6 +85,15 @@ public final class LLMain {
         System.exit(executeSource(source, System.in, System.out, options));
     }
 
+    private static String getModuleName(Source source) {
+        String moduleName = source.getName();
+        final int extensionIndex = moduleName.lastIndexOf(".");
+        if (extensionIndex != -1) {
+            moduleName = moduleName.substring(0, extensionIndex);
+        }
+        return moduleName;
+    }
+
     private static int executeSource(Source source, InputStream in, PrintStream out, Map<String, String> options) {
         Context context;
         PrintStream err = System.err;
@@ -97,9 +106,11 @@ public final class LLMain {
         out.println("== running on " + context.getEngine());
 
         try {
-            Value result = context.eval(source);
-            if (context.getBindings(Lazy).getMember("main") == null) {
-                err.println("No function main() defined in Lazy source file.");
+            final Value result = context.eval(source);
+            final String moduleName = getModuleName(source);
+            final Value bindings = context.getBindings(Lazy);
+            if (bindings.getMember(moduleName) == null) {
+                err.println("No code defined in Lazy source file.");
                 return 1;
             }
             if (!result.isNull()) {

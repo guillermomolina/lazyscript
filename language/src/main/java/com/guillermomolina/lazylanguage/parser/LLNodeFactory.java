@@ -133,7 +133,7 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
 
     /* State while parsing a source unit. */
     private final Source source;
-    private RootCallTarget function;
+    private final Map<String, RootCallTarget> allFunctions;
 
     /* State while parsing a function. */
     private int functionStartPos;
@@ -148,10 +148,11 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     public LLNodeFactory(LLLanguage language, Source source) {
         this.language = language;
         this.source = source;
+        this.allFunctions = new HashMap<>();
     }
 
-    public RootCallTarget getFunction() {
-        return function;
+    public Map<String, RootCallTarget> getAllFunctions() {
+        return allFunctions;
     }
 
     private static Interval srcFromContext(ParserRuleContext ctx) {
@@ -186,6 +187,11 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
         assert frameDescriptor == null;
         assert lexicalScope == null;
 
+        functionName = source.getName();
+        final int extensionIndex = functionName.lastIndexOf(".");
+        if (extensionIndex != -1) {
+            functionName = functionName.substring(0, extensionIndex);
+        }
         frameDescriptor = new FrameDescriptor();
         pushScope(false);
 
@@ -208,7 +214,8 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
                 statement.addStatementTag();
             }
         }
-        LLStatementNode methodBlock = new LLBlockNode(flattenedNodes.toArray(new LLStatementNode[flattenedNodes.size()]));
+        LLStatementNode methodBlock = new LLBlockNode(
+                flattenedNodes.toArray(new LLStatementNode[flattenedNodes.size()]));
         setSourceFromContext(methodBlock, ctx);
 
         if (methodBlock != null) {
@@ -220,7 +227,7 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
             functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
             final LLRootNode rootNode = new LLRootNode(language, frameDescriptor, functionBodyNode, functionSrc,
                     functionName);
-            function = Truffle.getRuntime().createCallTarget(rootNode);
+            allFunctions.put(functionName, Truffle.getRuntime().createCallTarget(rootNode));
         }
 
         functionStartPos = 0;
@@ -236,9 +243,9 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     public Node visitFunction(LazyLanguageParser.FunctionContext ctx) {
         throw new NotImplementedException();
     }
-    
+
     public Node visitFunction2(LazyLanguageParser.FunctionContext ctx) {
-            assert functionStartPos == 0;
+        assert functionStartPos == 0;
         assert functionName == null;
         assert functionBodyStartPos == 0;
         assert frameDescriptor == null;
@@ -339,13 +346,13 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
             LLExpressionNode receiver, LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName) {
         if (ctx.LPAREN() != null) {
             return createCallMemberExpression(ctx, receiver, assignmentName);
-        } 
+        }
         if (ctx.ASSIGN() != null) {
             return createAssignmentMemberExpression(ctx, receiver, assignmentReceiver, assignmentName);
-        } 
+        }
         if (ctx.DOT() != null) {
             return createDotMemberExpression(ctx, receiver, assignmentName);
-        } 
+        }
         if (ctx.LBRACK() != null) {
             return createArrayMemberExpression(ctx, receiver, assignmentName);
         }
