@@ -345,7 +345,7 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     public LLExpressionNode createMemberExpression(LazyLanguageParser.MemberExpressionContext ctx,
             LLExpressionNode receiver, LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName) {
         if (ctx.LPAREN() != null) {
-            return createCallMemberExpression(ctx, receiver, assignmentName);
+            return createCallMemberExpression(ctx, receiver, assignmentReceiver, assignmentName);
         }
         if (ctx.ASSIGN() != null) {
             return createAssignmentMemberExpression(ctx, receiver, assignmentReceiver, assignmentName);
@@ -360,19 +360,27 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     }
 
     public LLExpressionNode createCallMemberExpression(LazyLanguageParser.MemberExpressionContext ctx,
-            LLExpressionNode r, LLExpressionNode assignmentName) {
+            LLExpressionNode r, LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName) {
+        if (assignmentName == null) {
+            throw new LLParseError(source, ctx.expression(), "invalid method receiver");
+        }
         String literal = "this";
         LLExpressionNode receiver = r == null ? new LLStringLiteralNode(literal.intern()) : r;
-        List<LLExpressionNode> parameters = new ArrayList<>();
-        parameters.add(receiver);
-        if (ctx.parameterList() != null) {
-            for (LazyLanguageParser.ExpressionContext expression : ctx.parameterList().expression()) {
-                parameters.add((LLExpressionNode) visit(expression));
+        LLExpressionNode result;
+        if (assignmentReceiver == null) {
+            throw new NotImplementedException();
+        } else {
+            List<LLExpressionNode> parameters = new ArrayList<>();
+            parameters.add(receiver);
+            if (ctx.parameterList() != null) {
+                for (LazyLanguageParser.ExpressionContext expression : ctx.parameterList().expression()) {
+                    parameters.add((LLExpressionNode) visit(expression));
+                }
             }
+            result = createCall(createRead(assignmentName), parameters, ctx.RPAREN().getSymbol());
         }
-        LLExpressionNode result = createCall(createRead(assignmentName), parameters, ctx.RPAREN().getSymbol());
         if (ctx.memberExpression() != null) {
-            return createMemberExpression(ctx.memberExpression(), result, receiver, null);
+            result = createMemberExpression(ctx.memberExpression(), result, receiver, null);
         }
         return result;
     }

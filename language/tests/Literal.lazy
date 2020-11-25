@@ -1,5 +1,1 @@
-a=1;
-a.println();
-println(println);
-println(true);
-println("Hello");
+true.println(true);
