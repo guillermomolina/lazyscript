@@ -73,7 +73,7 @@ public final class LLFunctionLiteralNode extends LLExpressionNode {
             /* We are about to change a @CompilationFinal field. */
             CompilerDirectives.transferToInterpreterAndInvalidate();
             /* First execution of the node: lookup the function in the function registry. */
-            cachedFunction = lookupContextReference(LLLanguage.class).get().getTopContext().lookup(functionName, true);
+            cachedFunction = lookupContextReference(LLLanguage.class).get().getTopContext().getFunctionRegistry().lookup(functionName, true);
         }
         return cachedFunction;
     }

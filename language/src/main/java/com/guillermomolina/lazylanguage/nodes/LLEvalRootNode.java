@@ -102,7 +102,7 @@ public final class LLEvalRootNode extends RootNode {
         if (!registered) {
             /* Function registration is a slow-path operation that must not be compiled. */
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            lookupContextReference(LLLanguage.class).get().getTopContext().register(functions);
+            lookupContextReference(LLLanguage.class).get().getTopContext().getFunctionRegistry().register(functions);
             registered = true;
         }
 
@@ -111,9 +111,11 @@ public final class LLEvalRootNode extends RootNode {
             return LLNull.SINGLETON;
         } else {
             /* Conversion of arguments to types understood by Lazy. */
-            Object[] arguments = frame.getArguments();
-            for (int i = 0; i < arguments.length; i++) {
-                arguments[i] = LLContext.fromForeignValue(arguments[i]);
+            Object[] frameArguments = frame.getArguments();
+            Object[] arguments = new Object[frameArguments.length + 1];
+            arguments[0] = lookupContextReference(LLLanguage.class).get().getTopContext();
+            for (int i = 0; i < frameArguments.length; i++) {
+                arguments[i + 1] = LLContext.fromForeignValue(frameArguments[i]);
             }
             return mainCallNode.call(arguments);
         }

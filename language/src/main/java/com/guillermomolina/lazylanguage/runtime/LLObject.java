@@ -40,16 +40,8 @@
  */
 package com.guillermomolina.lazylanguage.runtime;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-
 import com.guillermomolina.lazylanguage.LLLanguage;
-import com.guillermomolina.lazylanguage.parser.LLParser;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -88,68 +80,15 @@ import com.oracle.truffle.api.utilities.TriState;
 @ExportLibrary(InteropLibrary.class)
 public final class LLObject extends DynamicObject {
     protected static final int CACHE_LIMIT = 3;
-    private final LLLanguage language;
-    private final FunctionsObject functionsObject = new FunctionsObject();
+    protected final LLFunctionRegistry functionRegistry;
 
     public LLObject(Shape shape, LLLanguage language) {
         super(shape);
-        this.language = language;
+        this.functionRegistry = new LLFunctionRegistry(language);
     }
 
-    /**
-     * Returns the canonical {@link LLFunction} object for the given name. If it does not exist yet,
-     * it is created.
-     */
-    public LLFunction lookup(String name, boolean createIfNotPresent) {
-        LLFunction result = functionsObject.functions.get(name);
-        if (result == null && createIfNotPresent) {
-            result = new LLFunction(language, name);
-            functionsObject.functions.put(name, result);
-        }
-        return result;
-    }
-
-    /**
-     * Associates the {@link LLFunction} with the given name with the given implementation root
-     * node. If the function did not exist before, it defines the function. If the function existed
-     * before, it redefines the function and the old implementation is discarded.
-     */
-    public LLFunction register(String name, RootCallTarget callTarget) {
-        LLFunction function = lookup(name, true);
-        function.setCallTarget(callTarget);
-        return function;
-    }
-
-    public void register(Map<String, RootCallTarget> newFunctions) {
-        for (Map.Entry<String, RootCallTarget> entry : newFunctions.entrySet()) {
-            register(entry.getKey(), entry.getValue());
-        }
-    }
-
-    public void register(Source newFunctions) {
-        LLParser parser = new LLParser(language, newFunctions);
-        register(parser.getAllFunctions());
-    }
-
-    public LLFunction getFunction(String name) {
-        return functionsObject.functions.get(name);
-    }
-
-    /**
-     * Returns the sorted list of all functions, for printing purposes only.
-     */
-    public List<LLFunction> getFunctions() {
-        List<LLFunction> result = new ArrayList<>(functionsObject.functions.values());
-        Collections.sort(result, new Comparator<LLFunction>() {
-            public int compare(LLFunction f1, LLFunction f2) {
-                return f1.toString().compareTo(f2.toString());
-            }
-        });
-        return result;
-    }
-
-    public TruffleObject getFunctionsObject() {
-        return functionsObject;
+    public LLFunctionRegistry getFunctionRegistry() {
+        return functionRegistry;
     }
 
     @ExportMessage

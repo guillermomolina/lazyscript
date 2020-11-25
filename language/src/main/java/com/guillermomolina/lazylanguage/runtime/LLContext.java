@@ -203,7 +203,7 @@ public final class LLContext {
         LLRootNode rootNode = new LLRootNode(language, new FrameDescriptor(), builtinBodyNode, BUILTIN_SOURCE.createUnavailableSection(), name);
 
         /* Register the builtin function in our function registry. */
-        topContext.register(name, Truffle.getRuntime().createCallTarget(rootNode));
+        topContext.getFunctionRegistry().register(name, Truffle.getRuntime().createCallTarget(rootNode));
     }
 
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {

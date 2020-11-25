@@ -361,14 +361,16 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
 
     public LLExpressionNode createCallMemberExpression(LazyLanguageParser.MemberExpressionContext ctx,
             LLExpressionNode r, LLExpressionNode assignmentName) {
-        LLExpressionNode receiver = r == null ? createRead(assignmentName) : r;
+        String literal = "this";
+        LLExpressionNode receiver = r == null ? new LLStringLiteralNode(literal.intern()) : r;
         List<LLExpressionNode> parameters = new ArrayList<>();
+        parameters.add(receiver);
         if (ctx.parameterList() != null) {
             for (LazyLanguageParser.ExpressionContext expression : ctx.parameterList().expression()) {
                 parameters.add((LLExpressionNode) visit(expression));
             }
         }
-        LLExpressionNode result = createCall(receiver, parameters, ctx.RPAREN().getSymbol());
+        LLExpressionNode result = createCall(createRead(assignmentName), parameters, ctx.RPAREN().getSymbol());
         if (ctx.memberExpression() != null) {
             return createMemberExpression(ctx.memberExpression(), result, receiver, null);
         }

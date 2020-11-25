@@ -159,7 +159,7 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
      */
     @Override
     protected Object findExportedSymbol(LLContext context, String globalName, boolean onlyExplicit) {
-        return context.getTopContext().lookup(globalName, false);
+        return context.getTopContext().getFunctionRegistry().lookup(globalName, false);
     }
 
     @Override
@@ -200,7 +200,7 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
 
                     private Object findFunctionObject() {
                         String name = node.getRootNode().getName();
-                        return context.getTopContext().getFunction(name);
+                        return context.getTopContext().getFunctionRegistry().getFunction(name);
                     }
                 };
             }
