@@ -360,27 +360,23 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     }
 
     public LLExpressionNode createCallMemberExpression(LazyLanguageParser.MemberExpressionContext ctx,
-            LLExpressionNode r, LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName) {
-        if (assignmentName == null) {
-            throw new LLParseError(source, ctx.expression(), "invalid method receiver");
-        }
-        String literal = "this";
-        LLExpressionNode receiver = r == null ? new LLStringLiteralNode(literal.intern()) : r;
-        LLExpressionNode result;
-        if (assignmentReceiver == null) {
-            throw new NotImplementedException();
+            LLExpressionNode r, LLExpressionNode functionReceiver, LLExpressionNode functionName) {
+        LLExpressionNode receiver;
+        if (functionReceiver == null) {
+            receiver = new LLReadArgumentNode(0);
         } else {
-            List<LLExpressionNode> parameters = new ArrayList<>();
-            parameters.add(receiver);
-            if (ctx.parameterList() != null) {
-                for (LazyLanguageParser.ExpressionContext expression : ctx.parameterList().expression()) {
-                    parameters.add((LLExpressionNode) visit(expression));
-                }
-            }
-            result = createCall(createRead(assignmentName), parameters, ctx.RPAREN().getSymbol());
+            receiver = functionReceiver;
         }
+        List<LLExpressionNode> parameters = new ArrayList<>();
+        parameters.add(receiver);
+        if (ctx.parameterList() != null) {
+            for (LazyLanguageParser.ExpressionContext expression : ctx.parameterList().expression()) {
+                parameters.add((LLExpressionNode) visit(expression));
+            }
+        }
+        LLExpressionNode result = createCall(functionName, parameters, ctx.RPAREN().getSymbol());
         if (ctx.memberExpression() != null) {
-            result = createMemberExpression(ctx.memberExpression(), result, receiver, null);
+            return createMemberExpression(ctx.memberExpression(), result, receiver, null);
         }
         return result;
     }
@@ -656,16 +652,16 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
      * @return An LLInvokeNode for the given parameters. null if functionNode or any
      *         of the parameterNodes are null.
      */
-    public LLExpressionNode createCall(LLExpressionNode functionNode, List<LLExpressionNode> parameterNodes,
+    public LLExpressionNode createCall(LLExpressionNode functionName, List<LLExpressionNode> parameterNodes,
             Token finalToken) {
-        if (functionNode == null || containsNull(parameterNodes)) {
+        if (functionName == null || containsNull(parameterNodes)) {
             return null;
         }
 
-        final LLExpressionNode result = new LLInvokeNode(functionNode,
+        final LLExpressionNode result = new LLInvokeNode(functionName,
                 parameterNodes.toArray(new LLExpressionNode[parameterNodes.size()]));
 
-        final int startPos = functionNode.getSourceCharIndex();
+        final int startPos = functionName.getSourceCharIndex();
         final int endPos = finalToken.getStartIndex() + finalToken.getText().length();
         result.setSourceSection(startPos, endPos - startPos);
         result.addExpressionTag();
@@ -743,10 +739,7 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
             /* Read of a local variable. */
             result = LLReadLocalVariableNodeGen.create(frameSlot);
         } else {
-            /*
-             * Read of a global name. In our language, the only global names are functions.
-             */
-            result = new LLFunctionLiteralNode(name);
+            throw new NotImplementedException();
         }
         result.setSourceSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
         result.addExpressionTag();

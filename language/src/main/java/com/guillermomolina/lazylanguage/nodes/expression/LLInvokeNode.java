@@ -40,6 +40,9 @@
  */
 package com.guillermomolina.lazylanguage.nodes.expression;
 
+import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
+import com.guillermomolina.lazylanguage.runtime.LLFunction;
+import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.StandardTags;
@@ -50,9 +53,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
-import com.guillermomolina.lazylanguage.runtime.LLFunction;
-import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
 
 /**
  * The node for function invocation in Lazy. Since Lazy has first class functions, the {@link LLFunction
@@ -78,8 +78,6 @@ public final class LLInvokeNode extends LLExpressionNode {
     @ExplodeLoop
     @Override
     public Object executeGeneric(VirtualFrame frame) {
-        Object function = functionNode.executeGeneric(frame);
-
         /*
          * The number of arguments is constant for one invoke node. During compilation, the loop is
          * unrolled and the execute methods of all arguments are inlined. This is triggered by the
@@ -92,6 +90,8 @@ public final class LLInvokeNode extends LLExpressionNode {
         for (int i = 0; i < argumentNodes.length; i++) {
             argumentValues[i] = argumentNodes[i].executeGeneric(frame);
         }
+
+        Object function = functionNode.executeGeneric(frame);
 
         try {
             return library.execute(function, argumentValues);
