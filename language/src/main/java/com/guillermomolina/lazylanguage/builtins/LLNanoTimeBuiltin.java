@@ -50,7 +50,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public abstract class LLNanoTimeBuiltin extends LLBuiltinNode {
 
     @Specialization
-    public long nanoTime() {
+    public long nanoTime(Object self) {
         return System.nanoTime();
     }
 }

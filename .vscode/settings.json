@@ -15,7 +15,6 @@
     "git.autofetch": true,
     "editor.minimap.enabled": false,
     "java.saveActions.organizeImports": true,
-    "java.home": "",
     "java.test.config": {
         "vmargs": [
             "-Dgraalvm.locatorDisabled=true"

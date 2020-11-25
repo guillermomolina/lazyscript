@@ -103,7 +103,7 @@ public final class LLObject extends DynamicObject {
 
     @ExportMessage
     static final class IsIdenticalOrUndefined {
-        private IsIdenticalOrUndefined() {
+        public IsIdenticalOrUndefined() {
         }
 
         @Specialization

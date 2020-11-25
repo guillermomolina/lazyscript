@@ -57,7 +57,7 @@ public abstract class LLHelloEqualsWorldBuiltin extends LLBuiltinNode {
 
     @Specialization
     @TruffleBoundary
-    public String change() {
+    public String change(Object self) {
         FrameInstance frameInstance = Truffle.getRuntime().getCallerFrame();
         Frame frame = frameInstance.getFrame(FrameAccess.READ_WRITE);
         FrameSlot slot = frame.getFrameDescriptor().findOrAddFrameSlot("hello");
