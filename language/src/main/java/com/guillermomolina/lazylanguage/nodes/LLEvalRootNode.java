@@ -102,7 +102,7 @@ public final class LLEvalRootNode extends RootNode {
         if (!registered) {
             /* Function registration is a slow-path operation that must not be compiled. */
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            lookupContextReference(LLLanguage.class).get().getTopContext().getFunctionRegistry().register(functions);
+            lookupContextReference(LLLanguage.class).get().getTopContext().register(functions);
             registered = true;
         }
 

@@ -73,6 +73,7 @@ import com.guillermomolina.lazylanguage.nodes.LLRootNode;
 import com.guillermomolina.lazylanguage.nodes.local.LLReadArgumentNode;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -201,9 +202,11 @@ public final class LLContext {
 
         /* Wrap the builtin in a RootNode. Truffle requires all AST to start with a RootNode. */
         LLRootNode rootNode = new LLRootNode(language, new FrameDescriptor(), builtinBodyNode, BUILTIN_SOURCE.createUnavailableSection(), name);
+        RootCallTarget rootFunction = Truffle.getRuntime().createCallTarget(rootNode);
 
         /* Register the builtin function in our function registry. */
-        topContext.getFunctionRegistry().register(name, Truffle.getRuntime().createCallTarget(rootNode));
+        //topContext.getFunctionRegistry().register(name, rootFunction);
+        topContext.register(name, rootFunction);
     }
 
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {

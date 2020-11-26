@@ -40,8 +40,10 @@
  */
 package com.guillermomolina.lazylanguage.nodes.expression;
 
+import com.guillermomolina.lazylanguage.LLLanguage;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.runtime.LLFunction;
+import com.guillermomolina.lazylanguage.runtime.LLObject;
 import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -65,12 +67,12 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(shortName = "invoke")
 public final class LLInvokeNode extends LLExpressionNode {
 
-    @Child private LLExpressionNode functionNode;
+    @Child private LLExpressionNode methodNameNode;
     @Children private final LLExpressionNode[] argumentNodes;
     @Child private InteropLibrary library;
 
-    public LLInvokeNode(LLExpressionNode functionNode, LLExpressionNode[] argumentNodes) {
-        this.functionNode = functionNode;
+    public LLInvokeNode(LLExpressionNode methodNameNode, LLExpressionNode[] argumentNodes) {
+        this.methodNameNode = methodNameNode;
         this.argumentNodes = argumentNodes;
         this.library = InteropLibrary.getFactory().createDispatched(3);
     }
@@ -91,13 +93,21 @@ public final class LLInvokeNode extends LLExpressionNode {
             argumentValues[i] = argumentNodes[i].executeGeneric(frame);
         }
 
-        Object function = functionNode.executeGeneric(frame);
+        String methodName = (String)methodNameNode.executeGeneric(frame);
+        Object function;
+
+        if(argumentValues[0] instanceof LLObject) {
+            LLObject receiver = (LLObject)argumentValues[0];
+            function = receiver.getFunction(methodName);
+        } else {
+            function = lookupContextReference(LLLanguage.class).get().getTopContext().getFunction(methodName);
+        }
 
         try {
             return library.execute(function, argumentValues);
         } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
             /* Execute was not successful. */
-            throw LLUndefinedNameException.undefinedFunction(this, function);
+            throw LLUndefinedNameException.undefinedFunction(this, methodName);
         }
     }
 

@@ -40,8 +40,14 @@
  */
 package com.guillermomolina.lazylanguage.runtime;
 
+import java.util.List;
+import java.util.Map;
+
 import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.NotImplementedException;
+import com.guillermomolina.lazylanguage.parser.LLParser;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -49,12 +55,16 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
+import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
+import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.utilities.TriState;
 
 /**
@@ -80,15 +90,75 @@ import com.oracle.truffle.api.utilities.TriState;
 @ExportLibrary(InteropLibrary.class)
 public final class LLObject extends DynamicObject {
     protected static final int CACHE_LIMIT = 3;
-    protected final LLFunctionRegistry functionRegistry;
+    private final LLLanguage language;
+    @DynamicField private Object __proto__;
 
     public LLObject(Shape shape, LLLanguage language) {
         super(shape);
-        this.functionRegistry = new LLFunctionRegistry(language);
+        this.language = language;
     }
 
-    public LLFunctionRegistry getFunctionRegistry() {
-        return functionRegistry;
+    /**
+     * Returns the canonical {@link LLFunction} object for the given name. If it does not exist yet,
+     * it is created.
+     */
+    public LLFunction lookup(String name, boolean createIfNotPresent) {
+        InteropLibrary INTEROP = LibraryFactory.resolve(InteropLibrary.class).getUncached();
+        LLFunction result = null;
+        try {
+            result = (LLFunction)INTEROP.readMember(this, name);
+        } catch (UnknownIdentifierException | UnsupportedMessageException e) {
+            //
+        }
+        if(result instanceof LLFunction) {
+            return result;
+        }
+        try {
+            if (createIfNotPresent) {
+                result = new LLFunction(language, name);
+                INTEROP.writeMember(this, name, result);
+            }
+        } catch (UnknownIdentifierException | UnsupportedMessageException | UnsupportedTypeException e) {
+            //
+        }
+        return result;    
+    }
+
+    /**
+     * Associates the {@link LLFunction} with the given name with the given implementation root
+     * node. If the function did not exist before, it defines the function. If the function existed
+     * before, it redefines the function and the old implementation is discarded.
+     */
+    public LLFunction register(String name, RootCallTarget callTarget) {
+        LLFunction function = lookup(name, true);
+        function.setCallTarget(callTarget);
+        return function;
+    }
+
+    public void register(Map<String, RootCallTarget> newFunctions) {
+        for (Map.Entry<String, RootCallTarget> entry : newFunctions.entrySet()) {
+            register(entry.getKey(), entry.getValue());
+        }
+    }
+
+    public void register(Source newFunctions) {
+        LLParser parser = new LLParser(language, newFunctions);
+        register(parser.getAllFunctions());
+    }
+
+    public LLFunction getFunction(String name) {
+        return lookup(name, false);
+    }
+
+    /**
+     * Returns the sorted list of all functions, for printing purposes only.
+     */
+    public List<LLFunction> getFunctions() {
+        throw new NotImplementedException();
+    }
+
+    public TruffleObject getFunctionsObject() {
+        throw new NotImplementedException();
     }
 
     @ExportMessage

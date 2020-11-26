@@ -153,15 +153,6 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
         return LLLanguageView.create(value);
     }
 
-    /*
-     * Still necessary for the old Lazy TCK to pass. We should remove with the old TCK. New language
-     * should not override this.
-     */
-    @Override
-    protected Object findExportedSymbol(LLContext context, String globalName, boolean onlyExplicit) {
-        return context.getTopContext().getFunctionRegistry().lookup(globalName, false);
-    }
-
     @Override
     protected boolean isVisible(LLContext context, Object value) {
         return !InteropLibrary.getFactory().getUncached(value).isNull(value);
@@ -200,7 +191,7 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
 
                     private Object findFunctionObject() {
                         String name = node.getRootNode().getName();
-                        return context.getTopContext().getFunctionRegistry().getFunction(name);
+                        return context.getTopContext().getFunction(name);
                     }
                 };
             }
