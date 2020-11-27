@@ -87,7 +87,7 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
 
     public LLLanguage() {
         counter.incrementAndGet();
-        this.rootShape = Shape.newBuilder().layout(LLObject.class).build();
+        this.rootShape = Shape.newBuilder().layout(LLObject.class).addConstantProperty(LLObject.PROTOTYPE, null, 0).build();
     }
 
     @Override

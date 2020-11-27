@@ -105,6 +105,7 @@ public final class LLContext {
     private final Iterable<Scope> topScopes; // Cache the top scopes
 
     private final LLObject objectPrototype;
+    private final LLObject booleanPrototype;
     private final LLObject functionPrototype;
     private final LLObject stringPrototype;
     private final LLObject topContext;
@@ -118,6 +119,7 @@ public final class LLContext {
         this.topScopes = Collections.singleton(Scope.newBuilder("global", new FunctionsObject()).build());
 
         this.objectPrototype = createObject(null);
+        this.booleanPrototype = createObject(objectPrototype);
         this.functionPrototype = createObject(objectPrototype);
         this.stringPrototype = createObject(objectPrototype);
         this.topContext = createObject(objectPrototype);
@@ -240,25 +242,32 @@ public final class LLContext {
         }
     }
 
-    public Object getFunction(Object obj, Object key) {
-        LLObject object;
+    public LLObject getPrototype(Object obj) {
         if(obj instanceof LLObject) {
-            object = (LLObject)obj;
+            return ((LLObject)obj).getPrototype();
         } else if (obj instanceof String) {
-            object = stringPrototype;
+            return stringPrototype;
         } else {
             throw new NotImplementedException();
         }
-        if(LLObjectUtil.hasProperty(object, key)) {
-            return LLObjectUtil.getProperty(object, key);
+    }
+
+    public Object getFunction(Object obj, Object name) {
+        LLObject object;
+        if(obj instanceof LLObject) {
+            object = (LLObject)obj;
+        } else {
+            object = getPrototype(obj);
         }
-        Object parent = LLObjectUtil.getProperty(object, LLObject.PROTOTYPE);
+        if(LLObjectUtil.hasProperty(object, name)) {
+            return LLObjectUtil.getProperty(object, name);
+        }
+        Object parent = object.getPrototype();
         if(parent != null) {
-            return getFunction(parent, key);
+            return getFunction(parent, name);
         }
         throw new NotImplementedException();
     }
-
 
     /*
      * Methods for object creation / object property access.

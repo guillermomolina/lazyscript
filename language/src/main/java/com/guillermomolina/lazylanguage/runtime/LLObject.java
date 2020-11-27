@@ -83,7 +83,7 @@ import com.oracle.truffle.api.utilities.TriState;
 @ExportLibrary(InteropLibrary.class)
 public class LLObject extends DynamicObject {
     protected static final int CACHE_LIMIT = 3;
-    protected static final String PROTOTYPE = "prototype";
+    public static final String PROTOTYPE = "prototype";
 
     public LLObject(Shape shape) {
         super(shape);
