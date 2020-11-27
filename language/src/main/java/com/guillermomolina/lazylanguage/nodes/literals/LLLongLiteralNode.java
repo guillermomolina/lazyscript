@@ -38,12 +38,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazylanguage.nodes.expression;
+package com.guillermomolina.lazylanguage.nodes.literals;
 
+import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
-import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 
 /**
  * Constant literal for a primitive {@code long} value. The unboxed value can be returned when the

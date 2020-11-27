@@ -38,30 +38,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazylanguage.nodes.expression;
+package com.guillermomolina.lazylanguage.nodes.literals;
 
-import java.math.BigInteger;
-
+import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
-import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
 
 /**
- * Constant literal for a arbitrary-precision number that exceeds the range of
- * {@link LLLongLiteralNode}.
+ * Constant literal for a String value.
  */
 @NodeInfo(shortName = "const")
-public final class LLBigIntegerLiteralNode extends LLExpressionNode {
+public final class LLStringLiteralNode extends LLExpressionNode {
 
-    private final LLBigNumber value;
+    private final String value;
 
-    public LLBigIntegerLiteralNode(BigInteger value) {
-        this.value = new LLBigNumber(value);
+    public LLStringLiteralNode(String value) {
+        this.value = value;
     }
 
     @Override
-    public LLBigNumber executeGeneric(VirtualFrame frame) {
+    public String executeGeneric(VirtualFrame frame) {
         return value;
     }
 }

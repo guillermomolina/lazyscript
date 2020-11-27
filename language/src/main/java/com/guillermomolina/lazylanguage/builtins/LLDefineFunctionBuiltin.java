@@ -41,12 +41,12 @@
 package com.guillermomolina.lazylanguage.builtins;
 
 import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.NotImplementedException;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.source.Source;
 
 /**
  * Builtin function to define (or redefine) functions. The provided source code is parsed the same
@@ -58,13 +58,14 @@ public abstract class LLDefineFunctionBuiltin extends LLBuiltinNode {
     @TruffleBoundary
     @Specialization
     public String defineFunction(String code, @CachedContext(LLLanguage.class) LLContext context) {
+        throw new NotImplementedException();
         // @formatter:off
-        Source source = Source.newBuilder(LLLanguage.ID, code, "[defineFunction]").
+        /*Source source = Source.newBuilder(LLLanguage.ID, code, "[defineFunction]").
             build();
         // @formatter:on
-        /* The same parsing code as for parsing the initial source. */
+        // The same parsing code as for parsing the initial source. 
         context.getTopContext().register(source);
 
-        return code;
+        return code;*/
     }
 }

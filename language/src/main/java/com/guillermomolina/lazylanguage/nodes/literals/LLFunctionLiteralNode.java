@@ -38,13 +38,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazylanguage.nodes.expression;
+package com.guillermomolina.lazylanguage.nodes.literals;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.NotImplementedException;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
 import com.guillermomolina.lazylanguage.runtime.LLFunction;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -69,13 +68,15 @@ public final class LLFunctionLiteralNode extends LLExpressionNode {
 
     @Override
     public LLFunction executeGeneric(VirtualFrame frame) {
+        throw new NotImplementedException();
+        /*
         if (cachedFunction == null) {
-            /* We are about to change a @CompilationFinal field. */
+            // We are about to change a @CompilationFinal field. 
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            /* First execution of the node: lookup the function in the function registry. */
+            // First execution of the node: lookup the function in the function registry. 
             cachedFunction = lookupContextReference(LLLanguage.class).get().getTopContext().lookup(functionName, true);
         }
-        return cachedFunction;
+        return cachedFunction;*/
     }
 
 }

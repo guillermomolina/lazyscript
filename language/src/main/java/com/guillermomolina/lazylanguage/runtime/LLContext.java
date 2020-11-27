@@ -108,6 +108,8 @@ public final class LLContext {
     private final LLObject booleanPrototype;
     private final LLObject functionPrototype;
     private final LLObject stringPrototype;
+    private final LLObject trueObject;
+    private final LLObject falseObject;
     private final LLObject topContext;
 
     public LLContext(LLLanguage language, TruffleLanguage.Env env) {
@@ -122,12 +124,26 @@ public final class LLContext {
         this.booleanPrototype = createObject(objectPrototype);
         this.functionPrototype = createObject(objectPrototype);
         this.stringPrototype = createObject(objectPrototype);
+        this.trueObject = createObject(booleanPrototype);
+        this.falseObject = createObject(booleanPrototype);
         this.topContext = createObject(objectPrototype);
         installBuiltins();
     }
 
     public LLObject getStringPrototype() {
         return stringPrototype;
+    }
+
+    public LLObject getBooleanPrototype() {
+        return booleanPrototype;
+    }
+
+    public LLObject getTrueObject() {
+        return trueObject;
+    }
+
+    public LLObject getFalseObject() {
+        return falseObject;
     }
 
     public LLObject createObject(LLObject prototype) {
