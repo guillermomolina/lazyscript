@@ -48,6 +48,7 @@ import java.io.PrintWriter;
 import java.util.Collections;
 
 import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.NotImplementedException;
 import com.guillermomolina.lazylanguage.builtins.LLBuiltinNode;
 import com.guillermomolina.lazylanguage.builtins.LLDefineFunctionBuiltinFactory;
 import com.guillermomolina.lazylanguage.builtins.LLEvalBuiltinFactory;
@@ -238,6 +239,26 @@ public final class LLContext {
             return lookupNodeInfo(clazz.getSuperclass());
         }
     }
+
+    public Object getFunction(Object obj, Object key) {
+        LLObject object;
+        if(obj instanceof LLObject) {
+            object = (LLObject)obj;
+        } else if (obj instanceof String) {
+            object = stringPrototype;
+        } else {
+            throw new NotImplementedException();
+        }
+        if(LLObjectUtil.hasProperty(object, key)) {
+            return LLObjectUtil.getProperty(object, key);
+        }
+        Object parent = LLObjectUtil.getProperty(object, LLObject.PROTOTYPE);
+        if(parent != null) {
+            return getFunction(parent, key);
+        }
+        throw new NotImplementedException();
+    }
+
 
     /*
      * Methods for object creation / object property access.
