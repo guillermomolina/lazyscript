@@ -40,13 +40,9 @@
  */
 package com.guillermomolina.lazylanguage.nodes;
 
-import java.util.Map;
-
 import com.guillermomolina.lazylanguage.LLLanguage;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
 import com.guillermomolina.lazylanguage.runtime.LLNull;
-import com.oracle.truffle.api.CompilerDirectives;
-import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.DirectCallNode;
@@ -65,14 +61,10 @@ import com.oracle.truffle.api.nodes.RootNode;
  */
 public final class LLEvalRootNode extends RootNode {
 
-    private final Map<String, RootCallTarget> functions;
-    @CompilationFinal private boolean registered;
-
     @Child private DirectCallNode mainCallNode;
 
-    public LLEvalRootNode(LLLanguage language, RootCallTarget rootFunction, Map<String, RootCallTarget> functions) {
+    public LLEvalRootNode(LLLanguage language, RootCallTarget rootFunction) {
         super(language);
-        this.functions = functions;
         this.mainCallNode = rootFunction != null ? DirectCallNode.create(rootFunction) : null;
     }
 
@@ -98,14 +90,6 @@ public final class LLEvalRootNode extends RootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        /* Lazy registrations of functions on first execution. */
-        if (!registered) {
-            /* Function registration is a slow-path operation that must not be compiled. */
-            CompilerDirectives.transferToInterpreterAndInvalidate();
-            lookupContextReference(LLLanguage.class).get().getTopContext().register(functions);
-            registered = true;
-        }
-
         if (mainCallNode == null) {
             /* The source code did not have a "main" function, so nothing to execute. */
             return LLNull.INSTANCE;

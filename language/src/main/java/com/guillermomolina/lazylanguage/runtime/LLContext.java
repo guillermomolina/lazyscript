@@ -105,6 +105,7 @@ public final class LLContext {
 
     private final LLObject objectPrototype;
     private final LLObject functionPrototype;
+    private final LLObject stringPrototype;
     private final LLObject topContext;
 
     public LLContext(LLLanguage language, TruffleLanguage.Env env) {
@@ -117,8 +118,13 @@ public final class LLContext {
 
         this.objectPrototype = createObject(null);
         this.functionPrototype = createObject(objectPrototype);
+        this.stringPrototype = createObject(objectPrototype);
         this.topContext = createObject(objectPrototype);
         installBuiltins();
+    }
+
+    public LLObject getStringPrototype() {
+        return stringPrototype;
     }
 
     public LLObject createObject(LLObject prototype) {
@@ -218,7 +224,7 @@ public final class LLContext {
         LLRootNode rootNode = new LLRootNode(language, new FrameDescriptor(), builtinBodyNode, BUILTIN_SOURCE.createUnavailableSection(), name);
         RootCallTarget rootCallTarget = Truffle.getRuntime().createCallTarget(rootNode);
         LLFunction rootFunction = createFunction(name, rootCallTarget);
-        LLObjectUtil.putProperty(topContext, name, rootFunction);
+        LLObjectUtil.putProperty(objectPrototype, name, rootFunction);
     }
 
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {

@@ -48,6 +48,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.guillermomolina.lazylanguage.builtins.LLBuiltinNode;
+import com.guillermomolina.lazylanguage.nodes.LLEvalRootNode;
 import com.guillermomolina.lazylanguage.nodes.local.LLLexicalScope;
 import com.guillermomolina.lazylanguage.parser.LLParserVisitor;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
@@ -57,6 +58,7 @@ import com.guillermomolina.lazylanguage.runtime.LLObject;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Scope;
+import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.ContextPolicy;
 import com.oracle.truffle.api.debug.DebuggerTags;
@@ -67,6 +69,7 @@ import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 
@@ -102,8 +105,8 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
         } else {
             throw new NotImplementedException();
         }
-
-        return visitor.parse();
+        RootNode evalMain = new LLEvalRootNode(this, visitor.parse());
+        return Truffle.getRuntime().createCallTarget(evalMain);        
     }
 
     @Override
