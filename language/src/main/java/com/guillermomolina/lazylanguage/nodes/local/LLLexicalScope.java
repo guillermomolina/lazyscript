@@ -360,7 +360,7 @@ public final class LLLexicalScope {
         @TruffleBoundary
         Object readMember(String member) throws UnknownIdentifierException {
             if (frame == null) {
-                return LLNull.SINGLETON;
+                return LLNull.INSTANCE;
             }
             FrameSlot slot = slots.get(member);
             if (slot == null) {

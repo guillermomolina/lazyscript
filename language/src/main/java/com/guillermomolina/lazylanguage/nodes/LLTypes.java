@@ -42,14 +42,14 @@ package com.guillermomolina.lazylanguage.nodes;
 
 import java.math.BigInteger;
 
+import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
+import com.guillermomolina.lazylanguage.runtime.LLNull;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeCast;
 import com.oracle.truffle.api.dsl.TypeCheck;
 import com.oracle.truffle.api.dsl.TypeSystem;
-import com.guillermomolina.lazylanguage.LLLanguage;
-import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
-import com.guillermomolina.lazylanguage.runtime.LLNull;
 
 /**
  * The type system of Lazy, as explained in {@link LLLanguage}. Based on the {@link TypeSystem}
@@ -63,23 +63,23 @@ public abstract class LLTypes {
     /**
      * Example of a manually specified type check that replaces the automatically generated type
      * check that the Truffle DLL would generate. For {@link LLNull}, we do not need an
-     * {@code instanceof} check, because we know that there is only a {@link LLNull#SINGLETON
+     * {@code instanceof} check, because we know that there is only a {@link LLNull#INSTANCE
      * singleton} instance.
      */
     @TypeCheck(LLNull.class)
     public static boolean isLLNull(Object value) {
-        return value == LLNull.SINGLETON;
+        return value == LLNull.INSTANCE;
     }
 
     /**
      * Example of a manually specified type cast that replaces the automatically generated type cast
      * that the Truffle DLL would generate. For {@link LLNull}, we do not need an actual cast,
-     * because we know that there is only a {@link LLNull#SINGLETON singleton} instance.
+     * because we know that there is only a {@link LLNull#INSTANCE singleton} instance.
      */
     @TypeCast(LLNull.class)
     public static LLNull asLLNull(Object value) {
         assert isLLNull(value);
-        return LLNull.SINGLETON;
+        return LLNull.INSTANCE;
     }
 
     /**

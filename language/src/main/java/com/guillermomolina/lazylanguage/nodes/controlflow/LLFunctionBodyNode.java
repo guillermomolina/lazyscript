@@ -40,20 +40,20 @@
  */
 package com.guillermomolina.lazylanguage.nodes.controlflow;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.NodeInfo;
-import com.oracle.truffle.api.profiles.BranchProfile;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.nodes.LLRootNode;
 import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
 import com.guillermomolina.lazylanguage.runtime.LLNull;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.profiles.BranchProfile;
 
 /**
  * The body of a user-defined Lazy function. This is the node referenced by a {@link LLRootNode} for
  * user-defined functions. It handles the return value of a function: the {@link LLReturnNode return
  * statement} throws an {@link LLReturnException exception} with the return value. This node catches
  * the exception. If the method ends without an explicit {@code return}, return the
- * {@link LLNull#SINGLETON default null value}.
+ * {@link LLNull#INSTANCE default null value}.
  */
 @NodeInfo(shortName = "body")
 public final class LLFunctionBodyNode extends LLExpressionNode {
@@ -96,6 +96,6 @@ public final class LLFunctionBodyNode extends LLExpressionNode {
          */
         nullTaken.enter();
         /* Return the default null value. */
-        return LLNull.SINGLETON;
+        return LLNull.INSTANCE;
     }
 }

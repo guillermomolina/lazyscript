@@ -63,7 +63,7 @@ public abstract class LLDefineFunctionBuiltin extends LLBuiltinNode {
             build();
         // @formatter:on
         /* The same parsing code as for parsing the initial source. */
-        context.getTopContext().getFunctionRegistry().register(source);
+        context.getTopContext().register(source);
 
         return code;
     }

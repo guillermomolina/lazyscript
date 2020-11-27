@@ -40,9 +40,9 @@
  */
 package com.guillermomolina.lazylanguage.nodes.controlflow;
 
+import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
 
 /**
  * Implementation of the Lazy continue statement. We need to unwind an unknown number of interpreter
@@ -55,6 +55,6 @@ public final class LLContinueNode extends LLStatementNode {
 
     @Override
     public void executeVoid(VirtualFrame frame) {
-        throw LLContinueException.SINGLETON;
+        throw LLContinueException.INSTANCE;
     }
 }

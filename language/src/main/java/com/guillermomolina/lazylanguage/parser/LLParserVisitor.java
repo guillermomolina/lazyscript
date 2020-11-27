@@ -91,11 +91,17 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -105,7 +111,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
  * factored out of the automatically generated parser to keep the attributed
  * grammar of Lazy small.
  */
-public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
+public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
 
     /**
      * Local variable names that are visible in the current block. Variables are not
@@ -131,9 +137,25 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
         }
     }
 
+    private static final class BailoutErrorListener extends BaseErrorListener {
+        private final Source source;
+
+        BailoutErrorListener(Source source) {
+            this.source = source;
+        }
+
+        @Override
+        public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
+                String msg, RecognitionException e) {
+            Token token = (Token) offendingSymbol;
+            throw new LLParseError(source, token, msg);
+        }
+    }
+
     /* State while parsing a source unit. */
     private final Source source;
-    private final Map<String, RootCallTarget> allFunctions;
+    private final LazyLanguageLexer lexer;
+    private final LazyLanguageParser parser;
 
     /* State while parsing a function. */
     private int functionStartPos;
@@ -145,14 +167,21 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
     private LexicalScope lexicalScope;
     private final LLLanguage language;
 
-    public LLNodeFactory(LLLanguage language, Source source) {
+    public LLParserVisitor(LLLanguage language, Source source) {
         this.language = language;
         this.source = source;
-        this.allFunctions = new HashMap<>();
+        this.lexer = new LazyLanguageLexer(CharStreams.fromString(source.getCharacters().toString()));
+        this.parser = new LazyLanguageParser(new CommonTokenStream(lexer));
+        lexer.removeErrorListeners();
+        parser.removeErrorListeners();
+        BailoutErrorListener listener = new BailoutErrorListener(source);
+        lexer.addErrorListener(listener);
+        parser.addErrorListener(listener);
     }
 
-    public Map<String, RootCallTarget> getAllFunctions() {
-        return allFunctions;
+    public RootCallTarget parse() {
+        RootNode rootNode = (RootNode) visit(parser.module());
+        return Truffle.getRuntime().createCallTarget(rootNode);
     }
 
     private static Interval srcFromContext(ParserRuleContext ctx) {
@@ -216,19 +245,16 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
         }
         LLStatementNode methodBlock = new LLBlockNode(
                 flattenedNodes.toArray(new LLStatementNode[flattenedNodes.size()]));
+
         setSourceFromContext(methodBlock, ctx);
+        assert lexicalScope == null : "Wrong scoping of blocks in parser";
 
-        if (methodBlock != null) {
-            assert lexicalScope == null : "Wrong scoping of blocks in parser";
-
-            final LLFunctionBodyNode functionBodyNode = new LLFunctionBodyNode(methodBlock);
-            final int bodyEndPos = methodBlock.getSourceEndIndex();
-            SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
-            functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
-            final LLRootNode rootNode = new LLRootNode(language, frameDescriptor, functionBodyNode, functionSrc,
-                    functionName);
-            allFunctions.put(functionName, Truffle.getRuntime().createCallTarget(rootNode));
-        }
+        final LLFunctionBodyNode functionBodyNode = new LLFunctionBodyNode(methodBlock);
+        final int bodyEndPos = methodBlock.getSourceEndIndex();
+        SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
+        functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
+        final LLRootNode rootNode = new LLRootNode(language, frameDescriptor, functionBodyNode, functionSrc,
+                functionName);
 
         functionStartPos = 0;
         functionName = null;
@@ -236,7 +262,7 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
         frameDescriptor = null;
         lexicalScope = null;
 
-        return null;
+        return rootNode;
     }
 
     @Override
@@ -281,7 +307,8 @@ public class LLNodeFactory extends LazyLanguageParserBaseVisitor<Node> {
             functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
             final LLRootNode rootNode = new LLRootNode(language, frameDescriptor, functionBodyNode, functionSrc,
                     functionName);
-            allFunctions.put(functionName, Truffle.getRuntime().createCallTarget(rootNode));
+            // allFunctions.put(functionName,
+            // Truffle.getRuntime().createCallTarget(rootNode));
         }
 
         functionStartPos = 0;

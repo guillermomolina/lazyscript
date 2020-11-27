@@ -45,11 +45,11 @@ import com.oracle.truffle.api.nodes.ControlFlowException;
 /**
  * Exception thrown by the {@link LLContinueNode continue statement} and caught by the
  * {@link LLWhileNode loop statement}. Since the exception is stateless, i.e., has no instance
- * fields, we can use a {@link #SINGLETON} to avoid memory allocation during interpretation.
+ * fields, we can use a {@link #INSTANCE} to avoid memory allocation during interpretation.
  */
 public final class LLContinueException extends ControlFlowException {
 
-    public static final LLContinueException SINGLETON = new LLContinueException();
+    public static final LLContinueException INSTANCE = new LLContinueException();
 
     private static final long serialVersionUID = 5329687983726237188L;
 

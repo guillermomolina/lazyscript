@@ -40,18 +40,18 @@
  */
 package com.guillermomolina.lazylanguage.nodes.local;
 
+import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
+import com.guillermomolina.lazylanguage.parser.LLParserVisitor;
+import com.guillermomolina.lazylanguage.runtime.LLNull;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.profiles.BranchProfile;
-import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
-import com.guillermomolina.lazylanguage.parser.LLNodeFactory;
-import com.guillermomolina.lazylanguage.runtime.LLNull;
 
 /**
  * Reads a function argument. Arguments are passed in as an object array.
  * <p>
  * Arguments are not type-specialized. To ensure that repeated accesses within a method are
  * specialized and can, e.g., be accessed without unboxing, all arguments are loaded into local
- * variables {@link LLNodeFactory#addFormalParameter in the method prologue}.
+ * variables {@link LLParserVisitor#addFormalParameter in the method prologue}.
  */
 public class LLReadArgumentNode extends LLExpressionNode {
 
@@ -77,7 +77,7 @@ public class LLReadArgumentNode extends LLExpressionNode {
             /* In the interpreter, record profiling information that the branch was used. */
             outOfBoundsTaken.enter();
             /* Use the default null value. */
-            return LLNull.SINGLETON;
+            return LLNull.INSTANCE;
         }
     }
 }

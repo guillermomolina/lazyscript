@@ -62,8 +62,8 @@ public final class LLNull implements TruffleObject {
     /**
      * The canonical value to represent {@code null} in Lazy.
      */
-    public static final LLNull SINGLETON = new LLNull();
-    private static final int IDENTITY_HASH = System.identityHashCode(SINGLETON);
+    public static final LLNull INSTANCE = new LLNull();
+    private static final int IDENTITY_HASH = System.identityHashCode(INSTANCE);
 
     /**
      * Disallow instantiation from outside to ensure that the {@link #SINGLETON} is the only
@@ -114,7 +114,7 @@ public final class LLNull implements TruffleObject {
         /*
          * LLNull values are identical to other LLNull values.
          */
-        return TriState.valueOf(LLNull.SINGLETON == other);
+        return TriState.valueOf(LLNull.INSTANCE == other);
     }
 
     @ExportMessage

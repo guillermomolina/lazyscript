@@ -43,12 +43,10 @@ package com.guillermomolina.lazylanguage.runtime;
 import java.util.logging.Level;
 
 import com.guillermomolina.lazylanguage.LLLanguage;
-import com.guillermomolina.lazylanguage.nodes.LLUndefinedFunctionRootNode;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.dsl.Cached;
@@ -56,17 +54,17 @@ import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
+import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import com.oracle.truffle.api.utilities.TriState;
 
 @ExportLibrary(InteropLibrary.class)
-public final class LLFunction implements TruffleObject {
+public final class LLFunction extends LLObject {
 
     public static final int INLINE_CACHE_SIZE = 2;
 
@@ -85,9 +83,10 @@ public final class LLFunction implements TruffleObject {
      */
     private final CyclicAssumption callTargetStable;
 
-    protected LLFunction(LLLanguage language, String name) {
+    public LLFunction(Shape shape, LLLanguage language, String name, RootCallTarget callTarget) {
+        super(shape);
         this.name = name;
-        this.callTarget = Truffle.getRuntime().createCallTarget(new LLUndefinedFunctionRootNode(language, name));
+        this.callTarget = callTarget;
         this.callTargetStable = new CyclicAssumption(name);
     }
 

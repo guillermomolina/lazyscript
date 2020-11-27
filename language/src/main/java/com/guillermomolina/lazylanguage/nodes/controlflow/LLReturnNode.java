@@ -40,11 +40,11 @@
  */
 package com.guillermomolina.lazylanguage.nodes.controlflow;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.NodeInfo;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
 import com.guillermomolina.lazylanguage.runtime.LLNull;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
  * Implementation of the Lazy return statement. We need to unwind an unknown number of interpreter
@@ -71,7 +71,7 @@ public final class LLReturnNode extends LLStatementNode {
             /*
              * Return statement that was not followed by an expression, so return the Lazy null value.
              */
-            result = LLNull.SINGLETON;
+            result = LLNull.INSTANCE;
         }
         throw new LLReturnException(result);
     }

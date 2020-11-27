@@ -46,7 +46,6 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Collections;
-import java.util.List;
 
 import com.guillermomolina.lazylanguage.LLLanguage;
 import com.guillermomolina.lazylanguage.builtins.LLBuiltinNode;
@@ -100,23 +99,38 @@ public final class LLContext {
     private final Env env;
     private final BufferedReader input;
     private final PrintWriter output;
-    private final LLObject topContext;
     private final LLLanguage language;
     private final AllocationReporter allocationReporter;
     private final Iterable<Scope> topScopes; // Cache the top scopes
 
-    public LLContext(LLLanguage language, TruffleLanguage.Env env, List<NodeFactory<? extends LLBuiltinNode>> externalBuiltins) {
+    private final LLObject objectPrototype;
+    private final LLObject functionPrototype;
+    private final LLObject topContext;
+
+    public LLContext(LLLanguage language, TruffleLanguage.Env env) {
         this.env = env;
         this.input = new BufferedReader(new InputStreamReader(env.in()));
         this.output = new PrintWriter(env.out(), true);
         this.language = language;
         this.allocationReporter = env.lookup(AllocationReporter.class);
-        this.topContext = new LLObject(language.getRootShape(), language);
         this.topScopes = Collections.singleton(Scope.newBuilder("global", new FunctionsObject()).build());
+
+        this.objectPrototype = createObject(null);
+        this.functionPrototype = createObject(objectPrototype);
+        this.topContext = createObject(objectPrototype);
         installBuiltins();
-        for (NodeFactory<? extends LLBuiltinNode> builtin : externalBuiltins) {
-            installBuiltin(builtin);
-        }
+    }
+
+    public LLObject createObject(LLObject prototype) {
+        LLObject object = language.createObject(allocationReporter);
+        object.setPrototype(prototype);
+        return object;
+    }
+
+    public LLFunction createFunction(String name, RootCallTarget callTarget) {
+        LLFunction function = language.createFunction(allocationReporter, name, callTarget);
+        function.setPrototype(functionPrototype);
+        return function;
     }
 
     /**
@@ -202,11 +216,9 @@ public final class LLContext {
 
         /* Wrap the builtin in a RootNode. Truffle requires all AST to start with a RootNode. */
         LLRootNode rootNode = new LLRootNode(language, new FrameDescriptor(), builtinBodyNode, BUILTIN_SOURCE.createUnavailableSection(), name);
-        RootCallTarget rootFunction = Truffle.getRuntime().createCallTarget(rootNode);
-
-        /* Register the builtin function in our function registry. */
-        //topContext.getFunctionRegistry().register(name, rootFunction);
-        topContext.register(name, rootFunction);
+        RootCallTarget rootCallTarget = Truffle.getRuntime().createCallTarget(rootNode);
+        LLFunction rootFunction = createFunction(name, rootCallTarget);
+        LLObjectUtil.putProperty(topContext, name, rootFunction);
     }
 
     public static NodeInfo lookupNodeInfo(Class<?> clazz) {

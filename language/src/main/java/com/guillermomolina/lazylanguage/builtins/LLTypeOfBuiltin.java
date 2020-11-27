@@ -66,7 +66,7 @@ public abstract class LLTypeOfBuiltin extends LLBuiltinNode {
                 return type;
             }
         }
-        return LLNull.SINGLETON;
+        return LLNull.INSTANCE;
     }
 
 }

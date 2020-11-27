@@ -108,7 +108,7 @@ public final class LLEvalRootNode extends RootNode {
 
         if (mainCallNode == null) {
             /* The source code did not have a "main" function, so nothing to execute. */
-            return LLNull.SINGLETON;
+            return LLNull.INSTANCE;
         } else {
             /* Conversion of arguments to types understood by Lazy. */
             Object[] frameArguments = frame.getArguments();

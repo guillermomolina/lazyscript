@@ -40,9 +40,9 @@
  */
 package com.guillermomolina.lazylanguage.nodes.controlflow;
 
+import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
 
 /**
  * Implementation of the Lazy break statement. We need to unwind an unknown number of interpreter
@@ -55,6 +55,6 @@ public final class LLBreakNode extends LLStatementNode {
 
     @Override
     public void executeVoid(VirtualFrame frame) {
-        throw LLBreakException.SINGLETON;
+        throw LLBreakException.INSTANCE;
     }
 }

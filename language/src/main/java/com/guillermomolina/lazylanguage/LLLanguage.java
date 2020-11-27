@@ -44,21 +44,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.guillermomolina.lazylanguage.builtins.LLBuiltinNode;
-import com.guillermomolina.lazylanguage.nodes.LLEvalRootNode;
 import com.guillermomolina.lazylanguage.nodes.local.LLLexicalScope;
-import com.guillermomolina.lazylanguage.parser.LLParser;
+import com.guillermomolina.lazylanguage.parser.LLParserVisitor;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
+import com.guillermomolina.lazylanguage.runtime.LLFunction;
 import com.guillermomolina.lazylanguage.runtime.LLLanguageView;
 import com.guillermomolina.lazylanguage.runtime.LLObject;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Scope;
-import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.ContextPolicy;
 import com.oracle.truffle.api.debug.DebuggerTags;
@@ -69,13 +67,13 @@ import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 
 @TruffleLanguage.Registration(id = LLLanguage.ID, name = "Lazy", defaultMimeType = LLLanguage.MIME_TYPE, characterMimeTypes = LLLanguage.MIME_TYPE, contextPolicy = ContextPolicy.SHARED, fileTypeDetectors = LLFileDetector.class)
-@ProvidedTags({StandardTags.CallTag.class, StandardTags.StatementTag.class, StandardTags.RootTag.class, StandardTags.RootBodyTag.class, StandardTags.ExpressionTag.class, DebuggerTags.AlwaysHalt.class,
-                StandardTags.ReadVariableTag.class, StandardTags.WriteVariableTag.class})
+@ProvidedTags({ StandardTags.CallTag.class, StandardTags.StatementTag.class, StandardTags.RootTag.class,
+        StandardTags.RootBodyTag.class, StandardTags.ExpressionTag.class, DebuggerTags.AlwaysHalt.class,
+        StandardTags.ReadVariableTag.class, StandardTags.WriteVariableTag.class })
 public final class LLLanguage extends TruffleLanguage<LLContext> {
     public static final AtomicInteger counter = new AtomicInteger();
 
@@ -91,61 +89,21 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
 
     @Override
     protected LLContext createContext(Env env) {
-        return new LLContext(this, env, new ArrayList<>(EXTERNAL_BUILTINS));
+        return new LLContext(this, env);
     }
 
     @Override
     protected CallTarget parse(ParsingRequest request) throws Exception {
         Source source = request.getSource();
-        Map<String, RootCallTarget> functions;
-        /*
-         * Parse the provided source. At this point, we do not have a LLContext yet. Registration of
-         * the functions with the LLContext happens lazily in LLEvalRootNode.
-         */
+
+        LLParserVisitor visitor;
         if (request.getArgumentNames().isEmpty()) {
-            LLParser parser = new LLParser(this, source);
-            functions = parser.getAllFunctions();
+            visitor = new LLParserVisitor(this, source);
         } else {
-            StringBuilder sb = new StringBuilder();
-            sb.append("function main(");
-            String sep = "";
-            for (String argumentName : request.getArgumentNames()) {
-                sb.append(sep);
-                sb.append(argumentName);
-                sep = ",";
-            }
-            sb.append(") { return ");
-            sb.append(source.getCharacters());
-            sb.append(";}");
-            String language = source.getLanguage() == null ? ID : source.getLanguage();
-            Source decoratedSource = Source.newBuilder(language, sb.toString(), source.getName()).build();
-            LLParser parser = new LLParser(this, decoratedSource);
-            functions = parser.getAllFunctions();
+            throw new NotImplementedException();
         }
 
-        String functionName = source.getName();
-        final int extensionIndex = functionName.lastIndexOf(".");
-        if (extensionIndex != -1) {
-            functionName = functionName.substring(0, extensionIndex);
-        }
-        RootCallTarget main = functions.get(functionName);
-        RootNode evalMain;
-        if (main != null) {
-            /*
-             * We have a main function, so "evaluating" the parsed source means invoking that main
-             * function. However, we need to lazily register functions into the LLContext first, so
-             * we cannot use the original LLRootNode for the main function. Instead, we create a new
-             * LLEvalRootNode that does everything we need.
-             */
-            evalMain = new LLEvalRootNode(this, main, functions);
-        } else {
-            /*
-             * Even without a main function, "evaluating" the parsed source needs to register the
-             * functions into the LLContext.
-             */
-            evalMain = new LLEvalRootNode(this, null, functions);
-        }
-        return Truffle.getRuntime().createCallTarget(evalMain);
+        return visitor.parse();
     }
 
     @Override
@@ -182,16 +140,20 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
                             throw new NoSuchElementException();
                         }
                         Object functionObject = findFunctionObject();
-                        Scope vscope = Scope.newBuilder(nextScope.getName(), nextScope.getVariables(frame)).node(nextScope.getNode()).arguments(nextScope.getArguments(frame)).rootInstance(
-                                        functionObject).build();
+                        Scope vscope = Scope.newBuilder(nextScope.getName(), nextScope.getVariables(frame))
+                                .node(nextScope.getNode()).arguments(nextScope.getArguments(frame))
+                                .rootInstance(functionObject).build();
                         previousScope = nextScope;
                         nextScope = null;
                         return vscope;
                     }
 
                     private Object findFunctionObject() {
-                        String name = node.getRootNode().getName();
-                        return context.getTopContext().getFunction(name);
+                        throw new NotImplementedException();
+                        /*
+                         * String name = node.getRootNode().getName(); return
+                         * context.getTopContext().getFunction(name);
+                         */
                     }
                 };
             }
@@ -207,13 +169,25 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
         return rootShape;
     }
 
+    public LLObject createObject() {
+        return createObject(getCurrentContext().getAllocationReporter());
+    }
+
     /**
-     * Allocate an empty object. All new objects initially have no properties. Properties are added
-     * when they are first stored, i.e., the store triggers a shape change of the object.
+     * Allocate an empty object. All new objects initially have no properties.
+     * Properties are added when they are first stored, i.e., the store triggers a
+     * shape change of the object.
      */
     public LLObject createObject(AllocationReporter reporter) {
         reporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        LLObject object = new LLObject(rootShape, this);
+        LLObject object = new LLObject(rootShape);
+        reporter.onReturnValue(object, 0, AllocationReporter.SIZE_UNKNOWN);
+        return object;
+    }
+
+    public LLFunction createFunction(AllocationReporter reporter, String name, RootCallTarget callTarget) {
+        reporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        LLFunction object = new LLFunction(rootShape, this, name, callTarget);
         reporter.onReturnValue(object, 0, AllocationReporter.SIZE_UNKNOWN);
         return object;
     }
@@ -222,7 +196,8 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
         return getCurrentContext(LLLanguage.class);
     }
 
-    private static final List<NodeFactory<? extends LLBuiltinNode>> EXTERNAL_BUILTINS = Collections.synchronizedList(new ArrayList<>());
+    private static final List<NodeFactory<? extends LLBuiltinNode>> EXTERNAL_BUILTINS = Collections
+            .synchronizedList(new ArrayList<>());
 
     public static void installBuiltin(NodeFactory<? extends LLBuiltinNode> builtin) {
         EXTERNAL_BUILTINS.add(builtin);

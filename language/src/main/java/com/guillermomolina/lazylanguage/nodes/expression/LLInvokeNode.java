@@ -44,6 +44,7 @@ import com.guillermomolina.lazylanguage.LLLanguage;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.runtime.LLFunction;
 import com.guillermomolina.lazylanguage.runtime.LLObject;
+import com.guillermomolina.lazylanguage.runtime.LLObjectUtil;
 import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -96,12 +97,13 @@ public final class LLInvokeNode extends LLExpressionNode {
         String methodName = (String)methodNameNode.executeGeneric(frame);
         Object function;
 
+        LLObject receiver;
         if(argumentValues[0] instanceof LLObject) {
-            LLObject receiver = (LLObject)argumentValues[0];
-            function = receiver.getFunction(methodName);
+            receiver = (LLObject)argumentValues[0];
         } else {
-            function = lookupContextReference(LLLanguage.class).get().getTopContext().getFunction(methodName);
+            receiver = lookupContextReference(LLLanguage.class).get().getTopContext();
         }
+        function = LLObjectUtil.getProperty(receiver, methodName);
 
         try {
             return library.execute(function, argumentValues);

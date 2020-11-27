@@ -40,14 +40,8 @@
  */
 package com.guillermomolina.lazylanguage.runtime;
 
-import java.util.List;
-import java.util.Map;
-
 import com.guillermomolina.lazylanguage.LLLanguage;
-import com.guillermomolina.lazylanguage.NotImplementedException;
-import com.guillermomolina.lazylanguage.parser.LLParser;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -55,110 +49,52 @@ import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.interop.UnsupportedMessageException;
-import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
-import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
 import com.oracle.truffle.api.object.Shape;
-import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.utilities.TriState;
 
 /**
  * Represents an Lazy object.
  *
- * This class defines operations that can be performed on Lazy Objects. While we could define all
- * these operations as individual AST nodes, we opted to define those operations by using
- * {@link com.oracle.truffle.api.library.Library a Truffle library}, or more concretely the
- * {@link InteropLibrary}. This has several advantages, but the primary one is that it allows Lazy
- * objects to be used in the interoperability message protocol, i.e. It allows other languages and
- * tools to operate on Lazy objects without necessarily knowing they are Lazy objects.
+ * This class defines operations that can be performed on Lazy Objects. While we
+ * could define all these operations as individual AST nodes, we opted to define
+ * those operations by using {@link com.oracle.truffle.api.library.Library a
+ * Truffle library}, or more concretely the {@link InteropLibrary}. This has
+ * several advantages, but the primary one is that it allows Lazy objects to be
+ * used in the interoperability message protocol, i.e. It allows other languages
+ * and tools to operate on Lazy objects without necessarily knowing they are
+ * Lazy objects.
  *
- * Lazy Objects are essentially instances of {@link DynamicObject} (objects whose members can be
- * dynamically added and removed). We also annotate the class with {@link ExportLibrary} with value
- * {@link InteropLibrary InteropLibrary.class}. This essentially ensures that the build system and
- * runtime know that this class specifies the interop messages (i.e. operations) that Lazy can do on
- * {@link LLObject} instances.
+ * Lazy Objects are essentially instances of {@link DynamicObject} (objects
+ * whose members can be dynamically added and removed). We also annotate the
+ * class with {@link ExportLibrary} with value {@link InteropLibrary
+ * InteropLibrary.class}. This essentially ensures that the build system and
+ * runtime know that this class specifies the interop messages (i.e. operations)
+ * that Lazy can do on {@link LLObject} instances.
  *
  * @see ExportLibrary
  * @see ExportMessage
  * @see InteropLibrary
  */
 @ExportLibrary(InteropLibrary.class)
-public final class LLObject extends DynamicObject {
+public class LLObject extends DynamicObject {
     protected static final int CACHE_LIMIT = 3;
-    private final LLLanguage language;
-    @DynamicField private Object __proto__;
+    protected static final String PROTOTYPE = "prototype";
 
-    public LLObject(Shape shape, LLLanguage language) {
+    public LLObject(Shape shape) {
         super(shape);
-        this.language = language;
     }
 
-    /**
-     * Returns the canonical {@link LLFunction} object for the given name. If it does not exist yet,
-     * it is created.
-     */
-    public LLFunction lookup(String name, boolean createIfNotPresent) {
-        InteropLibrary INTEROP = LibraryFactory.resolve(InteropLibrary.class).getUncached();
-        LLFunction result = null;
-        try {
-            result = (LLFunction)INTEROP.readMember(this, name);
-        } catch (UnknownIdentifierException | UnsupportedMessageException e) {
-            //
-        }
-        if(result instanceof LLFunction) {
-            return result;
-        }
-        try {
-            if (createIfNotPresent) {
-                result = new LLFunction(language, name);
-                INTEROP.writeMember(this, name, result);
-            }
-        } catch (UnknownIdentifierException | UnsupportedMessageException | UnsupportedTypeException e) {
-            //
-        }
-        return result;    
+    public LLObject getPrototype() {
+        return (LLObject) LLObjectUtil.getProperty(this, PROTOTYPE);
     }
 
-    /**
-     * Associates the {@link LLFunction} with the given name with the given implementation root
-     * node. If the function did not exist before, it defines the function. If the function existed
-     * before, it redefines the function and the old implementation is discarded.
-     */
-    public LLFunction register(String name, RootCallTarget callTarget) {
-        LLFunction function = lookup(name, true);
-        function.setCallTarget(callTarget);
-        return function;
-    }
-
-    public void register(Map<String, RootCallTarget> newFunctions) {
-        for (Map.Entry<String, RootCallTarget> entry : newFunctions.entrySet()) {
-            register(entry.getKey(), entry.getValue());
-        }
-    }
-
-    public void register(Source newFunctions) {
-        LLParser parser = new LLParser(language, newFunctions);
-        register(parser.getAllFunctions());
-    }
-
-    public LLFunction getFunction(String name) {
-        return lookup(name, false);
-    }
-
-    /**
-     * Returns the sorted list of all functions, for printing purposes only.
-     */
-    public List<LLFunction> getFunctions() {
-        throw new NotImplementedException();
-    }
-
-    public TruffleObject getFunctionsObject() {
-        throw new NotImplementedException();
+    public void setPrototype(LLObject prototype) {
+        LLObjectUtil.putProperty(this, PROTOTYPE, prototype);
     }
 
     @ExportMessage
@@ -215,8 +151,8 @@ public final class LLObject extends DynamicObject {
     }
 
     @ExportMessage
-    void removeMember(String member,
-                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
+    void removeMember(String member, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
+            throws UnknownIdentifierException {
         if (objectLibrary.containsKey(this, member)) {
             objectLibrary.removeKey(this, member);
         } else {
@@ -225,22 +161,19 @@ public final class LLObject extends DynamicObject {
     }
 
     @ExportMessage
-    Object getMembers(boolean includeInternal,
-                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+    Object getMembers(boolean includeInternal, @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
         return new Keys(objectLibrary.getKeyArray(this));
     }
 
     @ExportMessage(name = "isMemberReadable")
     @ExportMessage(name = "isMemberModifiable")
     @ExportMessage(name = "isMemberRemovable")
-    boolean existsMember(String member,
-                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+    boolean existsMember(String member, @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
         return objectLibrary.containsKey(this, member);
     }
 
     @ExportMessage
-    boolean isMemberInsertable(String member,
-                    @CachedLibrary("this") InteropLibrary receivers) {
+    boolean isMemberInsertable(String member, @CachedLibrary("this") InteropLibrary receivers) {
         return !receivers.isMemberExisting(this, member);
     }
 
@@ -278,11 +211,12 @@ public final class LLObject extends DynamicObject {
     }
 
     /**
-     * {@link DynamicObjectLibrary} provides the polymorphic inline cache for reading properties.
+     * {@link DynamicObjectLibrary} provides the polymorphic inline cache for
+     * reading properties.
      */
     @ExportMessage
-    Object readMember(String name,
-                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) throws UnknownIdentifierException {
+    Object readMember(String name, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
+            throws UnknownIdentifierException {
         Object result = objectLibrary.getOrDefault(this, name, null);
         if (result == null) {
             /* Property does not exist. */
@@ -292,11 +226,11 @@ public final class LLObject extends DynamicObject {
     }
 
     /**
-     * {@link DynamicObjectLibrary} provides the polymorphic inline cache for writing properties.
+     * {@link DynamicObjectLibrary} provides the polymorphic inline cache for
+     * writing properties.
      */
     @ExportMessage
-    void writeMember(String name, Object value,
-                    @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
+    void writeMember(String name, Object value, @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
         objectLibrary.put(this, name, value);
     }
 }

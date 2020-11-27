@@ -40,6 +40,10 @@
  */
 package com.guillermomolina.lazylanguage.builtins;
 
+import com.guillermomolina.lazylanguage.LLException;
+import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.runtime.LLContext;
+import com.guillermomolina.lazylanguage.runtime.LLNull;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -47,10 +51,6 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.LLException;
-import com.guillermomolina.lazylanguage.LLLanguage;
-import com.guillermomolina.lazylanguage.runtime.LLContext;
-import com.guillermomolina.lazylanguage.runtime.LLNull;
 
 /**
  * Built-in function that goes through to import a symbol from the polyglot bindings.
@@ -65,7 +65,7 @@ public abstract class LLImportBuiltin extends LLBuiltinNode {
         try {
             return arrays.readMember(context.getPolyglotBindings(), symbol);
         } catch (UnsupportedMessageException | UnknownIdentifierException e) {
-            return LLNull.SINGLETON;
+            return LLNull.INSTANCE;
         } catch (SecurityException e) {
             throw new LLException("No polyglot access allowed.", this);
         }
