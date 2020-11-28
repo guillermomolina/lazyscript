@@ -87,14 +87,15 @@ term: factor ( factorOperator factor)*;
 
 factorOperator: MUL | DIV;
 
-factor: 
-	IDENTIFIER memberExpression? assignment?
-	| nonMemberFactor (memberExpression assignment?)?;
+factor: getter | assignment;
 
-nonMemberFactor:
-	STRING_LITERAL
-	| NUMERIC_LITERAL
-	| parenExpression;
+getter:
+	(
+		IDENTIFIER
+		| STRING_LITERAL
+		| NUMERIC_LITERAL
+		| parenExpression
+	) memberExpression?;
 
 parenExpression: LPAREN expression RPAREN;
 
@@ -105,6 +106,10 @@ memberExpression:
 		| LBRACK expression RBRACK
 	) memberExpression?;
 
-parameterList: expression (COMMA expression)*;
+assignment: (IDENTIFIER | getter assignableMemberExpression) ASSIGN expression;
 
-assignment: ASSIGN expression;
+assignableMemberExpression:
+	DOT IDENTIFIER
+	| LBRACK expression RBRACK;
+
+parameterList: expression (COMMA expression)*;

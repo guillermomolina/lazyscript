@@ -501,39 +501,19 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitFactor(LazyLanguageParser.FactorContext ctx) {
+    public Node visitGetter(LazyLanguageParser.GetterContext ctx) {
         if (ctx.IDENTIFIER() != null) {
             LLExpressionNode assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol(), false);
-            LLExpressionNode result;
-            if (ctx.assignment() == null) {
-                if (ctx.memberExpression() != null) {
-                    return createMemberExpression(ctx.memberExpression(), null, null, assignmentName);
-                }
+            if (ctx.memberExpression() != null) {
+                return createMemberExpression(ctx.memberExpression(), null, null, assignmentName);
+            } else {
                 return createRead(assignmentName);
             }
-            if (ctx.memberExpression() != null) {
-                throw new NotImplementedException();
-            }
-            return createAssignmentMemberExpression(ctx.assignment(), null, assignmentName);
-        } // else ctx.nonMemberFactor() != null
-        LLExpressionNode receiver = (LLExpressionNode) visit(ctx.nonMemberFactor());
-        if (ctx.memberExpression() == null) {
-            return receiver;
-        }
-        LLExpressionNode result = createMemberExpression(ctx.memberExpression(), receiver, null, null);
-        if (ctx.assignment() == null) {
-            return result;
-        }
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public Node visitNonMemberFactor(LazyLanguageParser.NonMemberFactorContext ctx) {
-        if (ctx.STRING_LITERAL() != null) {
+        } else if (ctx.STRING_LITERAL() != null) {
             return createStringLiteral(ctx.STRING_LITERAL().getSymbol(), true);
         } else if (ctx.NUMERIC_LITERAL() != null) {
             return createNumericLiteral(ctx.NUMERIC_LITERAL().getSymbol());
-        } // else ctx.parenExpression() != null
+        } // esle ctx.parenExpression()
         return createParenExpression(ctx.parenExpression());
     }
 
@@ -549,6 +529,19 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
             return createArrayMemberExpression(ctx, receiver, assignmentName);
         }
         throw new LLParseError(source, ctx, "Invalid member expression");
+    }
+
+    @Override
+    public Node visitAssignment(LazyLanguageParser.AssignmentContext ctx) {
+        if (ctx.IDENTIFIER() != null) {
+            LLExpressionNode assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol(), false);
+            if (ctx.assignableMemberExpression() == null) {
+                return createAssignmentMemberExpression(ctx, null, assignmentName);
+            } else {
+                throw new NotImplementedException();
+            }
+        }
+        throw new NotImplementedException();
     }
 
     public LLExpressionNode createAssignmentMemberExpression(LazyLanguageParser.AssignmentContext ctx,
