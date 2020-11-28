@@ -502,19 +502,24 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
 
     @Override
     public Node visitGetter(LazyLanguageParser.GetterContext ctx) {
+        LLExpressionNode receiver = null;
+        LLExpressionNode assignmentName = null;
         if (ctx.IDENTIFIER() != null) {
-            LLExpressionNode assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol(), false);
-            if (ctx.memberExpression() != null) {
-                return createMemberExpression(ctx.memberExpression(), null, null, assignmentName);
-            } else {
+            assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol(), false);
+            if (ctx.memberExpression() == null) {
                 return createRead(assignmentName);
             }
         } else if (ctx.STRING_LITERAL() != null) {
-            return createStringLiteral(ctx.STRING_LITERAL().getSymbol(), true);
+            receiver = createStringLiteral(ctx.STRING_LITERAL().getSymbol(), true);
         } else if (ctx.NUMERIC_LITERAL() != null) {
-            return createNumericLiteral(ctx.NUMERIC_LITERAL().getSymbol());
-        } // esle ctx.parenExpression()
-        return createParenExpression(ctx.parenExpression());
+            receiver = createNumericLiteral(ctx.NUMERIC_LITERAL().getSymbol());
+        } else {// esle ctx.parenExpression()
+            receiver = createParenExpression(ctx.parenExpression());
+        }
+        if(ctx.memberExpression() == null) {
+            return receiver;            
+        }
+        return createMemberExpression(ctx.memberExpression(), receiver, null, assignmentName);
     }
 
     public LLExpressionNode createMemberExpression(LazyLanguageParser.MemberExpressionContext ctx,

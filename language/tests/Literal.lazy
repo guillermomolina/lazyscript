@@ -1,3 +1,5 @@
+"Hello World".println();
+101.println();
 null.println();
 true.println();
 false.println();
@@ -26,3 +28,4 @@ Object["b"].println();
 
 Object[Object.a] = "a";
 Object[Object.a].println();
+

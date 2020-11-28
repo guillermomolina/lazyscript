@@ -300,10 +300,10 @@ public final class LLContext {
             return LLObjectUtil.getProperty(object, name);
         }
         Object parent = object.getPrototype();
-        if(parent != null) {
+        if(parent != LLNull.INSTANCE) {
             return getFunction(parent, name);
-        }
-        throw new NotImplementedException();
+        }    
+        throw new RuntimeException("DoesNotUnderstand");
     }
 
     /*
