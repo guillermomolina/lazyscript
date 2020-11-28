@@ -54,8 +54,7 @@ statement:
 	| breakStatement SEMI
 	| continueStatement SEMI
 	| expression SEMI
-	| returnStatement SEMI
-	| assignStatement SEMI;
+	| returnStatement SEMI;
 
 whileStatement:
 	WHILE LPAREN condition = expression RPAREN block;
@@ -70,8 +69,6 @@ ifStatement:
 	)?;
 
 returnStatement: RETURN expression?;
-
-assignStatement: expression ASSIGN expression;
 
 expression: logicTerm ( OR logicTerm)*;
 
@@ -90,13 +87,18 @@ term: factor ( factorOperator factor)*;
 
 factorOperator: MUL | DIV;
 
-factor:
-	(
-		IDENTIFIER
-		| STRING_LITERAL
-		| NUMERIC_LITERAL
-		| LPAREN expression RPAREN
-	) memberExpression?;
+factor: 
+	memberFactor assignment?
+	| nonMemberFactor (memberExpression assignment?)?;
+
+memberFactor: IDENTIFIER memberExpression?;
+
+nonMemberFactor:
+	STRING_LITERAL
+	| NUMERIC_LITERAL
+	| parenExpression;
+
+parenExpression: LPAREN expression RPAREN;
 
 memberExpression:
 	(
@@ -106,3 +108,5 @@ memberExpression:
 	) memberExpression?;
 
 parameterList: expression (COMMA expression)*;
+
+assignment: ASSIGN expression;
