@@ -1,6 +1,12 @@
-//a="Hello World";
+/*a="Hello World";
 null.println();
 true.println();
 false.println();
 Object.println();
 Null.println();
+Object.prototype.println();
+a = (Object.prototype == null);
+a.println();*/
+//a = (true.prototype == True);
+//a.println();
+

@@ -126,7 +126,7 @@ public final class LLContext {
         this.allocationReporter = env.lookup(AllocationReporter.class);
         this.topScopes = Collections.singleton(Scope.newBuilder("global", new FunctionsObject()).build());
 
-        this.objectPrototype = createObject(null);
+        this.objectPrototype = createObject(LLNull.INSTANCE);
         this.nullPrototype = createObject(objectPrototype);
         this.booleanPrototype = createObject(objectPrototype);
         this.truePrototype = createObject(booleanPrototype);
@@ -141,7 +141,7 @@ public final class LLContext {
         installBuiltins();
     }
 
-    public LLObject createObject(LLObject prototype) {
+    public LLObject createObject(Object prototype) {
         LLObject object = language.createObject(allocationReporter);
         object.setPrototype(prototype);
         return object;
@@ -268,7 +268,7 @@ public final class LLContext {
         }
     }
 
-    public LLObject getPrototype(Object obj) {
+    public Object getPrototype(Object obj) {
         InteropLibrary interop = InteropLibrary.getFactory().getUncached();
         if(obj instanceof LLObject) {
             return ((LLObject)obj).getPrototype();
@@ -294,7 +294,7 @@ public final class LLContext {
         if(obj instanceof LLObject) {
             object = (LLObject)obj;
         } else {
-            object = getPrototype(obj);
+            object = (LLObject)getPrototype(obj);
         }
         if(LLObjectUtil.hasProperty(object, name)) {
             return LLObjectUtil.getProperty(object, name);

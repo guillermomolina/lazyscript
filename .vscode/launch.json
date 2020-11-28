@@ -9,7 +9,7 @@
             "request": "launch",
             "input": "${file}",
             "grammar": "language/src/main/antlr4/com/guillermomolina/lazylanguage/parser/LazyLanguageParser.g4",
-            "startRule": "lazylanguage",
+            "startRule": "module",
             "printParseTree": true,
             "visualParseTree": true
         },

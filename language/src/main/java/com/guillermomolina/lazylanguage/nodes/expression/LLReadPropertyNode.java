@@ -40,6 +40,11 @@
  */
 package com.guillermomolina.lazylanguage.nodes.expression;
 
+import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
+import com.guillermomolina.lazylanguage.nodes.util.LLToMemberNode;
+import com.guillermomolina.lazylanguage.runtime.LLObject;
+import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -49,14 +54,12 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
-import com.guillermomolina.lazylanguage.nodes.util.LLToMemberNode;
-import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
 
 /**
  * The node for reading a property of an object. When executed, this node:
  * <ol>
- * <li>evaluates the object expression on the left hand side of the object access operator</li>
+ * <li>evaluates the object expression on the left hand side of the object
+ * access operator</li>
  * <li>evaluated the property name</li>
  * <li>reads the named property</li>
  * </ol>
@@ -69,9 +72,8 @@ public abstract class LLReadPropertyNode extends LLExpressionNode {
     static final int LIBRARY_LIMIT = 3;
 
     @Specialization(guards = "arrays.hasArrayElements(receiver)", limit = "LIBRARY_LIMIT")
-    protected Object readArray(Object receiver, Object index,
-                    @CachedLibrary("receiver") InteropLibrary arrays,
-                    @CachedLibrary("index") InteropLibrary numbers) {
+    protected Object readArray(Object receiver, Object index, @CachedLibrary("receiver") InteropLibrary arrays,
+            @CachedLibrary("index") InteropLibrary numbers) {
         try {
             return arrays.readArrayElement(receiver, numbers.asLong(index));
         } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
@@ -81,11 +83,25 @@ public abstract class LLReadPropertyNode extends LLExpressionNode {
     }
 
     @Specialization(guards = "objects.hasMembers(receiver)", limit = "LIBRARY_LIMIT")
-    protected Object readObject(Object receiver, Object name,
-                    @CachedLibrary("receiver") InteropLibrary objects,
-                    @Cached LLToMemberNode asMember) {
+    protected Object readObject(Object receiver, Object name, @CachedLibrary("receiver") InteropLibrary objects,
+            @Cached LLToMemberNode asMember) {
         try {
             return objects.readMember(receiver, asMember.execute(name));
+        } catch (UnsupportedMessageException | UnknownIdentifierException e) {
+            // read was not successful. In Lazy we only have basic support for errors.
+            throw LLUndefinedNameException.undefinedProperty(this, name);
+        }
+    }
+
+    @Specialization(limit = "LIBRARY_LIMIT")
+    protected Object readNonObject(Object receiver, Object name, @CachedLibrary("receiver") InteropLibrary objects,
+            @Cached LLToMemberNode asMember) {
+        try {
+            Object prototype = lookupContextReference(LLLanguage.class).get().getPrototype(receiver);
+            if(name instanceof String && ((String)name).compareTo(LLObject.PROTOTYPE) == 0) {
+                return prototype;
+            }
+            return objects.readMember(prototype, asMember.execute(name));
         } catch (UnsupportedMessageException | UnknownIdentifierException e) {
             // read was not successful. In Lazy we only have basic support for errors.
             throw LLUndefinedNameException.undefinedProperty(this, name);

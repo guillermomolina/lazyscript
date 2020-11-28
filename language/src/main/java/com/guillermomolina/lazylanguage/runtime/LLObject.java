@@ -89,11 +89,11 @@ public class LLObject extends DynamicObject {
         super(shape);
     }
 
-    public LLObject getPrototype() {
-        return (LLObject) LLObjectUtil.getProperty(this, PROTOTYPE);
+    public Object getPrototype() {
+        return LLObjectUtil.getProperty(this, PROTOTYPE);
     }
 
-    public void setPrototype(LLObject prototype) {
+    public void setPrototype(Object prototype) {
         LLObjectUtil.putProperty(this, PROTOTYPE, prototype);
     }
 
@@ -217,16 +217,15 @@ public class LLObject extends DynamicObject {
     @ExportMessage
     Object readMember(String name, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
             throws UnknownIdentifierException {
-        Object result = objectLibrary.getOrDefault(this, name, null);
-        if (result == null) {
-            LLObject prototype = getPrototype();
-            if(prototype != null) {
-                return prototype.readMember(name, objectLibrary);
+        LLObject object = this;
+        while(object != null) {
+            Object result = objectLibrary.getOrDefault(object, name, null);
+            if (result != null) {
+                return result;
             }
-            /* Property does not exist. */
-            throw UnknownIdentifierException.create(name);
+            object = (LLObject)object.getPrototype();
         }
-        return result;
+        throw UnknownIdentifierException.create(name);
     }
 
     /**

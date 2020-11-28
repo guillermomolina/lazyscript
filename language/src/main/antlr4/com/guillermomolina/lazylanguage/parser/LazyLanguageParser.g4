@@ -48,16 +48,15 @@ functionParameters: IDENTIFIER ( COMMA IDENTIFIER)*;
 block: LCURLY (statement)* RCURLY;
 
 statement:
-	(
-		function
-		| whileStatement
-		| ifStatement
-		| breakStatement SEMI
-		| continueStatement SEMI
-		| expression SEMI
-		| returnStatement SEMI
-		| debuggerStatement SEMI
-	);
+	function
+	| whileStatement
+	| ifStatement
+	| breakStatement SEMI
+	| continueStatement SEMI
+	| expression SEMI
+	| returnStatement SEMI
+	| debuggerStatement SEMI
+	| assignStatement SEMI;
 
 whileStatement:
 	WHILE LPAREN condition = expression RPAREN block;
@@ -74,6 +73,8 @@ ifStatement:
 returnStatement: RETURN expression?;
 
 debuggerStatement: DEBUGGER;
+
+assignStatement: expression ASSIGN expression;
 
 expression: logicTerm ( OR logicTerm)*;
 
@@ -94,16 +95,15 @@ factorOperator: MUL | DIV;
 
 factor:
 	(
-		IDENTIFIER memberExpression?
+		IDENTIFIER
 		| STRING_LITERAL
 		| NUMERIC_LITERAL
 		| LPAREN expression RPAREN
-	);
+	) memberExpression?;
 
 memberExpression:
 	(
 		LPAREN parameterList? RPAREN
-		| ASSIGN expression
 		| DOT IDENTIFIER
 		| LBRACK expression RBRACK
 	) memberExpression?;
