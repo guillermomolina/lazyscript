@@ -3,7 +3,6 @@ lexer grammar LazyLanguageLexer;
 
 BREAK: 'break';
 CONTINUE: 'continue';
-DEBUGGER: 'debugger';
 ELSE: 'else';
 FUNCTION: 'function';
 IF: 'if';

@@ -54,7 +54,6 @@ import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLBlockNode;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLBreakNode;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLContinueNode;
-import com.guillermomolina.lazylanguage.nodes.controlflow.LLDebuggerNode;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLFunctionBodyNode;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLIfNode;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLReturnNode;
@@ -526,9 +525,6 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         if (ctx.LPAREN() != null) {
             return createCallMemberExpression(ctx, receiver, assignmentReceiver, assignmentName);
         }
-        if (ctx.ASSIGN() != null) {
-            return createAssignmentMemberExpression(ctx, receiver, assignmentReceiver, assignmentName);
-        }
         if (ctx.DOT() != null) {
             return createDotMemberExpression(ctx, receiver, assignmentName);
         }
@@ -703,13 +699,6 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         result.setSourceSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
         result.addExpressionTag();
         return result;
-    }
-
-    @Override
-    public Node visitDebuggerStatement(LazyLanguageParser.DebuggerStatementContext ctx) {
-        final LLDebuggerNode debuggerNode = new LLDebuggerNode();
-        setSourceFromContext(debuggerNode, ctx);
-        return debuggerNode;
     }
 
     @Override

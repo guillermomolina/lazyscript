@@ -55,7 +55,6 @@ statement:
 	| continueStatement SEMI
 	| expression SEMI
 	| returnStatement SEMI
-	| debuggerStatement SEMI
 	| assignStatement SEMI;
 
 whileStatement:
@@ -71,8 +70,6 @@ ifStatement:
 	)?;
 
 returnStatement: RETURN expression?;
-
-debuggerStatement: DEBUGGER;
 
 assignStatement: expression ASSIGN expression;
 
