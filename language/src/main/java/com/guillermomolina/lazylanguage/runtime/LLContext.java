@@ -109,6 +109,10 @@ public final class LLContext {
     private final LLObject booleanPrototype;
     private final LLObject functionPrototype;
     private final LLObject stringPrototype;
+    private final LLObject numberPrototype;
+    private final LLObject integerPrototype;
+    private final LLObject bigIntegerPrototype;
+    private final LLObject floatPrototype;
     private final LLObject truePrototype;
     private final LLObject falsePrototype;
     private final LLObject topContext;
@@ -124,10 +128,14 @@ public final class LLContext {
         this.objectPrototype = createObject(null);
         this.nullPrototype = createObject(objectPrototype);
         this.booleanPrototype = createObject(objectPrototype);
-        this.functionPrototype = createObject(objectPrototype);
-        this.stringPrototype = createObject(objectPrototype);
         this.truePrototype = createObject(booleanPrototype);
         this.falsePrototype = createObject(booleanPrototype);
+        this.numberPrototype = createObject(objectPrototype);
+        this.integerPrototype = createObject(numberPrototype);
+        this.bigIntegerPrototype = createObject(numberPrototype);
+        this.floatPrototype = createObject(numberPrototype);
+        this.stringPrototype = createObject(objectPrototype);
+        this.functionPrototype = createObject(objectPrototype);
         this.topContext = createObject(objectPrototype);
         installBuiltins();
     }
@@ -191,6 +199,12 @@ public final class LLContext {
         LLObjectUtil.putProperty(topContext, "Boolean", booleanPrototype);
         LLObjectUtil.putProperty(topContext, "True", truePrototype);
         LLObjectUtil.putProperty(topContext, "False", falsePrototype);
+        LLObjectUtil.putProperty(topContext, "Number", numberPrototype);
+        LLObjectUtil.putProperty(topContext, "Integer", integerPrototype);
+        LLObjectUtil.putProperty(topContext, "BigInteger", bigIntegerPrototype);
+        LLObjectUtil.putProperty(topContext, "Float", floatPrototype);
+        LLObjectUtil.putProperty(topContext, "String", stringPrototype);
+        LLObjectUtil.putProperty(topContext, "Number", numberPrototype);
 
         installBuiltin(LLReadlnBuiltinFactory.getInstance());
         installBuiltin(LLPrintlnBuiltinFactory.getInstance());
@@ -258,6 +272,8 @@ public final class LLContext {
             return ((LLObject)obj).getPrototype();
         } else if (obj instanceof String) {
             return stringPrototype;
+        } else if (obj instanceof LLBigInteger) {
+            return bigIntegerPrototype;
         } else if (obj == LLNull.INSTANCE) {
             return nullPrototype;
         } else if (obj.equals(true)) {
@@ -298,7 +314,7 @@ public final class LLContext {
      */
 
     public static Object fromForeignValue(Object a) {
-        if (a instanceof Long || a instanceof LLBigNumber || a instanceof String || a instanceof Boolean) {
+        if (a instanceof Long || a instanceof LLBigInteger || a instanceof String || a instanceof Boolean) {
             return a;
         } else if (a instanceof Character) {
             return fromForeignCharacter((Character) a);

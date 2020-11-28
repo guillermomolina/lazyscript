@@ -40,13 +40,13 @@
  */
 package com.guillermomolina.lazylanguage.nodes.expression;
 
+import com.guillermomolina.lazylanguage.LLException;
+import com.guillermomolina.lazylanguage.nodes.LLBinaryNode;
+import com.guillermomolina.lazylanguage.runtime.LLBigInteger;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.LLException;
-import com.guillermomolina.lazylanguage.nodes.LLBinaryNode;
-import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
 
 /**
  * This class is similar to the {@link LLLessThanNode}.
@@ -61,7 +61,7 @@ public abstract class LLLessOrEqualNode extends LLBinaryNode {
 
     @Specialization
     @TruffleBoundary
-    protected boolean lessOrEqual(LLBigNumber left, LLBigNumber right) {
+    protected boolean lessOrEqual(LLBigInteger left, LLBigInteger right) {
         return left.compareTo(right) <= 0;
     }
 

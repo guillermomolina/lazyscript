@@ -76,9 +76,9 @@ public final class LLType implements TruffleObject {
     /*
      * These are the sets of builtin types in lazy languages. In case of lazy language the types
      * nicely match those of the types in InteropLibrary. This might not be the case and more
-     * additional checks need to be performed (similar to number checking for LLBigNumber).
+     * additional checks need to be performed (similar to number checking for LLBigInteger).
      */
-    public static final LLType NUMBER = new LLType("Number", (l, v) -> l.fitsInLong(v) || v instanceof LLBigNumber);
+    public static final LLType NUMBER = new LLType("Number", (l, v) -> l.fitsInLong(v) || v instanceof LLBigInteger);
     public static final LLType NULL = new LLType("NULL", (l, v) -> l.isNull(v));
     public static final LLType STRING = new LLType("String", (l, v) -> l.isString(v));
     public static final LLType BOOLEAN = new LLType("Boolean", (l, v) -> l.isBoolean(v));

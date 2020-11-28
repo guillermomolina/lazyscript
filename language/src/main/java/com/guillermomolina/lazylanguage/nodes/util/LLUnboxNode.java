@@ -42,17 +42,17 @@ package com.guillermomolina.lazylanguage.nodes.util;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
+import com.guillermomolina.lazylanguage.nodes.LLTypes;
+import com.guillermomolina.lazylanguage.runtime.LLBigInteger;
+import com.guillermomolina.lazylanguage.runtime.LLFunction;
+import com.guillermomolina.lazylanguage.runtime.LLNull;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.dsl.TypeSystemReference;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
-import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
-import com.guillermomolina.lazylanguage.nodes.LLTypes;
-import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
-import com.guillermomolina.lazylanguage.runtime.LLFunction;
-import com.guillermomolina.lazylanguage.runtime.LLNull;
 
 /**
  * The node to normalize any value to an Lazy value. This is useful to reduce the number of values
@@ -80,7 +80,7 @@ public abstract class LLUnboxNode extends LLExpressionNode {
     }
 
     @Specialization
-    protected static LLBigNumber fromBigNumber(LLBigNumber value) {
+    protected static LLBigInteger fromBigInteger(LLBigInteger value) {
         return value;
     }
 

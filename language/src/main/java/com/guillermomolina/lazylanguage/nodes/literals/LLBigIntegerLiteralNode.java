@@ -43,7 +43,7 @@ package com.guillermomolina.lazylanguage.nodes.literals;
 import java.math.BigInteger;
 
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
-import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
+import com.guillermomolina.lazylanguage.runtime.LLBigInteger;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
@@ -54,14 +54,14 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(shortName = "const")
 public final class LLBigIntegerLiteralNode extends LLExpressionNode {
 
-    private final LLBigNumber value;
+    private final LLBigInteger value;
 
     public LLBigIntegerLiteralNode(BigInteger value) {
-        this.value = new LLBigNumber(value);
+        this.value = new LLBigInteger(value);
     }
 
     @Override
-    public LLBigNumber executeGeneric(VirtualFrame frame) {
+    public LLBigInteger executeGeneric(VirtualFrame frame) {
         return value;
     }
 }

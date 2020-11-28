@@ -88,7 +88,7 @@ public class LLTCKLanguageProvider implements LanguageProvider {
 
         res.add(createValueConstructor(context, "1 == 2", "boolean", "createBoolean", TypeDescriptor.BOOLEAN));
         res.add(createValueConstructor(context, "1", "number", "createNumber", TypeDescriptor.NUMBER));
-        res.add(createValueConstructor(context, "9223372036854775808", "bigNumber", "createBigNumber", TypeDescriptor.intersection()));
+        res.add(createValueConstructor(context, "9223372036854775808", "bigInteger", "createBigInteger", TypeDescriptor.intersection()));
         res.add(createValueConstructor(context, "\"string\"", "string", "createString", TypeDescriptor.STRING));
         Snippet.Builder opb = Snippet.newBuilder(
                         "object",

@@ -52,7 +52,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
 @ExportLibrary(InteropLibrary.class)
-public final class LLBigNumber implements TruffleObject, Comparable<LLBigNumber> {
+public final class LLBigInteger implements TruffleObject, Comparable<LLBigInteger> {
 
     private static final long LONG_MAX_SAFE_DOUBLE = 9007199254740991L; // 2 ** 53 - 1
     private static final int INT_MAX_SAFE_FLOAT = 16777215; // 2 ** 24 - 1
@@ -67,11 +67,11 @@ public final class LLBigNumber implements TruffleObject, Comparable<LLBigNumber>
 
     private final BigInteger value;
 
-    public LLBigNumber(BigInteger value) {
+    public LLBigInteger(BigInteger value) {
         this.value = value;
     }
 
-    public LLBigNumber(long value) {
+    public LLBigInteger(long value) {
         this.value = BigInteger.valueOf(value);
     }
 
@@ -80,7 +80,7 @@ public final class LLBigNumber implements TruffleObject, Comparable<LLBigNumber>
     }
 
     @TruffleBoundary
-    public int compareTo(LLBigNumber o) {
+    public int compareTo(LLBigInteger o) {
         return value.compareTo(o.getValue());
     }
 
@@ -93,8 +93,8 @@ public final class LLBigNumber implements TruffleObject, Comparable<LLBigNumber>
     @Override
     @TruffleBoundary
     public boolean equals(Object obj) {
-        if (obj instanceof LLBigNumber) {
-            return value.equals(((LLBigNumber) obj).getValue());
+        if (obj instanceof LLBigInteger) {
+            return value.equals(((LLBigInteger) obj).getValue());
         }
         return false;
     }

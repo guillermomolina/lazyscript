@@ -42,16 +42,16 @@ package com.guillermomolina.lazylanguage.nodes.expression;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import com.guillermomolina.lazylanguage.nodes.LLBinaryNode;
+import com.guillermomolina.lazylanguage.runtime.LLBigInteger;
+import com.guillermomolina.lazylanguage.runtime.LLFunction;
+import com.guillermomolina.lazylanguage.runtime.LLNull;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.nodes.LLBinaryNode;
-import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
-import com.guillermomolina.lazylanguage.runtime.LLFunction;
-import com.guillermomolina.lazylanguage.runtime.LLNull;
 
 /**
  * The {@code ==} operator of Lazy is defined on all types. Therefore, we need a
@@ -71,7 +71,7 @@ public abstract class LLEqualNode extends LLBinaryNode {
 
     @Specialization
     @TruffleBoundary
-    protected boolean doBigNumber(LLBigNumber left, LLBigNumber right) {
+    protected boolean doBigInteger(LLBigInteger left, LLBigInteger right) {
         return left.equals(right);
     }
 
@@ -135,8 +135,8 @@ public abstract class LLEqualNode extends LLBinaryNode {
                 return true;
             } else if (leftInterop.fitsInLong(left) && rightInterop.fitsInLong(right)) {
                 return doLong(leftInterop.asLong(left), (rightInterop.asLong(right)));
-            } else if (left instanceof LLBigNumber && right instanceof LLBigNumber) {
-                return doBigNumber((LLBigNumber) left, (LLBigNumber) right);
+            } else if (left instanceof LLBigInteger && right instanceof LLBigInteger) {
+                return doBigInteger((LLBigInteger) left, (LLBigInteger) right);
             } else if (leftInterop.hasIdentity(left) && rightInterop.hasIdentity(right)) {
                 return leftInterop.isIdentical(left, right, rightInterop);
             } else {

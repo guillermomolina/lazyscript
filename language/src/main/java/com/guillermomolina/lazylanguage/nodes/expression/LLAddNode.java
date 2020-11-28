@@ -40,15 +40,15 @@
  */
 package com.guillermomolina.lazylanguage.nodes.expression;
 
+import com.guillermomolina.lazylanguage.LLException;
+import com.guillermomolina.lazylanguage.nodes.LLBinaryNode;
+import com.guillermomolina.lazylanguage.nodes.LLTypes;
+import com.guillermomolina.lazylanguage.runtime.LLBigInteger;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.LLException;
-import com.guillermomolina.lazylanguage.nodes.LLBinaryNode;
-import com.guillermomolina.lazylanguage.nodes.LLTypes;
-import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
 
 /**
  * Lazy node that performs the "+" operation, which performs addition on arbitrary precision numbers,
@@ -66,7 +66,7 @@ public abstract class LLAddNode extends LLBinaryNode {
     /**
      * Specialization for primitive {@code long} values. This is the fast path of the
      * arbitrary-precision arithmetic. We need to check for overflows of the addition, and switch to
-     * the {@link #add(LLBigNumber, LLBigNumber) slow path}. Therefore, we use an
+     * the {@link #add(LLBigInteger, LLBigInteger) slow path}. Therefore, we use an
      * {@link Math#addExact(long, long) addition method that throws an exception on overflow}. The
      * {@code rewriteOn} attribute on the {@link Specialization} annotation automatically triggers
      * the node rewriting on the exception.
@@ -84,21 +84,21 @@ public abstract class LLAddNode extends LLBinaryNode {
     }
 
     /**
-     * This is the slow path of the arbitrary-precision arithmetic. The {@link LLBigNumber} type of
+     * This is the slow path of the arbitrary-precision arithmetic. The {@link LLBigInteger} type of
      * Java is doing everything we need.
      * <p>
      * This specialization is automatically selected by the Truffle DLL if both the left and right
-     * operand are {@link LLBigNumber} values. Because the type system defines an
-     * {@link ImplicitCast implicit conversion} from {@code long} to {@link LLBigNumber} in
-     * {@link LLTypes#castBigNumber(long)}, this specialization is also taken if the left or the
+     * operand are {@link LLBigInteger} values. Because the type system defines an
+     * {@link ImplicitCast implicit conversion} from {@code long} to {@link LLBigInteger} in
+     * {@link LLTypes#castBigInteger(long)}, this specialization is also taken if the left or the
      * right operand is a {@code long} value. Because the {@link #add(long, long) long}
      * specialization} has the {@code rewriteOn} attribute, this specialization is also taken if
      * both input values are {@code long} values but the primitive addition overflows.
      */
     @Specialization
     @TruffleBoundary
-    protected LLBigNumber add(LLBigNumber left, LLBigNumber right) {
-        return new LLBigNumber(left.getValue().add(right.getValue()));
+    protected LLBigInteger add(LLBigInteger left, LLBigInteger right) {
+        return new LLBigInteger(left.getValue().add(right.getValue()));
     }
 
     /**

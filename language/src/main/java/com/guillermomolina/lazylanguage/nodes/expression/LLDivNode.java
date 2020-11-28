@@ -40,13 +40,13 @@
  */
 package com.guillermomolina.lazylanguage.nodes.expression;
 
+import com.guillermomolina.lazylanguage.LLException;
+import com.guillermomolina.lazylanguage.nodes.LLBinaryNode;
+import com.guillermomolina.lazylanguage.runtime.LLBigInteger;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.LLException;
-import com.guillermomolina.lazylanguage.nodes.LLBinaryNode;
-import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
 
 /**
  * This class is similar to the extensively documented {@link LLAddNode}. Divisions by 0 throw the
@@ -70,8 +70,8 @@ public abstract class LLDivNode extends LLBinaryNode {
 
     @Specialization
     @TruffleBoundary
-    protected LLBigNumber div(LLBigNumber left, LLBigNumber right) {
-        return new LLBigNumber(left.getValue().divide(right.getValue()));
+    protected LLBigInteger div(LLBigInteger left, LLBigInteger right) {
+        return new LLBigInteger(left.getValue().divide(right.getValue()));
     }
 
     @Fallback

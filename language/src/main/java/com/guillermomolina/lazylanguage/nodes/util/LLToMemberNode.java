@@ -42,6 +42,8 @@ package com.guillermomolina.lazylanguage.nodes.util;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
+import com.guillermomolina.lazylanguage.nodes.LLTypes;
+import com.guillermomolina.lazylanguage.runtime.LLBigInteger;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -51,8 +53,6 @@ import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.Node;
-import com.guillermomolina.lazylanguage.nodes.LLTypes;
-import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
 
 /**
  * The node to normalize any value to an Lazy value. This is useful to reduce the number of values
@@ -84,7 +84,7 @@ public abstract class LLToMemberNode extends Node {
 
     @Specialization
     @TruffleBoundary
-    protected static String fromBigNumber(LLBigNumber value) {
+    protected static String fromBigInteger(LLBigInteger value) {
         return value.toString();
     }
 
@@ -95,8 +95,8 @@ public abstract class LLToMemberNode extends Node {
                 return longToString(interop.asLong(value));
             } else if (interop.isString(value)) {
                 return interop.asString(value);
-            } else if (interop.isNumber(value) && value instanceof LLBigNumber) {
-                return bigNumberToString((LLBigNumber) value);
+            } else if (interop.isNumber(value) && value instanceof LLBigInteger) {
+                return bigIntegerToString((LLBigInteger) value);
             } else {
                 throw error(value);
             }
@@ -111,7 +111,7 @@ public abstract class LLToMemberNode extends Node {
     }
 
     @TruffleBoundary
-    private static String bigNumberToString(LLBigNumber value) {
+    private static String bigIntegerToString(LLBigInteger value) {
         return value.toString();
     }
 

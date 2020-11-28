@@ -92,7 +92,7 @@ import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
-import com.guillermomolina.lazylanguage.runtime.LLBigNumber;
+import com.guillermomolina.lazylanguage.runtime.LLBigInteger;
 import com.oracle.truffle.tck.DebuggerTester;
 
 /**
@@ -747,7 +747,7 @@ public class LLInstrumentTest {
         }
         assertTrue(interopFailure);
 
-        earlyReturn.returnValue = new LLBigNumber(new BigInteger("-42"));
+        earlyReturn.returnValue = new LLBigInteger(new BigInteger("-42"));
         ret = context.eval(source);
         assertTrue(ret.isNumber());
         assertEquals(-41L, ret.asLong());
