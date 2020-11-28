@@ -81,6 +81,7 @@ import com.oracle.truffle.api.TruffleLanguage.Env;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.instrumentation.AllocationReporter;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.Source;
@@ -112,7 +113,7 @@ public final class LLContext {
     private final LLObject numberPrototype;
     private final LLObject integerPrototype;
     private final LLObject bigIntegerPrototype;
-    private final LLObject floatPrototype;
+    private final LLObject realPrototype;
     private final LLObject truePrototype;
     private final LLObject falsePrototype;
     private final LLObject topContext;
@@ -133,7 +134,7 @@ public final class LLContext {
         this.numberPrototype = createObject(objectPrototype);
         this.integerPrototype = createObject(numberPrototype);
         this.bigIntegerPrototype = createObject(numberPrototype);
-        this.floatPrototype = createObject(numberPrototype);
+        this.realPrototype = createObject(numberPrototype);
         this.stringPrototype = createObject(objectPrototype);
         this.functionPrototype = createObject(objectPrototype);
         this.topContext = createObject(objectPrototype);
@@ -202,7 +203,7 @@ public final class LLContext {
         LLObjectUtil.putProperty(topContext, "Number", numberPrototype);
         LLObjectUtil.putProperty(topContext, "Integer", integerPrototype);
         LLObjectUtil.putProperty(topContext, "BigInteger", bigIntegerPrototype);
-        LLObjectUtil.putProperty(topContext, "Float", floatPrototype);
+        LLObjectUtil.putProperty(topContext, "Real", realPrototype);
         LLObjectUtil.putProperty(topContext, "String", stringPrototype);
         LLObjectUtil.putProperty(topContext, "Number", numberPrototype);
 
@@ -268,18 +269,21 @@ public final class LLContext {
     }
 
     public LLObject getPrototype(Object obj) {
+        InteropLibrary interop = InteropLibrary.getFactory().getUncached();
         if(obj instanceof LLObject) {
             return ((LLObject)obj).getPrototype();
         } else if (obj instanceof String) {
             return stringPrototype;
         } else if (obj instanceof LLBigInteger) {
             return bigIntegerPrototype;
-        } else if (obj == LLNull.INSTANCE) {
+        } else if (interop.fitsInLong(obj)) {
+            return integerPrototype;
+        } else if (interop.fitsInDouble(obj)) {
+            return realPrototype;
+        } else if (interop.isNull(obj)) {
             return nullPrototype;
-        } else if (obj.equals(true)) {
-            return truePrototype;
-        } else if (obj.equals(false)) {
-            return falsePrototype;
+        } else if (interop.isBoolean(obj)) {
+            return obj.equals(true)? truePrototype : falsePrototype;
         } else {
             throw new NotImplementedException();
         }
