@@ -502,17 +502,29 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
 
     @Override
     public Node visitFactor(LazyLanguageParser.FactorContext ctx) {
-        throw new NotImplementedException();
-    }
-
-
-    @Override
-    public Node visitMemberFactor(LazyLanguageParser.MemberFactorContext ctx) {
-        LLExpressionNode assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol(), false);
-        if (ctx.memberExpression() != null) {
-            return createMemberExpression(ctx.memberExpression(), null, null, assignmentName);
+        if (ctx.IDENTIFIER() != null) {
+            LLExpressionNode assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol(), false);
+            LLExpressionNode result;
+            if (ctx.assignment() == null) {
+                if (ctx.memberExpression() != null) {
+                    return createMemberExpression(ctx.memberExpression(), null, null, assignmentName);
+                }
+                return createRead(assignmentName);
+            }
+            if (ctx.memberExpression() != null) {
+                throw new NotImplementedException();
+            }
+            return createAssignmentMemberExpression(ctx.assignment(), null, assignmentName);
+        } // else ctx.nonMemberFactor() != null
+        LLExpressionNode receiver = (LLExpressionNode) visit(ctx.nonMemberFactor());
+        if (ctx.memberExpression() == null) {
+            return receiver;
         }
-        return createRead(assignmentName);
+        LLExpressionNode result = createMemberExpression(ctx.memberExpression(), receiver, null, null);
+        if (ctx.assignment() == null) {
+            return result;
+        }
+        throw new NotImplementedException();
     }
 
     @Override
@@ -521,29 +533,26 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
             return createStringLiteral(ctx.STRING_LITERAL().getSymbol(), true);
         } else if (ctx.NUMERIC_LITERAL() != null) {
             return createNumericLiteral(ctx.NUMERIC_LITERAL().getSymbol());
-        }
+        } // else ctx.parenExpression() != null
         return createParenExpression(ctx.parenExpression());
     }
-/*
-    @Override
-    public Node visitAssignment(LazyLanguageParser.AssignmentContext ctx) {
-        if (ctx.memberFactor() != null) {
-            throw new NotImplementedException();
-        } else { // ctx.nonMemberFactor() != null
-            throw new NotImplementedException();
-        }
-        LLExpressionNode assignmentName = null;
-        LLExpressionNode receiver;
-        if (ctx.memberExpression() != null) {
-            receiver = createMemberExpression(ctx.memberExpression(), null, null, assignmentName);
-        } else {
-            receiver = createRead(assignmentName);
-        }
-        return createAssignmentMemberExpression(ctx, receiver, null, assignmentName);
-    }
-*/
-    public LLExpressionNode createAssignmentMemberExpression(LazyLanguageParser.AssignmentContext ctx,
+
+    public LLExpressionNode createMemberExpression(LazyLanguageParser.MemberExpressionContext ctx,
             LLExpressionNode receiver, LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName) {
+        if (ctx.LPAREN() != null) {
+            return createCallMemberExpression(ctx, receiver, assignmentReceiver, assignmentName);
+        }
+        if (ctx.DOT() != null) {
+            return createDotMemberExpression(ctx, receiver, assignmentName);
+        }
+        if (ctx.LBRACK() != null) {
+            return createArrayMemberExpression(ctx, receiver, assignmentName);
+        }
+        throw new LLParseError(source, ctx, "Invalid member expression");
+    }
+
+    public LLExpressionNode createAssignmentMemberExpression(LazyLanguageParser.AssignmentContext ctx,
+            LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName) {
         if (assignmentName == null) {
             throw new LLParseError(source, ctx.expression(), "invalid assignment target");
         }
@@ -567,20 +576,6 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         final LLParenExpressionNode result = new LLParenExpressionNode(expressionNode);
         result.setSourceSection(start, length);
         return result;
-    }
-
-    public LLExpressionNode createMemberExpression(LazyLanguageParser.MemberExpressionContext ctx,
-            LLExpressionNode receiver, LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName) {
-        if (ctx.LPAREN() != null) {
-            return createCallMemberExpression(ctx, receiver, assignmentReceiver, assignmentName);
-        }
-        if (ctx.DOT() != null) {
-            return createDotMemberExpression(ctx, receiver, assignmentName);
-        }
-        if (ctx.LBRACK() != null) {
-            return createArrayMemberExpression(ctx, receiver, assignmentName);
-        }
-        throw new LLParseError(source, ctx, "Invalid member expression");
     }
 
     public LLExpressionNode createCallMemberExpression(LazyLanguageParser.MemberExpressionContext ctx,

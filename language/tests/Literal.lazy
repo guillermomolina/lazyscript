@@ -1,4 +1,3 @@
-/*
 null.println();
 true.println();
 false.println();
@@ -6,14 +5,12 @@ Object.println();
 Null.println();
 Object.prototype.println();
 true.prototype.prototype.prototype.prototype.println();
-
-
-a="Hello World";
+"Hello World".println();
+"Hello World".prototype.println();
+a = "Hello World";
 a.println();
 a = (Object.prototype == null);
 a.println();
 a = (true.prototype == True);
 a.println();
 
-*/
-"Hello World".println();

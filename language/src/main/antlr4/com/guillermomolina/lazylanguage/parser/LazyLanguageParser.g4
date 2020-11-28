@@ -88,10 +88,8 @@ term: factor ( factorOperator factor)*;
 factorOperator: MUL | DIV;
 
 factor: 
-	memberFactor assignment?
+	IDENTIFIER memberExpression? assignment?
 	| nonMemberFactor (memberExpression assignment?)?;
-
-memberFactor: IDENTIFIER memberExpression?;
 
 nonMemberFactor:
 	STRING_LITERAL
