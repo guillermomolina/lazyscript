@@ -105,11 +105,12 @@ public final class LLContext {
     private final Iterable<Scope> topScopes; // Cache the top scopes
 
     private final LLObject objectPrototype;
+    private final LLObject nullPrototype;
     private final LLObject booleanPrototype;
     private final LLObject functionPrototype;
     private final LLObject stringPrototype;
-    private final LLObject trueObject;
-    private final LLObject falseObject;
+    private final LLObject truePrototype;
+    private final LLObject falsePrototype;
     private final LLObject topContext;
 
     public LLContext(LLLanguage language, TruffleLanguage.Env env) {
@@ -121,29 +122,14 @@ public final class LLContext {
         this.topScopes = Collections.singleton(Scope.newBuilder("global", new FunctionsObject()).build());
 
         this.objectPrototype = createObject(null);
+        this.nullPrototype = createObject(objectPrototype);
         this.booleanPrototype = createObject(objectPrototype);
         this.functionPrototype = createObject(objectPrototype);
         this.stringPrototype = createObject(objectPrototype);
-        this.trueObject = createObject(booleanPrototype);
-        this.falseObject = createObject(booleanPrototype);
+        this.truePrototype = createObject(booleanPrototype);
+        this.falsePrototype = createObject(booleanPrototype);
         this.topContext = createObject(objectPrototype);
         installBuiltins();
-    }
-
-    public LLObject getStringPrototype() {
-        return stringPrototype;
-    }
-
-    public LLObject getBooleanPrototype() {
-        return booleanPrototype;
-    }
-
-    public LLObject getTrueObject() {
-        return trueObject;
-    }
-
-    public LLObject getFalseObject() {
-        return falseObject;
     }
 
     public LLObject createObject(LLObject prototype) {
@@ -197,6 +183,15 @@ public final class LLContext {
      * {@link LLBuiltinNode builtin implementation classes}.
      */
     private void installBuiltins() {
+        LLObjectUtil.putProperty(topContext, "null", LLNull.INSTANCE);
+        LLObjectUtil.putProperty(topContext, "true", true);
+        LLObjectUtil.putProperty(topContext, "false", false);
+        LLObjectUtil.putProperty(topContext, "Object", objectPrototype);
+        LLObjectUtil.putProperty(topContext, "Null", nullPrototype);
+        LLObjectUtil.putProperty(topContext, "Boolean", booleanPrototype);
+        LLObjectUtil.putProperty(topContext, "True", truePrototype);
+        LLObjectUtil.putProperty(topContext, "False", falsePrototype);
+
         installBuiltin(LLReadlnBuiltinFactory.getInstance());
         installBuiltin(LLPrintlnBuiltinFactory.getInstance());
         installBuiltin(LLNanoTimeBuiltinFactory.getInstance());
@@ -263,6 +258,12 @@ public final class LLContext {
             return ((LLObject)obj).getPrototype();
         } else if (obj instanceof String) {
             return stringPrototype;
+        } else if (obj == LLNull.INSTANCE) {
+            return nullPrototype;
+        } else if (obj.equals(true)) {
+            return truePrototype;
+        } else if (obj.equals(false)) {
+            return falsePrototype;
         } else {
             throw new NotImplementedException();
         }

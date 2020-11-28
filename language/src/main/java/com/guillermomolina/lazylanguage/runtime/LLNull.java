@@ -78,7 +78,7 @@ public final class LLNull implements TruffleObject {
      */
     @Override
     public String toString() {
-        return "NULL";
+        return "null";
     }
 
     @ExportMessage
@@ -127,6 +127,6 @@ public final class LLNull implements TruffleObject {
 
     @ExportMessage
     Object toDisplayString(boolean allowSideEffects) {
-        return "NULL";
+        return "null";
     }
 }

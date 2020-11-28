@@ -142,7 +142,7 @@ public class LLObject extends DynamicObject {
     @ExportMessage
     @TruffleBoundary
     Object toDisplayString(boolean allowSideEffects) {
-        return "Object";
+        return "anObject";
     }
 
     @ExportMessage
@@ -219,6 +219,10 @@ public class LLObject extends DynamicObject {
             throws UnknownIdentifierException {
         Object result = objectLibrary.getOrDefault(this, name, null);
         if (result == null) {
+            LLObject prototype = getPrototype();
+            if(prototype != null) {
+                return prototype.readMember(name, objectLibrary);
+            }
             /* Property does not exist. */
             throw UnknownIdentifierException.create(name);
         }

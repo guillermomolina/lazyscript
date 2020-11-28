@@ -1,2 +1,6 @@
-a="Hello World";
-a.println();
+//a="Hello World";
+null.println();
+true.println();
+false.println();
+Object.println();
+Null.println();
