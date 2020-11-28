@@ -8,12 +8,21 @@ true.prototype.prototype.prototype.prototype.println();
 "Hello World".println();
 "Hello World".prototype.println();
 
+a = 101 + 1;
+a.println();
+
 a = "Hello World";
 a.println();
 a = (Object.prototype == null);
 a.println();
 a = (true.prototype == True);
 a.println();
-/*
-Object.a = true;
-*/
+
+Object.a = "c";
+Object.a.println();
+
+Object["b"] = "b";
+Object["b"].println();
+
+Object[Object.a] = "a";
+Object[Object.a].println();
