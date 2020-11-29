@@ -60,17 +60,13 @@ public class LLRootNode extends RootNode {
     /** The function body that is executed, and specialized during execution. */
     @Child private LLExpressionNode bodyNode;
 
-    /** The name of the function, for printing purposes only. */
-    private final String name;
-
     private boolean isCloningAllowed;
 
     private final SourceSection sourceSection;
 
-    public LLRootNode(LazyLanguage language, FrameDescriptor frameDescriptor, LLExpressionNode bodyNode, SourceSection sourceSection, String name) {
+    public LLRootNode(LazyLanguage language, FrameDescriptor frameDescriptor, LLExpressionNode bodyNode, SourceSection sourceSection) {
         super(language, frameDescriptor);
         this.bodyNode = bodyNode;
-        this.name = name;
         this.sourceSection = sourceSection;
     }
 
@@ -89,11 +85,6 @@ public class LLRootNode extends RootNode {
         return bodyNode;
     }
 
-    @Override
-    public String getName() {
-        return name;
-    }
-
     public void setCloningAllowed(boolean isCloningAllowed) {
         this.isCloningAllowed = isCloningAllowed;
     }
@@ -101,10 +92,5 @@ public class LLRootNode extends RootNode {
     @Override
     public boolean isCloningAllowed() {
         return isCloningAllowed;
-    }
-
-    @Override
-    public String toString() {
-        return "root " + name;
     }
 }

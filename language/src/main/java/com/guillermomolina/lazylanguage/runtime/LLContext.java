@@ -166,9 +166,9 @@ public final class LLContext {
         return object;
     }
 
-    public LLFunction createFunction(String name, RootCallTarget callTarget) {
+    public LLFunction createFunction(RootCallTarget callTarget) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        LLFunction function = new LLFunction(name, callTarget);
+        LLFunction function = new LLFunction(callTarget);
         function.setPrototype(functionPrototype);
         allocationReporter.onReturnValue(function, 0, AllocationReporter.SIZE_UNKNOWN);
         return function;
@@ -278,9 +278,9 @@ public final class LLContext {
          * RootNode.
          */
         LLRootNode rootNode = new LLRootNode(language, new FrameDescriptor(), builtinBodyNode,
-                BUILTIN_SOURCE.createUnavailableSection(), name);
+                BUILTIN_SOURCE.createUnavailableSection());
         RootCallTarget rootCallTarget = Truffle.getRuntime().createCallTarget(rootNode);
-        LLFunction rootFunction = createFunction(name, rootCallTarget);
+        LLFunction rootFunction = createFunction(rootCallTarget);
         LLObjectUtil.putProperty(objectPrototype, name, rootFunction);
     }
 

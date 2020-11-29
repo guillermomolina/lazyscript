@@ -66,7 +66,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * @see InteropLibrary#execute(Object, Object...)
  */
 @NodeInfo(shortName = "invoke")
-public final class LLInvokeNode extends LLExpressionNode {
+public final class LLInvokeMethodNode extends LLExpressionNode {
 
     @Child
     private LLExpressionNode methodNameNode;
@@ -75,7 +75,7 @@ public final class LLInvokeNode extends LLExpressionNode {
     @Child
     private InteropLibrary library;
 
-    public LLInvokeNode(LLExpressionNode methodNameNode, LLExpressionNode[] argumentNodes) {
+    public LLInvokeMethodNode(LLExpressionNode methodNameNode, LLExpressionNode[] argumentNodes) {
         this.methodNameNode = methodNameNode;
         this.argumentNodes = argumentNodes;
         this.library = InteropLibrary.getFactory().createDispatched(3);

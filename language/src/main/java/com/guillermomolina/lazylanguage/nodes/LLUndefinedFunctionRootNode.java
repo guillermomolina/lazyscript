@@ -53,11 +53,11 @@ import com.oracle.truffle.api.nodes.RootNode;
  */
 public class LLUndefinedFunctionRootNode extends LLRootNode {
     public LLUndefinedFunctionRootNode(LazyLanguage language, String name) {
-        super(language, null, null, null, name);
+        super(language, null, null, null);
     }
 
     @Override
     public Object execute(VirtualFrame frame) {
-        throw LLUndefinedNameException.undefinedFunction(null, getName());
+        throw LLUndefinedNameException.undefinedFunction(null, "unnamed");
     }
 }

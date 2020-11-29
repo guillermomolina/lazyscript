@@ -30,5 +30,13 @@ Object["b"].println();
 Object[Object.a] = "a";
 Object[Object.a].println();
 
-b = function () {};
-b.println();
+Object.d = { println(); };
+Object.d.println();
+Object.d();
+
+a = { println(); };
+a.println();
+a();
+
+
+

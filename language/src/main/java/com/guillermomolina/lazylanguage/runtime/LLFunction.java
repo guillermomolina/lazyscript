@@ -69,9 +69,6 @@ public final class LLFunction extends LLObject {
 
     private static final TruffleLogger LOG = TruffleLogger.getLogger(LazyLanguage.ID, LLFunction.class);
 
-    /** The name of the function. */
-    private final String name;
-
     /** The current implementation of this function. */
     private RootCallTarget callTarget;
 
@@ -82,14 +79,13 @@ public final class LLFunction extends LLObject {
      */
     private final CyclicAssumption callTargetStable;
 
-    public LLFunction(String name, RootCallTarget callTarget) {
-        this.name = name;
+    public LLFunction(RootCallTarget callTarget) {
         this.callTarget = callTarget;
-        this.callTargetStable = new CyclicAssumption(name);
+        this.callTargetStable = new CyclicAssumption(getName());
     }
 
     public String getName() {
-        return name;
+        return "aFunction";
     }
 
     protected void setCallTarget(RootCallTarget callTarget) {
@@ -98,7 +94,7 @@ public final class LLFunction extends LLObject {
          * We have a new call target. Invalidate all code that speculated that the old call target
          * was stable.
          */
-        LOG.log(Level.FINE, "Installed call target for: {0}", name);
+        LOG.log(Level.FINE, "Installed call target for: {0}", getName());
         callTargetStable.invalidate();
     }
 

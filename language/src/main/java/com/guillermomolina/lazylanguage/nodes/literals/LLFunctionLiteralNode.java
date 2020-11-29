@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2018, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -40,43 +40,45 @@
  */
 package com.guillermomolina.lazylanguage.nodes.literals;
 
-import com.guillermomolina.lazylanguage.NotImplementedException;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
-import com.guillermomolina.lazylanguage.runtime.LLContext;
 import com.guillermomolina.lazylanguage.runtime.LLFunction;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
-@NodeInfo(shortName = "func")
+/**
+ * Constant literal for a Lazy functions.
+ */
+@NodeInfo(shortName = "const")
 public final class LLFunctionLiteralNode extends LLExpressionNode {
 
-    /** The name of the function. */
-    private final String functionName;
+    final RootCallTarget callTarget;
 
     /**
-     * The resolved function. During parsing (in the constructor of this node), we do not have the
-     * {@link LLContext} available yet, so the lookup can only be done at {@link #executeGeneric
-     * first execution}. The {@link CompilationFinal} annotation ensures that the function can still
-     * be constant folded during compilation.
+     * The resolved function. During parsing (in the constructor of this node), we
+     * do not have the {@link SLContext} available yet, so the lookup can only be
+     * done at {@link #executeGeneric first execution}. The {@link CompilationFinal}
+     * annotation ensures that the function can still be constant folded during
+     * compilation.
      */
-    @CompilationFinal private LLFunction cachedFunction;
+    @CompilationFinal
+    private LLFunction cachedFunction;
 
-    public LLFunctionLiteralNode(String functionName) {
-        this.functionName = functionName;
+    public LLFunctionLiteralNode(final RootCallTarget callTarget) {
+        this.callTarget = callTarget;
     }
 
     @Override
     public LLFunction executeGeneric(VirtualFrame frame) {
-        throw new NotImplementedException();
-        /*
         if (cachedFunction == null) {
-            // We are about to change a @CompilationFinal field. 
+            /* We are about to change a @CompilationFinal field. */
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            // First execution of the node: lookup the function in the function registry. 
-            cachedFunction = lookupContextReference(LazyLanguage.class).get().getTopContext().lookup(functionName, true);
+            /* First execution of the node: lookup the function in the function registry. */
+            cachedFunction = lookupContextReference(LazyLanguage.class).get().createFunction(callTarget);
         }
-        return cachedFunction;*/
+        return cachedFunction;
     }
-
 }

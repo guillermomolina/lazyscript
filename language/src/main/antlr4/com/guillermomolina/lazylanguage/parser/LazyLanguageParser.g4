@@ -42,9 +42,7 @@ module: statement* EOF;
 
 block: LCURLY (statement)* RCURLY;
 
-statement:
-	expression SEMI
-	| returnStatement SEMI;
+statement: expression SEMI | returnStatement SEMI;
 
 statement2:
 	function
@@ -104,8 +102,10 @@ numericLiteral: NUMERIC_LITERAL;
 parenExpression: LPAREN expression RPAREN;
 
 function:
-	FUNCTION LPAREN functionParameters? RPAREN block|
-	LPAREN functionParameters? RPAREN ARROW block;
+	(
+		FUNCTION LPAREN functionParameters? RPAREN
+		| LPAREN functionParameters? RPAREN ARROW
+	)? block;
 
 functionParameters: IDENTIFIER ( COMMA IDENTIFIER)*;
 
@@ -118,8 +118,6 @@ member:
 
 assignment: (IDENTIFIER | singleExpression assignable) ASSIGN expression;
 
-assignable:
-	DOT IDENTIFIER
-	| LBRACK expression RBRACK;
+assignable: DOT IDENTIFIER | LBRACK expression RBRACK;
 
 parameterList: expression (COMMA expression)*;

@@ -61,7 +61,8 @@ import com.guillermomolina.lazylanguage.nodes.controlflow.LLWhileNode;
 import com.guillermomolina.lazylanguage.nodes.expression.LLAddNodeGen;
 import com.guillermomolina.lazylanguage.nodes.expression.LLDivNodeGen;
 import com.guillermomolina.lazylanguage.nodes.expression.LLEqualNodeGen;
-import com.guillermomolina.lazylanguage.nodes.expression.LLInvokeNode;
+import com.guillermomolina.lazylanguage.nodes.expression.LLInvokeFunctionNode;
+import com.guillermomolina.lazylanguage.nodes.expression.LLInvokeMethodNode;
 import com.guillermomolina.lazylanguage.nodes.expression.LLLessOrEqualNodeGen;
 import com.guillermomolina.lazylanguage.nodes.expression.LLLessThanNodeGen;
 import com.guillermomolina.lazylanguage.nodes.expression.LLLogicalAndNode;
@@ -103,6 +104,7 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 /**
  * Helper class used by the Lazy {@link Parser} to create nodes. The code is
@@ -125,12 +127,14 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         protected final Map<String, FrameSlot> locals;
         protected final boolean inLoop;
         protected final List<LLStatementNode> statementNodes;
+        FrameDescriptor frameDescriptor;
 
         LexicalScope(LexicalScope outer, boolean inLoop) {
             this.outer = outer;
             this.inLoop = inLoop;
             this.locals = new HashMap<>();
             this.statementNodes = new ArrayList<>();
+            this.frameDescriptor = new FrameDescriptor();
 
             if (outer != null) {
                 locals.putAll(outer.locals);
@@ -153,34 +157,23 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         }
     }
 
-    /* State while parsing a source unit. */
-    private final Source source;
-    private final LazyLanguageLexer lexer;
-    private final LazyLanguageParser parser;
-
-    /* State while parsing a function. */
-    private int functionStartPos;
-    private String functionName;
-    private int functionBodyStartPos; // includes parameter list
-    private FrameDescriptor frameDescriptor;
-
-    /* State while parsing a block. */
     private LexicalScope lexicalScope;
     private final LazyLanguage language;
+    private final Source source;
 
     public LLParserVisitor(LazyLanguage language, Source source) {
         this.language = language;
         this.source = source;
-        this.lexer = new LazyLanguageLexer(CharStreams.fromString(source.getCharacters().toString()));
-        this.parser = new LazyLanguageParser(new CommonTokenStream(lexer));
+    }
+
+    public RootCallTarget parse() {
+        LazyLanguageLexer lexer = new LazyLanguageLexer(CharStreams.fromString(source.getCharacters().toString()));
+        LazyLanguageParser parser = new LazyLanguageParser(new CommonTokenStream(lexer));
         lexer.removeErrorListeners();
         parser.removeErrorListeners();
         BailoutErrorListener listener = new BailoutErrorListener(source);
         lexer.addErrorListener(listener);
         parser.addErrorListener(listener);
-    }
-
-    public RootCallTarget parse() {
         RootNode rootNode = (RootNode) visit(parser.module());
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
@@ -203,7 +196,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
             throw new LLParseError(source, ctx, "Node is null");
         }
         Interval sourceInterval = ctx.getSourceInterval();
-        if(sourceInterval != null) {
+        if (sourceInterval != null) {
             node.setSourceSection(sourceInterval.a, sourceInterval.length());
         }
     }
@@ -218,18 +211,10 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
 
     @Override
     public Node visitModule(LazyLanguageParser.ModuleContext ctx) {
-        assert functionStartPos == 0;
-        assert functionName == null;
-        assert functionBodyStartPos == 0;
-        assert frameDescriptor == null;
         assert lexicalScope == null;
 
-        functionName = source.getName();
-        final int extensionIndex = functionName.lastIndexOf(".");
-        if (extensionIndex != -1) {
-            functionName = functionName.substring(0, extensionIndex);
-        }
-        frameDescriptor = new FrameDescriptor();
+        /* State while parsing a function. */
+        int functionStartPos = ctx.start.getStartIndex();
         pushScope(false);
 
         final LLReadArgumentNode readArg0 = new LLReadArgumentNode(0);
@@ -243,6 +228,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
             bodyNodes.add((LLStatementNode) visit(statement));
         }
 
+        FrameDescriptor frameDescriptor = lexicalScope.frameDescriptor;
         popScope();
 
         if (containsNull(bodyNodes)) {
@@ -263,74 +249,50 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         assert lexicalScope == null : "Wrong scoping of blocks in parser";
 
         final LLFunctionBodyNode functionBodyNode = new LLFunctionBodyNode(methodBlock);
-        final int bodyEndPos = methodBlock.getSourceEndIndex();
-        SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
-        functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
-        final LLRootNode rootNode = new LLRootNode(language, frameDescriptor, functionBodyNode, functionSrc,
-                functionName);
-
-        functionStartPos = 0;
-        functionName = null;
-        functionBodyStartPos = 0;
-        frameDescriptor = null;
-        lexicalScope = null;
+        setSourceFromContext(functionBodyNode, ctx);
+        final LLRootNode rootNode = new LLRootNode(language, frameDescriptor, functionBodyNode,
+                functionBodyNode.getSourceSection());
 
         return rootNode;
     }
 
     @Override
     public Node visitFunction(LazyLanguageParser.FunctionContext ctx) {
-        throw new NotImplementedException();
-        // @formatter:off
-        /*assert functionStartPos == 0;
-        assert functionName == null;
-        assert functionBodyStartPos == 0;
-        assert frameDescriptor == null;
-        assert lexicalScope == null;
-
-        Token nameToken = ctx.IDENTIFIER().getSymbol();
-        Token bodyStartToken = ctx.block().getStart();
-
-        functionStartPos = ctx.getStartIndex();
-        functionName = nameToken.getText();
-        functionBodyStartPos = bodyStartToken.getStartIndex();
-        frameDescriptor = new FrameDescriptor();
         pushScope(false);
 
-        int parameterCount = 0;
+        LLReadArgumentNode readArg = new LLReadArgumentNode(0);
+        LLExpressionNode stringLiteral = createStringLiteral(LexicalScope.THIS, false);
+        LLExpressionNode assignment = createAssignment(stringLiteral, readArg, 0);
+        lexicalScope.statementNodes.add(assignment);
+        int parameterCount = 1;
         if (ctx.functionParameters() != null) {
             for (TerminalNode nameNode : ctx.functionParameters().IDENTIFIER()) {
-                final LLReadArgumentNode readArg = new LLReadArgumentNode(parameterCount);
-                final LLExpressionNode stringLiteral = createStringLiteral(nameNode.getSymbol(), false);
-                LLExpressionNode assignment = createAssignment(stringLiteral, readArg, parameterCount);
+                readArg = new LLReadArgumentNode(parameterCount);
+                stringLiteral = createStringLiteral(nameNode.getSymbol().getText(), false);
+                assignment = createAssignment(stringLiteral, readArg, parameterCount);
                 lexicalScope.statementNodes.add(assignment);
                 parameterCount++;
             }
         }
 
         final LLStatementNode methodBlock = (LLStatementNode) visit(ctx.block());
-        if (methodBlock != null) {
-            assert lexicalScope == null : "Wrong scoping of blocks in parser";
-
-            final LLFunctionBodyNode functionBodyNode = new LLFunctionBodyNode(methodBlock);
-            final int bodyEndPos = methodBlock.getSourceEndIndex();
-            SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
-            functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
-            final LLRootNode rootNode = new LLRootNode(language, frameDescriptor, functionBodyNode, functionSrc,
-                    functionName);
-            allFunctions.put(functionName,
-            Truffle.getRuntime().createCallTarget(rootNode));
+        if (methodBlock == null) {
+            throw new NotImplementedException();
         }
 
-        functionStartPos = 0;
-        functionName = null;
-        functionBodyStartPos = 0;
-        frameDescriptor = null;
-        lexicalScope = null;
+        FrameDescriptor frameDescriptor = lexicalScope.frameDescriptor;
+        popScope();
 
-        return null;
-        */
-        // @formatter:on
+        final LLFunctionBodyNode functionBodyNode = new LLFunctionBodyNode(methodBlock);
+        final int functionStartPos = methodBlock.getSourceCharIndex();
+        final int bodyEndPos = methodBlock.getSourceEndIndex();
+        SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
+        functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
+        RootNode rootNode = new LLRootNode(language, frameDescriptor, functionBodyNode, functionSrc);
+        LLExpressionNode result = new LLFunctionLiteralNode(Truffle.getRuntime().createCallTarget(rootNode));
+        setSourceFromContext(result, ctx);
+        result.addExpressionTag();
+        return result;
     }
 
     @Override
@@ -340,8 +302,6 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         for (LazyLanguageParser.StatementContext statement : ctx.statement()) {
             bodyNodes.add((LLStatementNode) visit(statement));
         }
-
-        popScope();
 
         if (containsNull(bodyNodes)) {
             return null;
@@ -520,7 +480,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         } else if (ctx.numericLiteral() != null) {
             receiver = (LLExpressionNode) visit(ctx.numericLiteral());
         } else if (ctx.function() != null) {
-            throw new NotImplementedException();
+            receiver = (LLExpressionNode) visit(ctx.function());
         } else {// esle ctx.parenExpression()
             receiver = createParenExpression(ctx.parenExpression());
         }
@@ -573,7 +533,13 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
                 parameters.add((LLExpressionNode) visit(expression));
             }
         }
-        LLExpressionNode result = createCall(ctx, functionName, parameters);
+        LLExpressionNode result;
+        if(r == null) {
+            LLExpressionNode functionNode = createRead(ctx, functionName);
+            result = createCallFunction(ctx, functionNode, parameters);
+        } else {
+            result = createCallMethod(ctx, functionName, parameters);
+        }
         if (ctx.member() != null) {
             return createMember(ctx.member(), result, receiver, null);
         }
@@ -581,22 +547,34 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
     }
 
     /**
-     * Returns an {@link LLInvokeNode} for the given parameters.
+     * Returns an {@link LLInvokeMethodNode} for the given parameters.
      *
-     * @param functionNode   The function being called
+     * @param functionName   The function being called
      * @param parameterNodes The parameters of the function call
-     * @param finalToken     A token used to determine the end of the
-     *                       sourceSelection for this call
-     * @return An LLInvokeNode for the given parameters. null if functionNode or any
+     * @return An LLInvokeMethodNode for the given parameters. null if functionNode or any
      *         of the parameterNodes are null.
      */
-    public LLExpressionNode createCall(LazyLanguageParser.MemberContext ctx, LLExpressionNode functionName,
+    public LLExpressionNode createCallMethod(LazyLanguageParser.MemberContext ctx, LLExpressionNode functionNameNode,
             List<LLExpressionNode> parameterNodes) {
-        if (functionName == null || containsNull(parameterNodes)) {
+        if (functionNameNode == null || containsNull(parameterNodes)) {
             return null;
         }
 
-        final LLExpressionNode result = new LLInvokeNode(functionName,
+        final LLExpressionNode result = new LLInvokeMethodNode(functionNameNode,
+                parameterNodes.toArray(new LLExpressionNode[parameterNodes.size()]));
+
+        setSourceFromContext(result, ctx);
+        result.addExpressionTag();
+        return result;
+    }
+
+    public LLExpressionNode createCallFunction(LazyLanguageParser.MemberContext ctx, LLExpressionNode functionNode,
+            List<LLExpressionNode> parameterNodes) {
+        if (functionNode == null || containsNull(parameterNodes)) {
+            return null;
+        }
+
+        final LLExpressionNode result = new LLInvokeFunctionNode(functionNode,
                 parameterNodes.toArray(new LLExpressionNode[parameterNodes.size()]));
 
         setSourceFromContext(result, ctx);
@@ -634,7 +612,8 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
      * @return An LLExpressionNode for the given parameters. null if receiverNode or
      *         nameNode is null.
      */
-    public LLExpressionNode createReadProperty(LazyLanguageParser.MemberContext ctx, LLExpressionNode receiverNode, LLExpressionNode nameNode) {
+    public LLExpressionNode createReadProperty(LazyLanguageParser.MemberContext ctx, LLExpressionNode receiverNode,
+            LLExpressionNode nameNode) {
         if (receiverNode == null || nameNode == null) {
             return null;
         }
@@ -685,8 +664,8 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
      * @return An LLExpressionNode for the given parameters. null if receiverNode,
      *         nameNode or valueNode is null.
      */
-    public LLExpressionNode createWriteProperty(LazyLanguageParser.AssignmentContext ctx, LLExpressionNode receiverNode, LLExpressionNode nameNode,
-            LLExpressionNode valueNode) {
+    public LLExpressionNode createWriteProperty(LazyLanguageParser.AssignmentContext ctx, LLExpressionNode receiverNode,
+            LLExpressionNode nameNode, LLExpressionNode valueNode) {
         if (receiverNode == null || nameNode == null || valueNode == null) {
             return null;
         }
@@ -728,7 +707,8 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         }
 
         String name = ((LLStringLiteralNode) nameNode).executeGeneric(null);
-        FrameSlot frameSlot = frameDescriptor.findOrAddFrameSlot(name, argumentIndex, FrameSlotKind.Illegal);
+        FrameSlot frameSlot = lexicalScope.frameDescriptor.findOrAddFrameSlot(name, argumentIndex,
+                FrameSlotKind.Illegal);
         lexicalScope.locals.put(name, frameSlot);
         final LLExpressionNode result = LLWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode);
 
@@ -744,16 +724,15 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
 
     /**
      * Returns a {@link LLReadLocalVariableNode} if this read is a local variable or
-     * a {@link LLFunctionLiteralNode} if this read is global. In Lazy, the only
-     * global names are functions.
+     * a {@link LLReadPropertyNode} if this read is from the object. In Lazy, there
+     * are no global names.
      *
      * @param nameNode The name of the variable/function being read
      * @return either:
      *         <ul>
      *         <li>A LLReadLocalVariableNode representing the local variable being
      *         read.</li>
-     *         <li>A LLFunctionLiteralNode representing the function
-     *         definition.</li>
+     *         <li>A LLReadPropertyNode representing the property being read.</li>
      *         <li>null if nameNode is null.</li>
      *         </ul>
      */
