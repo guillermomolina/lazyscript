@@ -38,7 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazylanguage.nodes.expression;
+package com.guillermomolina.lazylanguage.nodes.logic;
 
 import com.guillermomolina.lazylanguage.LLException;
 import com.guillermomolina.lazylanguage.nodes.LLBinaryNode;
@@ -49,26 +49,24 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
- * This class is similar to the extensively documented {@link LLAddNode}. The only difference: the
- * specialized methods return {@code boolean} instead of the input types.
+ * This class is similar to the {@link LLLessThanNode}.
  */
-@NodeInfo(shortName = "<")
-public abstract class LLLessThanNode extends LLBinaryNode {
+@NodeInfo(shortName = "<=")
+public abstract class LLLessOrEqualNode extends LLBinaryNode {
 
     @Specialization
-    protected boolean lessThan(long left, long right) {
-        return left < right;
+    protected boolean lessOrEqual(long left, long right) {
+        return left <= right;
     }
 
     @Specialization
     @TruffleBoundary
-    protected boolean lessThan(LLBigInteger left, LLBigInteger right) {
-        return left.compareTo(right) < 0;
+    protected boolean lessOrEqual(LLBigInteger left, LLBigInteger right) {
+        return left.compareTo(right) <= 0;
     }
 
     @Fallback
     protected Object typeError(Object left, Object right) {
         throw LLException.typeError(this, left, right);
     }
-
 }

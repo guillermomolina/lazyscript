@@ -38,10 +38,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazylanguage.nodes.expression;
+package com.guillermomolina.lazylanguage.nodes.logic;
 
-import com.oracle.truffle.api.nodes.NodeInfo;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
+import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
  * Logical disjunction node with short circuit evaluation.

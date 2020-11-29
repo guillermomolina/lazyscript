@@ -38,7 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazylanguage.nodes.expression;
+package com.guillermomolina.lazylanguage.nodes.property;
 
 import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
@@ -67,7 +67,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(shortName = ".")
 @NodeChild("receiverNode")
 @NodeChild("nameNode")
-public abstract class LLReadPropertyNode extends LLExpressionNode {
+public abstract class LLReadOwnPropertyNode extends LLExpressionNode {
 
     static final int LIBRARY_LIMIT = 3;
 

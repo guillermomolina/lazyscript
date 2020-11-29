@@ -51,6 +51,10 @@ import com.guillermomolina.lazylanguage.NotImplementedException;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.nodes.LLRootNode;
 import com.guillermomolina.lazylanguage.nodes.LLStatementNode;
+import com.guillermomolina.lazylanguage.nodes.arithmetic.LLAddNodeGen;
+import com.guillermomolina.lazylanguage.nodes.arithmetic.LLDivNodeGen;
+import com.guillermomolina.lazylanguage.nodes.arithmetic.LLMulNodeGen;
+import com.guillermomolina.lazylanguage.nodes.arithmetic.LLSubNodeGen;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLBlockNode;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLBreakNode;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLContinueNode;
@@ -58,23 +62,9 @@ import com.guillermomolina.lazylanguage.nodes.controlflow.LLFunctionBodyNode;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLIfNode;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLReturnNode;
 import com.guillermomolina.lazylanguage.nodes.controlflow.LLWhileNode;
-import com.guillermomolina.lazylanguage.nodes.expression.LLAddNodeGen;
-import com.guillermomolina.lazylanguage.nodes.expression.LLDivNodeGen;
-import com.guillermomolina.lazylanguage.nodes.expression.LLEqualNodeGen;
 import com.guillermomolina.lazylanguage.nodes.expression.LLInvokeFunctionNode;
 import com.guillermomolina.lazylanguage.nodes.expression.LLInvokeMethodNode;
-import com.guillermomolina.lazylanguage.nodes.expression.LLLessOrEqualNodeGen;
-import com.guillermomolina.lazylanguage.nodes.expression.LLLessThanNodeGen;
-import com.guillermomolina.lazylanguage.nodes.expression.LLLogicalAndNode;
-import com.guillermomolina.lazylanguage.nodes.expression.LLLogicalNotNodeGen;
-import com.guillermomolina.lazylanguage.nodes.expression.LLLogicalOrNode;
-import com.guillermomolina.lazylanguage.nodes.expression.LLMulNodeGen;
 import com.guillermomolina.lazylanguage.nodes.expression.LLParenExpressionNode;
-import com.guillermomolina.lazylanguage.nodes.expression.LLReadPropertyNode;
-import com.guillermomolina.lazylanguage.nodes.expression.LLReadPropertyNodeGen;
-import com.guillermomolina.lazylanguage.nodes.expression.LLSubNodeGen;
-import com.guillermomolina.lazylanguage.nodes.expression.LLWritePropertyNode;
-import com.guillermomolina.lazylanguage.nodes.expression.LLWritePropertyNodeGen;
 import com.guillermomolina.lazylanguage.nodes.literals.LLBigIntegerLiteralNode;
 import com.guillermomolina.lazylanguage.nodes.literals.LLFunctionLiteralNode;
 import com.guillermomolina.lazylanguage.nodes.literals.LLLongLiteralNode;
@@ -84,6 +74,16 @@ import com.guillermomolina.lazylanguage.nodes.local.LLReadLocalVariableNode;
 import com.guillermomolina.lazylanguage.nodes.local.LLReadLocalVariableNodeGen;
 import com.guillermomolina.lazylanguage.nodes.local.LLWriteLocalVariableNode;
 import com.guillermomolina.lazylanguage.nodes.local.LLWriteLocalVariableNodeGen;
+import com.guillermomolina.lazylanguage.nodes.logic.LLEqualNodeGen;
+import com.guillermomolina.lazylanguage.nodes.logic.LLLessOrEqualNodeGen;
+import com.guillermomolina.lazylanguage.nodes.logic.LLLessThanNodeGen;
+import com.guillermomolina.lazylanguage.nodes.logic.LLLogicalAndNode;
+import com.guillermomolina.lazylanguage.nodes.logic.LLLogicalNotNodeGen;
+import com.guillermomolina.lazylanguage.nodes.logic.LLLogicalOrNode;
+import com.guillermomolina.lazylanguage.nodes.property.LLReadOwnPropertyNode;
+import com.guillermomolina.lazylanguage.nodes.property.LLReadOwnPropertyNodeGen;
+import com.guillermomolina.lazylanguage.nodes.property.LLWriteOwnPropertyNode;
+import com.guillermomolina.lazylanguage.nodes.property.LLWriteOwnPropertyNodeGen;
 import com.guillermomolina.lazylanguage.nodes.util.LLUnboxNodeGen;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -214,7 +214,6 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         assert lexicalScope == null;
 
         /* State while parsing a function. */
-        int functionStartPos = ctx.start.getStartIndex();
         pushScope(false);
 
         final LLReadArgumentNode readArg0 = new LLReadArgumentNode(0);
@@ -605,7 +604,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
     }
 
     /**
-     * Returns an {@link LLReadPropertyNode} for the given parameters.
+     * Returns an {@link LLReadOwnPropertyNode} for the given parameters.
      *
      * @param receiverNode The receiver of the property access
      * @param nameNode     The name of the property being accessed
@@ -618,7 +617,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
             return null;
         }
 
-        final LLExpressionNode result = LLReadPropertyNodeGen.create(receiverNode, nameNode);
+        final LLExpressionNode result = LLReadOwnPropertyNodeGen.create(receiverNode, nameNode);
         setSourceFromContext(result, ctx);
         result.addExpressionTag();
 
@@ -656,7 +655,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
     }
 
     /**
-     * Returns an {@link LLWritePropertyNode} for the given parameters.
+     * Returns an {@link LLWriteOwnPropertyNode} for the given parameters.
      *
      * @param receiverNode The receiver object of the property assignment
      * @param nameNode     The name of the property being assigned
@@ -670,7 +669,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
             return null;
         }
 
-        final LLExpressionNode result = LLWritePropertyNodeGen.create(receiverNode, nameNode, valueNode);
+        final LLExpressionNode result = LLWriteOwnPropertyNodeGen.create(receiverNode, nameNode, valueNode);
 
         setSourceFromContext(result, ctx);
         result.addExpressionTag();
@@ -724,7 +723,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
 
     /**
      * Returns a {@link LLReadLocalVariableNode} if this read is a local variable or
-     * a {@link LLReadPropertyNode} if this read is from the object. In Lazy, there
+     * a {@link LLReadOwnPropertyNode} if this read is from the object. In Lazy, there
      * are no global names.
      *
      * @param nameNode The name of the variable/function being read
@@ -732,7 +731,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
      *         <ul>
      *         <li>A LLReadLocalVariableNode representing the local variable being
      *         read.</li>
-     *         <li>A LLReadPropertyNode representing the property being read.</li>
+     *         <li>A LLReadOwnPropertyNode representing the property being read.</li>
      *         <li>null if nameNode is null.</li>
      *         </ul>
      */
@@ -750,7 +749,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         } else {
             frameSlot = lexicalScope.locals.get(LexicalScope.THIS);
             final LLExpressionNode thisNode = LLReadLocalVariableNodeGen.create(frameSlot);
-            result = LLReadPropertyNodeGen.create(thisNode, nameNode);
+            result = LLReadOwnPropertyNodeGen.create(thisNode, nameNode);
         }
         result.addExpressionTag();
         return result;

@@ -38,8 +38,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazylanguage.nodes.expression;
+package com.guillermomolina.lazylanguage.nodes.property;
 
+import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
+import com.guillermomolina.lazylanguage.nodes.util.LLToMemberNode;
+import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -50,9 +53,6 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
-import com.guillermomolina.lazylanguage.nodes.util.LLToMemberNode;
-import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
 
 /**
  * The node for writing a property of an object. When executed, this node:
@@ -68,7 +68,7 @@ import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
 @NodeChild("receiverNode")
 @NodeChild("nameNode")
 @NodeChild("valueNode")
-public abstract class LLWritePropertyNode extends LLExpressionNode {
+public abstract class LLWriteOwnPropertyNode extends LLExpressionNode {
 
     static final int LIBRARY_LIMIT = 3;
 

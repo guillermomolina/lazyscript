@@ -38,37 +38,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazylanguage.nodes.expression;
+package com.guillermomolina.lazylanguage.nodes.arithmetic;
 
+import com.guillermomolina.lazylanguage.LLException;
+import com.guillermomolina.lazylanguage.nodes.LLBinaryNode;
+import com.guillermomolina.lazylanguage.runtime.LLBigInteger;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.dsl.Fallback;
+import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 
 /**
- * Logical conjunction node with short circuit evaluation.
+ * This class is similar to the extensively documented {@link LLAddNode}.
  */
-@NodeInfo(shortName = "&&")
-public final class LLLogicalAndNode extends LLShortCircuitNode {
+@NodeInfo(shortName = "*")
+public abstract class LLMulNode extends LLBinaryNode {
 
-    public LLLogicalAndNode(LLExpressionNode left, LLExpressionNode right) {
-        super(left, right);
+    @Specialization(rewriteOn = ArithmeticException.class)
+    protected long mul(long left, long right) {
+        return Math.multiplyExact(left, right);
     }
 
-    /**
-     * The right value does not need to be evaluated if the left value is already <code>false</code>
-     * .
-     */
-    @Override
-    protected boolean isEvaluateRight(boolean left) {
-        return left;
+    @Specialization
+    @TruffleBoundary
+    protected LLBigInteger mul(LLBigInteger left, LLBigInteger right) {
+        return new LLBigInteger(left.getValue().multiply(right.getValue()));
     }
 
-    /**
-     * Only if left and right value are true the result of the logical and is <code>true</code>. If
-     * the second parameter is not evaluated, <code>false</code> is provided.
-     */
-    @Override
-    protected boolean execute(boolean left, boolean right) {
-        return left && right;
+    @Fallback
+    protected Object typeError(Object left, Object right) {
+        throw LLException.typeError(this, left, right);
     }
 
 }
