@@ -40,14 +40,13 @@ options {
 
 module: statement* EOF;
 
-function:
-	FUNCTION IDENTIFIER LPAREN functionParameters? RPAREN block;
-
-functionParameters: IDENTIFIER ( COMMA IDENTIFIER)*;
-
 block: LCURLY (statement)* RCURLY;
 
 statement:
+	expression SEMI
+	| returnStatement SEMI;
+
+statement2:
 	function
 	| whileStatement
 	| ifStatement
@@ -87,28 +86,34 @@ term: factor ( factorOperator factor)*;
 
 factorOperator: MUL | DIV;
 
-factor: getter | assignment;
+factor: singleExpression | assignment;
 
-getter:
+singleExpression:
 	(
 		IDENTIFIER
 		| STRING_LITERAL
 		| NUMERIC_LITERAL
 		| parenExpression
-	) memberExpression?;
+		| function
+	) member?;
 
 parenExpression: LPAREN expression RPAREN;
 
-memberExpression:
+function:
+	FUNCTION? LPAREN functionParameters? RPAREN block;
+
+functionParameters: IDENTIFIER ( COMMA IDENTIFIER)*;
+
+member:
 	(
 		LPAREN parameterList? RPAREN
 		| DOT IDENTIFIER
 		| LBRACK expression RBRACK
-	) memberExpression?;
+	) member?;
 
-assignment: (IDENTIFIER | getter assignableMemberExpression) ASSIGN expression;
+assignment: (IDENTIFIER | singleExpression assignable) ASSIGN expression;
 
-assignableMemberExpression:
+assignable:
 	DOT IDENTIFIER
 	| LBRACK expression RBRACK;
 

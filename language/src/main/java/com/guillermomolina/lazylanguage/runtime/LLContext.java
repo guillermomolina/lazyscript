@@ -118,7 +118,6 @@ public final class LLContext {
     private final LLObject stringPrototype;
     private final LLObject numberPrototype;
     private final LLObject integerPrototype;
-    private final LLObject bigIntegerPrototype;
     private final LLObject realPrototype;
     private final LLObject truePrototype;
     private final LLObject falsePrototype;
@@ -142,7 +141,6 @@ public final class LLContext {
         this.falsePrototype = createObject(booleanPrototype);
         this.numberPrototype = createObject(objectPrototype);
         this.integerPrototype = createObject(numberPrototype);
-        this.bigIntegerPrototype = createObject(numberPrototype);
         this.realPrototype = createObject(numberPrototype);
         this.stringPrototype = createObject(objectPrototype);
         this.functionPrototype = createObject(objectPrototype);
@@ -225,7 +223,6 @@ public final class LLContext {
         LLObjectUtil.putProperty(topContext, "False", falsePrototype);
         LLObjectUtil.putProperty(topContext, "Number", numberPrototype);
         LLObjectUtil.putProperty(topContext, "Integer", integerPrototype);
-        LLObjectUtil.putProperty(topContext, "BigInteger", bigIntegerPrototype);
         LLObjectUtil.putProperty(topContext, "Real", realPrototype);
         LLObjectUtil.putProperty(topContext, "String", stringPrototype);
         LLObjectUtil.putProperty(topContext, "Number", numberPrototype);
@@ -305,16 +302,14 @@ public final class LLContext {
             return ((LLObject) obj).getPrototype();
         } else if (obj instanceof String) {
             return stringPrototype;
-        } else if (obj instanceof LLBigInteger) {
-            return bigIntegerPrototype;
-        } else if (interop.fitsInLong(obj)) {
+        } else if (obj instanceof LLBigInteger || interop.fitsInLong(obj)) {
             return integerPrototype;
         } else if (interop.fitsInDouble(obj)) {
             return realPrototype;
         } else if (interop.isNull(obj)) {
             return nullPrototype;
         } else if (interop.isBoolean(obj)) {
-            return obj.equals(true) ? truePrototype : falsePrototype;
+            return (boolean) obj ? truePrototype : falsePrototype;
         } else {
             throw new NotImplementedException();
         }
