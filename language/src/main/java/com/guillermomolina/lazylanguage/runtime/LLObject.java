@@ -84,7 +84,8 @@ import com.oracle.truffle.api.utilities.TriState;
 public class LLObject extends DynamicObject {
     protected static final int CACHE_LIMIT = 3;
     public static final String PROTOTYPE = "prototype";
-    public static final Shape SHAPE = Shape.newBuilder().layout(LLObject.class).addConstantProperty(LLObject.PROTOTYPE, null, 0).build();;
+    public static final Shape SHAPE = Shape.newBuilder().layout(LLObject.class)
+            .addConstantProperty(LLObject.PROTOTYPE, null, 0).build();;
 
     public LLObject() {
         super(SHAPE);
@@ -92,7 +93,7 @@ public class LLObject extends DynamicObject {
 
     public Object getPrototype() {
         Object prototype = LLObjectUtil.getProperty(this, PROTOTYPE);
-        if(prototype == LLNull.INSTANCE) {
+        if (prototype == LLNull.INSTANCE) {
             return null;
         }
         return prototype;
@@ -106,12 +107,26 @@ public class LLObject extends DynamicObject {
     Object getFunction(String name, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
             throws UnknownIdentifierException {
         LLObject object = this;
-        while(object != null) {
+        while (object != null) {
             Object result = objectLibrary.getOrDefault(object, name, null);
             if (result instanceof LLFunction) {
                 return result;
             }
-            object = (LLObject)object.getPrototype();
+            object = (LLObject) object.getPrototype();
+        }
+        throw UnknownIdentifierException.create(name);
+    }
+
+    @TruffleBoundary
+    Object getProperty(String name, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
+            throws UnknownIdentifierException {
+        LLObject object = this;
+        while (object != null) {
+            Object result = objectLibrary.getOrDefault(object, name, null);
+            if (result != null) {
+                return result;
+            }
+            object = (LLObject) object.getPrototype();
         }
         throw UnknownIdentifierException.create(name);
     }
@@ -233,16 +248,27 @@ public class LLObject extends DynamicObject {
      * {@link DynamicObjectLibrary} provides the polymorphic inline cache for
      * reading properties.
      */
+    // @ExportMessage
+    Object readOwnMember(String name, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
+            throws UnknownIdentifierException {
+        Object result = objectLibrary.getOrDefault(this, name, null);
+        if (result == null) {
+            /* Property does not exist. */
+            throw UnknownIdentifierException.create(name);
+        }
+        return result;
+    }
+
     @ExportMessage
     Object readMember(String name, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
             throws UnknownIdentifierException {
         LLObject object = this;
-        while(object != null) {
+        while (object != null) {
             Object result = objectLibrary.getOrDefault(object, name, null);
             if (result != null) {
                 return result;
             }
-            object = (LLObject)object.getPrototype();
+            object = (LLObject) object.getPrototype();
         }
         throw UnknownIdentifierException.create(name);
     }

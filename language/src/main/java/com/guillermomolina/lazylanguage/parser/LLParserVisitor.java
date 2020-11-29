@@ -537,6 +537,8 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
             LLExpressionNode functionNode = createRead(ctx, functionName);
             result = createCallFunction(ctx, functionNode, parameters);
         } else {
+            //LLExpressionNode functionNode = createReadProperty(ctx, r, functionName);
+            //result = createCallFunction(ctx, r, parameters);
             result = createCallMethod(ctx, functionName, parameters);
         }
         if (ctx.member() != null) {
