@@ -52,11 +52,8 @@ import com.guillermomolina.lazylanguage.nodes.LLEvalRootNode;
 import com.guillermomolina.lazylanguage.nodes.local.LLLexicalScope;
 import com.guillermomolina.lazylanguage.parser.LLParserVisitor;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
-import com.guillermomolina.lazylanguage.runtime.LLFunction;
-import com.guillermomolina.lazylanguage.runtime.LLObject;
 import com.guillermomolina.lazylanguage.runtime.LazyLanguageView;
 import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -64,7 +61,6 @@ import com.oracle.truffle.api.TruffleLanguage.ContextPolicy;
 import com.oracle.truffle.api.debug.DebuggerTags;
 import com.oracle.truffle.api.dsl.NodeFactory;
 import com.oracle.truffle.api.frame.Frame;
-import com.oracle.truffle.api.instrumentation.AllocationReporter;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -163,29 +159,6 @@ public final class LazyLanguage extends TruffleLanguage<LLContext> {
     @Override
     protected Iterable<Scope> findTopScopes(LLContext context) {
         return context.getTopScopes();
-    }
-
-    public LLObject createObject() {
-        return createObject(getCurrentContext().getAllocationReporter());
-    }
-
-    /**
-     * Allocate an empty object. All new objects initially have no properties.
-     * Properties are added when they are first stored, i.e., the store triggers a
-     * shape change of the object.
-     */
-    public LLObject createObject(AllocationReporter reporter) {
-        reporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        LLObject object = new LLObject();
-        reporter.onReturnValue(object, 0, AllocationReporter.SIZE_UNKNOWN);
-        return object;
-    }
-
-    public LLFunction createFunction(AllocationReporter reporter, String name, RootCallTarget callTarget) {
-        reporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        LLFunction object = new LLFunction(this, name, callTarget);
-        reporter.onReturnValue(object, 0, AllocationReporter.SIZE_UNKNOWN);
-        return object;
     }
 
     public static LLContext getCurrentContext() {

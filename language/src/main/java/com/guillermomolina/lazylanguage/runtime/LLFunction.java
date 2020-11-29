@@ -82,7 +82,7 @@ public final class LLFunction extends LLObject {
      */
     private final CyclicAssumption callTargetStable;
 
-    public LLFunction(LazyLanguage language, String name, RootCallTarget callTarget) {
+    public LLFunction(String name, RootCallTarget callTarget) {
         this.name = name;
         this.callTarget = callTarget;
         this.callTargetStable = new CyclicAssumption(name);

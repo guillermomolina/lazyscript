@@ -72,6 +72,8 @@ import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.nodes.LLRootNode;
 import com.guillermomolina.lazylanguage.nodes.local.LLReadArgumentNode;
 import com.oracle.truffle.api.CallTarget;
+import com.oracle.truffle.api.CompilerAsserts;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Scope;
@@ -105,8 +107,9 @@ public final class LLContext {
     private final BufferedReader input;
     private final PrintWriter output;
     private final LazyLanguage language;
-    private final AllocationReporter allocationReporter;
+    @CompilationFinal private AllocationReporter allocationReporter;
     private final Iterable<Scope> topScopes; // Cache the top scopes
+
 
     private final LLObject objectPrototype;
     private final LLObject nullPrototype;
@@ -122,11 +125,14 @@ public final class LLContext {
     private final LLObject topContext;
 
     public LLContext(LazyLanguage language, TruffleLanguage.Env env) {
+        if (env != null) { // env could still be null
+            setAllocationReporter(env);
+        }
+        this.language = language;
         this.env = env;
+
         this.input = new BufferedReader(new InputStreamReader(env.in()));
         this.output = new PrintWriter(env.out(), true);
-        this.language = language;
-        this.allocationReporter = env.lookup(AllocationReporter.class);
         this.topScopes = Collections.singleton(Scope.newBuilder("global", new FunctionsObject()).build());
 
         this.objectPrototype = createObject(LLNull.INSTANCE);
@@ -144,15 +150,29 @@ public final class LLContext {
         installBuiltins();
     }
 
+    void setAllocationReporter(Env env) {
+        CompilerAsserts.neverPartOfCompilation();
+        this.allocationReporter = env.lookup(AllocationReporter.class);
+    }
+
+    /**
+     * Allocate an empty object. All new objects initially have no properties.
+     * Properties are added when they are first stored, i.e., the store triggers a
+     * shape change of the object.
+     */
     public LLObject createObject(Object prototype) {
-        LLObject object = language.createObject(allocationReporter);
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        LLObject object = new LLObject();
         object.setPrototype(prototype);
+        allocationReporter.onReturnValue(object, 0, AllocationReporter.SIZE_UNKNOWN);
         return object;
     }
 
     public LLFunction createFunction(String name, RootCallTarget callTarget) {
-        LLFunction function = language.createFunction(allocationReporter, name, callTarget);
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        LLFunction function = new LLFunction(name, callTarget);
         function.setPrototype(functionPrototype);
+        allocationReporter.onReturnValue(function, 0, AllocationReporter.SIZE_UNKNOWN);
         return function;
     }
 
