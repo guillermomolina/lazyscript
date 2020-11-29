@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazylanguage.nodes.expression;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.nodes.util.LLToMemberNode;
 import com.guillermomolina.lazylanguage.runtime.LLObject;
@@ -97,7 +97,7 @@ public abstract class LLReadPropertyNode extends LLExpressionNode {
     protected Object readNonObject(Object receiver, Object name, @CachedLibrary("receiver") InteropLibrary objects,
             @Cached LLToMemberNode asMember) {
         try {
-            Object prototype = lookupContextReference(LLLanguage.class).get().getPrototype(receiver);
+            Object prototype = lookupContextReference(LazyLanguage.class).get().getPrototype(receiver);
             if(name instanceof String && ((String)name).compareTo(LLObject.PROTOTYPE) == 0) {
                 return prototype;
             }

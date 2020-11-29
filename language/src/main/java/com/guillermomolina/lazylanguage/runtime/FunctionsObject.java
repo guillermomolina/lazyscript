@@ -43,7 +43,7 @@ package com.guillermomolina.lazylanguage.runtime;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
@@ -70,7 +70,7 @@ final class FunctionsObject implements TruffleObject {
 
     @ExportMessage
     Class<? extends TruffleLanguage<LLContext>> getLanguage() {
-        return LLLanguage.class;
+        return LazyLanguage.class;
     }
 
     @ExportMessage

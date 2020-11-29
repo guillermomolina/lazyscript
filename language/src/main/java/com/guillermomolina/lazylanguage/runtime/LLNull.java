@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazylanguage.runtime;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.TruffleObject;
@@ -88,7 +88,7 @@ public final class LLNull implements TruffleObject {
 
     @ExportMessage
     Class<? extends TruffleLanguage<LLContext>> getLanguage() {
-        return LLLanguage.class;
+        return LazyLanguage.class;
     }
 
     /**

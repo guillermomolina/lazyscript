@@ -64,7 +64,7 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.guillermomolina.lazylanguage.builtins.LLBuiltinNode;
 import com.guillermomolina.lazylanguage.test.LLTestRunner.TestCase;
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -300,7 +300,7 @@ public class LLTestRunner extends ParentRunner<TestCase> {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             for (NodeFactory<? extends LLBuiltinNode> builtin : builtins) {
-                LLLanguage.installBuiltin(builtin);
+                LazyLanguage.installBuiltin(builtin);
             }
 
             Context.Builder builder = Context.newBuilder().allowExperimentalOptions(true).in(new ByteArrayInputStream(testCase.testInput.getBytes("UTF-8"))).out(out);
@@ -327,7 +327,7 @@ public class LLTestRunner extends ParentRunner<TestCase> {
     private static void run(Context context, Path path, PrintWriter out) throws IOException {
         try {
             /* Parse the Lazy source file. */
-            Source source = Source.newBuilder(LLLanguage.ID, path.toFile()).interactive(true).build();
+            Source source = Source.newBuilder(LazyLanguage.ID, path.toFile()).interactive(true).build();
 
             /* Call the main entry point, without any arguments. */
             context.eval(source);

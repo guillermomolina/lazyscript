@@ -42,7 +42,7 @@ package com.guillermomolina.lazylanguage.runtime;
 
 import java.math.BigInteger;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -212,7 +212,7 @@ public final class LLBigInteger implements TruffleObject, Comparable<LLBigIntege
 
     @ExportMessage
     Class<? extends TruffleLanguage<LLContext>> getLanguage() {
-        return LLLanguage.class;
+        return LazyLanguage.class;
     }
 
     @ExportMessage

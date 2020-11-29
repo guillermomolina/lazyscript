@@ -41,7 +41,7 @@
 package com.guillermomolina.lazylanguage.builtins;
 
 import com.guillermomolina.lazylanguage.LLException;
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
 import com.guillermomolina.lazylanguage.runtime.LLNull;
 import com.oracle.truffle.api.dsl.CachedContext;
@@ -61,7 +61,7 @@ public abstract class LLImportBuiltin extends LLBuiltinNode {
     @Specialization
     public Object importSymbol(String symbol,
                     @CachedLibrary(limit = "3") InteropLibrary arrays,
-                    @CachedContext(LLLanguage.class) LLContext context) {
+                    @CachedContext(LazyLanguage.class) LLContext context) {
         try {
             return arrays.readMember(context.getPolyglotBindings(), symbol);
         } catch (UnsupportedMessageException | UnknownIdentifierException e) {

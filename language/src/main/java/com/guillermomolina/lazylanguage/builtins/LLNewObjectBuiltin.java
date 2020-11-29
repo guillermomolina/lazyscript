@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazylanguage.builtins;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
 import com.guillermomolina.lazylanguage.runtime.LLNull;
 import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
@@ -65,8 +65,8 @@ public abstract class LLNewObjectBuiltin extends LLBuiltinNode {
 
     @Specialization
     public Object newObject(LLNull o,
-                    @CachedLanguage LLLanguage language,
-                    @CachedContext(LLLanguage.class) ContextReference<LLContext> contextRef,
+                    @CachedLanguage LazyLanguage language,
+                    @CachedContext(LazyLanguage.class) ContextReference<LLContext> contextRef,
                     @Cached("contextRef.get().getAllocationReporter()") AllocationReporter reporter) {
         return language.createObject(reporter);
     }

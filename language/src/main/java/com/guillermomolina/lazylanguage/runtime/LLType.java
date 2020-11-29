@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazylanguage.runtime;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -68,7 +68,7 @@ import com.oracle.truffle.api.library.ExportMessage;
  * In order to assign types to guest language values, Lazy values implement
  * {@link InteropLibrary#getMetaObject(Object)}. The interop contracts for primitive values cannot
  * be overriden, so in order to assign meta-objects to primitive values, the primitive values are
- * assigned using language views. See {@link LLLanguage#getLanguageView}.
+ * assigned using language views. See {@link LazyLanguage#getLanguageView}.
  */
 @ExportLibrary(InteropLibrary.class)
 public final class LLType implements TruffleObject {
@@ -121,7 +121,7 @@ public final class LLType implements TruffleObject {
 
     @ExportMessage
     Class<? extends TruffleLanguage<LLContext>> getLanguage() {
-        return LLLanguage.class;
+        return LazyLanguage.class;
     }
 
     /*

@@ -40,15 +40,15 @@
  */
 package com.guillermomolina.lazylanguage.builtins;
 
+import com.guillermomolina.lazylanguage.LazyLanguage;
+import com.guillermomolina.lazylanguage.runtime.LLContext;
+import com.guillermomolina.lazylanguage.runtime.LazyLanguageView;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.LLLanguage;
-import com.guillermomolina.lazylanguage.runtime.LLContext;
-import com.guillermomolina.lazylanguage.runtime.LLLanguageView;
 
 /**
  * Builtin function to write a value to the {@link LLContext#getOutput() standard output}. The
@@ -66,8 +66,8 @@ public abstract class LLPrintlnBuiltin extends LLBuiltinNode {
     @TruffleBoundary
     public Object println(Object value,
                     @CachedLibrary(limit = "3") InteropLibrary interop,
-                    @CachedContext(LLLanguage.class) LLContext context) {
-        context.getOutput().println(interop.toDisplayString(LLLanguageView.forValue(value)));
+                    @CachedContext(LazyLanguage.class) LLContext context) {
+        context.getOutput().println(interop.toDisplayString(LazyLanguageView.forValue(value)));
         return value;
     }
 

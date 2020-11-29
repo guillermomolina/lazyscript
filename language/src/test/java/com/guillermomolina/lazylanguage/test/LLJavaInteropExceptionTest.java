@@ -53,15 +53,15 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Supplier;
 
+import com.guillermomolina.lazylanguage.LazyLanguage;
+
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotException;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.junit.Assert;
 import org.junit.Test;
-
-import com.guillermomolina.lazylanguage.LLLanguage;
-import org.graalvm.polyglot.HostAccess;
 
 public class LLJavaInteropExceptionTest {
     public static class Validator {
@@ -75,9 +75,9 @@ public class LLJavaInteropExceptionTest {
             String sourceText = "function test(validator) {\n" +
                             "  return validator.validateException();\n" +
                             "}";
-            try (Context context = Context.newBuilder(LLLanguage.ID).build()) {
-                context.eval(Source.newBuilder(LLLanguage.ID, sourceText, "Test").build());
-                Value test = context.getBindings(LLLanguage.ID).getMember("test");
+            try (Context context = Context.newBuilder(LazyLanguage.ID).build()) {
+                context.eval(Source.newBuilder(LazyLanguage.ID, sourceText, "Test").build());
+                Value test = context.getBindings(LazyLanguage.ID).getMember("test");
                 test.execute(Validator.this);
             }
         }
@@ -98,9 +98,9 @@ public class LLJavaInteropExceptionTest {
         String sourceText = "function test(validator) {\n" +
                         "  return validator.validateException();\n" +
                         "}";
-        try (Context context = Context.newBuilder(LLLanguage.ID).build()) {
-            context.eval(Source.newBuilder(LLLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LLLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LazyLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LazyLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LazyLanguage.ID).getMember("test");
             try {
                 test.execute(new Validator());
                 fail("expected a PolyglotException but did not throw");
@@ -117,9 +117,9 @@ public class LLJavaInteropExceptionTest {
         String sourceText = "function test(validator) {\n" +
                         "  return validator.validateNested();\n" +
                         "}";
-        try (Context context = Context.newBuilder(LLLanguage.ID).build()) {
-            context.eval(Source.newBuilder(LLLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LLLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LazyLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LazyLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LazyLanguage.ID).getMember("test");
             try {
                 test.execute(new Validator());
                 fail("expected a PolyglotException but did not throw");
@@ -146,9 +146,9 @@ public class LLJavaInteropExceptionTest {
                         "function test(validator) {\n" +
                         "  return validator." + javaMethod + "(supplier);\n" +
                         "}";
-        try (Context context = Context.newBuilder(LLLanguage.ID).build()) {
-            context.eval(Source.newBuilder(LLLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LLLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LazyLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LazyLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LazyLanguage.ID).getMember("test");
             try {
                 test.execute(new Validator());
                 fail("expected a PolyglotException but did not throw");
@@ -176,9 +176,9 @@ public class LLJavaInteropExceptionTest {
                         "function test(validator) {\n" +
                         "  return validator." + javaMethod + "(new());\n" +
                         "}";
-        try (Context context = Context.newBuilder(LLLanguage.ID).build()) {
-            context.eval(Source.newBuilder(LLLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LLLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LazyLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LazyLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LazyLanguage.ID).getMember("test");
             test.execute(new Validator());
         }
     }

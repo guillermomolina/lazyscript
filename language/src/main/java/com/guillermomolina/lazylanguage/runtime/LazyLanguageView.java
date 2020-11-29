@@ -42,7 +42,7 @@ package com.guillermomolina.lazylanguage.runtime;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -64,11 +64,11 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
  * There is more information in {@link TruffleLanguage#getLanguageView(Object, Object)}
  */
 @ExportLibrary(value = InteropLibrary.class, delegateTo = "delegate")
-public final class LLLanguageView implements TruffleObject {
+public final class LazyLanguageView implements TruffleObject {
 
     final Object delegate;
 
-    LLLanguageView(Object delegate) {
+    LazyLanguageView(Object delegate) {
         this.delegate = delegate;
     }
 
@@ -83,7 +83,7 @@ public final class LLLanguageView implements TruffleObject {
      */
     @ExportMessage
     Class<? extends TruffleLanguage<LLContext>> getLanguage() {
-        return LLLanguage.class;
+        return LazyLanguage.class;
     }
 
     @ExportMessage
@@ -96,7 +96,7 @@ public final class LLLanguageView implements TruffleObject {
          *
          * Since language views are only created for primitive values and values of other languages,
          * values from lazy language itself directly implement has/getMetaObject. For example
-         * LLFunction is already associated with the LLLanguage and therefore the language view will
+         * LLFunction is already associated with the LazyLanguage and therefore the language view will
          * not be used.
          */
         for (LLType type : LLType.PRECEDENCE) {
@@ -160,7 +160,7 @@ public final class LLLanguageView implements TruffleObject {
 
     public static Object create(Object value) {
         assert isPrimitiveOrFromOtherLanguage(value);
-        return new LLLanguageView(value);
+        return new LazyLanguageView(value);
     }
 
     /*
@@ -169,7 +169,7 @@ public final class LLLanguageView implements TruffleObject {
     private static boolean isPrimitiveOrFromOtherLanguage(Object value) {
         InteropLibrary interop = InteropLibrary.getFactory().getUncached(value);
         try {
-            return !interop.hasLanguage(value) || interop.getLanguage(value) != LLLanguage.class;
+            return !interop.hasLanguage(value) || interop.getLanguage(value) != LazyLanguage.class;
         } catch (UnsupportedMessageException e) {
             throw shouldNotReachHere(e);
         }
@@ -187,7 +187,7 @@ public final class LLLanguageView implements TruffleObject {
         }
         InteropLibrary lib = InteropLibrary.getFactory().getUncached(value);
         try {
-            if (lib.hasLanguage(value) && lib.getLanguage(value) == LLLanguage.class) {
+            if (lib.hasLanguage(value) && lib.getLanguage(value) == LazyLanguage.class) {
                 return value;
             } else {
                 return create(value);

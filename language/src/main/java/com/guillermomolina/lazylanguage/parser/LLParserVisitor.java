@@ -46,7 +46,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.guillermomolina.lazylanguage.NotImplementedException;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.nodes.LLRootNode;
@@ -167,9 +167,9 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
 
     /* State while parsing a block. */
     private LexicalScope lexicalScope;
-    private final LLLanguage language;
+    private final LazyLanguage language;
 
-    public LLParserVisitor(LLLanguage language, Source source) {
+    public LLParserVisitor(LazyLanguage language, Source source) {
         this.language = language;
         this.source = source;
         this.lexer = new LazyLanguageLexer(CharStreams.fromString(source.getCharacters().toString()));
@@ -553,8 +553,8 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
             LLExpressionNode r, LLExpressionNode functionReceiver, LLExpressionNode functionName) {
         LLExpressionNode receiver;
         if (functionReceiver == null) {
-            throw new NotImplementedException();
-            // receiver = new LLReadArgumentNode(0);
+            FrameSlot frameSlot = lexicalScope.locals.get(LexicalScope.THIS);
+            receiver = LLReadLocalVariableNodeGen.create(frameSlot);
         } else {
             receiver = functionReceiver;
         }

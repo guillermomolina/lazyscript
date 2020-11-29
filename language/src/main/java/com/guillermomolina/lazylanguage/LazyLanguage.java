@@ -53,8 +53,8 @@ import com.guillermomolina.lazylanguage.nodes.local.LLLexicalScope;
 import com.guillermomolina.lazylanguage.parser.LLParserVisitor;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
 import com.guillermomolina.lazylanguage.runtime.LLFunction;
-import com.guillermomolina.lazylanguage.runtime.LLLanguageView;
 import com.guillermomolina.lazylanguage.runtime.LLObject;
+import com.guillermomolina.lazylanguage.runtime.LazyLanguageView;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Scope;
@@ -70,24 +70,21 @@ import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.Source;
 
-@TruffleLanguage.Registration(id = LLLanguage.ID, name = "Lazy", defaultMimeType = LLLanguage.MIME_TYPE, characterMimeTypes = LLLanguage.MIME_TYPE, contextPolicy = ContextPolicy.SHARED, fileTypeDetectors = LLFileDetector.class)
+@TruffleLanguage.Registration(id = LazyLanguage.ID, name = LazyLanguage.NAME, defaultMimeType = LazyLanguage.MIME_TYPE, characterMimeTypes = LazyLanguage.MIME_TYPE, contextPolicy = ContextPolicy.SHARED, fileTypeDetectors = LLFileDetector.class)
 @ProvidedTags({ StandardTags.CallTag.class, StandardTags.StatementTag.class, StandardTags.RootTag.class,
         StandardTags.RootBodyTag.class, StandardTags.ExpressionTag.class, DebuggerTags.AlwaysHalt.class,
         StandardTags.ReadVariableTag.class, StandardTags.WriteVariableTag.class })
-public final class LLLanguage extends TruffleLanguage<LLContext> {
+public final class LazyLanguage extends TruffleLanguage<LLContext> {
     public static final AtomicInteger counter = new AtomicInteger();
 
     public static final String ID = "lazy";
+    public static final String NAME = "Lazy";
     public static final String MIME_TYPE = "application/x-lazy";
 
-    private final Shape rootShape;
-
-    public LLLanguage() {
+    public LazyLanguage() {
         counter.incrementAndGet();
-        this.rootShape = Shape.newBuilder().layout(LLObject.class).addConstantProperty(LLObject.PROTOTYPE, null, 0).build();
     }
 
     @Override
@@ -111,7 +108,7 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
 
     @Override
     protected Object getLanguageView(LLContext context, Object value) {
-        return LLLanguageView.create(value);
+        return LazyLanguageView.create(value);
     }
 
     @Override
@@ -168,10 +165,6 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
         return context.getTopScopes();
     }
 
-    public Shape getRootShape() {
-        return rootShape;
-    }
-
     public LLObject createObject() {
         return createObject(getCurrentContext().getAllocationReporter());
     }
@@ -183,20 +176,20 @@ public final class LLLanguage extends TruffleLanguage<LLContext> {
      */
     public LLObject createObject(AllocationReporter reporter) {
         reporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        LLObject object = new LLObject(rootShape);
+        LLObject object = new LLObject();
         reporter.onReturnValue(object, 0, AllocationReporter.SIZE_UNKNOWN);
         return object;
     }
 
     public LLFunction createFunction(AllocationReporter reporter, String name, RootCallTarget callTarget) {
         reporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        LLFunction object = new LLFunction(rootShape, this, name, callTarget);
+        LLFunction object = new LLFunction(this, name, callTarget);
         reporter.onReturnValue(object, 0, AllocationReporter.SIZE_UNKNOWN);
         return object;
     }
 
     public static LLContext getCurrentContext() {
-        return getCurrentContext(LLLanguage.class);
+        return getCurrentContext(LazyLanguage.class);
     }
 
     private static final List<NodeFactory<? extends LLBuiltinNode>> EXTERNAL_BUILTINS = Collections

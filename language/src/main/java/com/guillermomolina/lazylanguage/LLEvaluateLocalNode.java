@@ -50,7 +50,7 @@ final class LLEvaluateLocalNode extends RootNode {
     private final String variable;
     private final MaterializedFrame inspectFrame;
 
-    LLEvaluateLocalNode(LLLanguage language, String variableName, MaterializedFrame frame) {
+    LLEvaluateLocalNode(LazyLanguage language, String variableName, MaterializedFrame frame) {
         super(language);
         this.variable = variableName;
         this.inspectFrame = frame;

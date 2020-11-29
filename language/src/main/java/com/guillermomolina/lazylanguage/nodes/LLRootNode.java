@@ -40,14 +40,14 @@
  */
 package com.guillermomolina.lazylanguage.nodes;
 
+import com.guillermomolina.lazylanguage.LazyLanguage;
+import com.guillermomolina.lazylanguage.builtins.LLBuiltinNode;
+import com.guillermomolina.lazylanguage.nodes.controlflow.LLFunctionBodyNode;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
-import com.guillermomolina.lazylanguage.LLLanguage;
-import com.guillermomolina.lazylanguage.builtins.LLBuiltinNode;
-import com.guillermomolina.lazylanguage.nodes.controlflow.LLFunctionBodyNode;
 
 /**
  * The root of all Lazy execution trees. It is a Truffle requirement that the tree root extends the
@@ -67,7 +67,7 @@ public class LLRootNode extends RootNode {
 
     private final SourceSection sourceSection;
 
-    public LLRootNode(LLLanguage language, FrameDescriptor frameDescriptor, LLExpressionNode bodyNode, SourceSection sourceSection, String name) {
+    public LLRootNode(LazyLanguage language, FrameDescriptor frameDescriptor, LLExpressionNode bodyNode, SourceSection sourceSection, String name) {
         super(language, frameDescriptor);
         this.bodyNode = bodyNode;
         this.name = name;
@@ -81,7 +81,7 @@ public class LLRootNode extends RootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        assert lookupContextReference(LLLanguage.class).get() != null;
+        assert lookupContextReference(LazyLanguage.class).get() != null;
         return bodyNode.executeGeneric(frame);
     }
 

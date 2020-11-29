@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazylanguage.runtime;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -84,17 +84,36 @@ import com.oracle.truffle.api.utilities.TriState;
 public class LLObject extends DynamicObject {
     protected static final int CACHE_LIMIT = 3;
     public static final String PROTOTYPE = "prototype";
+    public static final Shape SHAPE = Shape.newBuilder().layout(LLObject.class).addConstantProperty(LLObject.PROTOTYPE, null, 0).build();;
 
-    public LLObject(Shape shape) {
-        super(shape);
+    public LLObject() {
+        super(SHAPE);
     }
 
     public Object getPrototype() {
-        return LLObjectUtil.getProperty(this, PROTOTYPE);
+        Object prototype = LLObjectUtil.getProperty(this, PROTOTYPE);
+        if(prototype == LLNull.INSTANCE) {
+            return null;
+        }
+        return prototype;
     }
 
     public void setPrototype(Object prototype) {
         LLObjectUtil.putProperty(this, PROTOTYPE, prototype);
+    }
+
+    @TruffleBoundary
+    Object getFunction(String name, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
+            throws UnknownIdentifierException {
+        LLObject object = this;
+        while(object != null) {
+            Object result = objectLibrary.getOrDefault(object, name, null);
+            if (result instanceof LLFunction) {
+                return result;
+            }
+            object = (LLObject)object.getPrototype();
+        }
+        throw UnknownIdentifierException.create(name);
     }
 
     @ExportMessage
@@ -104,7 +123,7 @@ public class LLObject extends DynamicObject {
 
     @ExportMessage
     Class<? extends TruffleLanguage<LLContext>> getLanguage() {
-        return LLLanguage.class;
+        return LazyLanguage.class;
     }
 
     @ExportMessage

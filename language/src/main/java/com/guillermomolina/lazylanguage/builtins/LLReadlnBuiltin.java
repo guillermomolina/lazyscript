@@ -43,13 +43,13 @@ package com.guillermomolina.lazylanguage.builtins;
 import java.io.BufferedReader;
 import java.io.IOException;
 
+import com.guillermomolina.lazylanguage.LLException;
+import com.guillermomolina.lazylanguage.LazyLanguage;
+import com.guillermomolina.lazylanguage.runtime.LLContext;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazylanguage.LLException;
-import com.guillermomolina.lazylanguage.LLLanguage;
-import com.guillermomolina.lazylanguage.runtime.LLContext;
 
 /**
  * Builtin function that reads a String from the {@link LLContext#getInput() standard input}.
@@ -58,7 +58,7 @@ import com.guillermomolina.lazylanguage.runtime.LLContext;
 public abstract class LLReadlnBuiltin extends LLBuiltinNode {
 
     @Specialization
-    public String readln(@CachedContext(LLLanguage.class) LLContext context) {
+    public String readln(@CachedContext(LazyLanguage.class) LLContext context) {
         String result = doRead(context.getInput());
         if (result == null) {
             /*

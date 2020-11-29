@@ -40,11 +40,11 @@
  */
 package com.guillermomolina.lazylanguage.nodes;
 
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.RootNode;
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.guillermomolina.lazylanguage.runtime.LLFunction;
 import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.RootNode;
 
 /**
  * The initial {@link RootNode} of {@link LLFunction functions} when they are created, i.e., when
@@ -52,7 +52,7 @@ import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
  * {@link LLUndefinedNameException#undefinedFunction exception}.
  */
 public class LLUndefinedFunctionRootNode extends LLRootNode {
-    public LLUndefinedFunctionRootNode(LLLanguage language, String name) {
+    public LLUndefinedFunctionRootNode(LazyLanguage language, String name) {
         super(language, null, null, null, name);
     }
 

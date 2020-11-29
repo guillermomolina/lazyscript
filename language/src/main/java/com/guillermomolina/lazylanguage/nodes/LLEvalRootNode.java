@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazylanguage.nodes;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
 import com.guillermomolina.lazylanguage.runtime.LLNull;
 import com.oracle.truffle.api.RootCallTarget;
@@ -63,7 +63,7 @@ public final class LLEvalRootNode extends RootNode {
 
     @Child private DirectCallNode mainCallNode;
 
-    public LLEvalRootNode(LLLanguage language, RootCallTarget rootFunction) {
+    public LLEvalRootNode(LazyLanguage language, RootCallTarget rootFunction) {
         super(language);
         this.mainCallNode = rootFunction != null ? DirectCallNode.create(rootFunction) : null;
     }
@@ -97,7 +97,7 @@ public final class LLEvalRootNode extends RootNode {
             /* Conversion of arguments to types understood by Lazy. */
             Object[] frameArguments = frame.getArguments();
             Object[] arguments = new Object[frameArguments.length + 1];
-            arguments[0] = lookupContextReference(LLLanguage.class).get().getTopContext();
+            arguments[0] = lookupContextReference(LazyLanguage.class).get().getTopContext();
             for (int i = 0; i < frameArguments.length; i++) {
                 arguments[i + 1] = LLContext.fromForeignValue(frameArguments[i]);
             }

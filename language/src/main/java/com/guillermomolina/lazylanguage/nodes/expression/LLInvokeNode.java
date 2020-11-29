@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazylanguage.nodes.expression;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.guillermomolina.lazylanguage.nodes.LLExpressionNode;
 import com.guillermomolina.lazylanguage.runtime.LLFunction;
 import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
@@ -50,15 +50,17 @@ import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
- * The node for function invocation in Lazy. Since Lazy has first class functions, the {@link LLFunction
- * target function} can be computed by an arbitrary expression. This node is responsible for
- * evaluating this expression, as well as evaluating the {@link #argumentNodes arguments}. The
+ * The node for function invocation in Lazy. Since Lazy has first class
+ * functions, the {@link LLFunction target function} can be computed by an
+ * arbitrary expression. This node is responsible for evaluating this
+ * expression, as well as evaluating the {@link #argumentNodes arguments}. The
  * actual invocation is delegated to a {@link InteropLibrary} instance.
  *
  * @see InteropLibrary#execute(Object, Object...)
@@ -66,9 +68,12 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(shortName = "invoke")
 public final class LLInvokeNode extends LLExpressionNode {
 
-    @Child private LLExpressionNode methodNameNode;
-    @Children private final LLExpressionNode[] argumentNodes;
-    @Child private InteropLibrary library;
+    @Child
+    private LLExpressionNode methodNameNode;
+    @Children
+    private final LLExpressionNode[] argumentNodes;
+    @Child
+    private InteropLibrary library;
 
     public LLInvokeNode(LLExpressionNode methodNameNode, LLExpressionNode[] argumentNodes) {
         this.methodNameNode = methodNameNode;
@@ -80,10 +85,10 @@ public final class LLInvokeNode extends LLExpressionNode {
     @Override
     public Object executeGeneric(VirtualFrame frame) {
         /*
-         * The number of arguments is constant for one invoke node. During compilation, the loop is
-         * unrolled and the execute methods of all arguments are inlined. This is triggered by the
-         * ExplodeLoop annotation on the method. The compiler assertion below illustrates that the
-         * array length is really constant.
+         * The number of arguments is constant for one invoke node. During compilation,
+         * the loop is unrolled and the execute methods of all arguments are inlined.
+         * This is triggered by the ExplodeLoop annotation on the method. The compiler
+         * assertion below illustrates that the array length is really constant.
          */
         CompilerAsserts.compilationConstant(argumentNodes.length);
 
@@ -92,12 +97,13 @@ public final class LLInvokeNode extends LLExpressionNode {
             argumentValues[i] = argumentNodes[i].executeGeneric(frame);
         }
 
-        String methodName = (String)methodNameNode.executeGeneric(frame);
-        Object function = lookupContextReference(LLLanguage.class).get().getFunction(argumentValues[0], methodName);
+        String methodName = (String) methodNameNode.executeGeneric(frame);
 
         try {
+            Object function = lookupContextReference(LazyLanguage.class).get().getFunction(argumentValues[0], methodName);
             return library.execute(function, argumentValues);
-        } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
+        } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException
+                | UnknownIdentifierException e) {
             /* Execute was not successful. */
             throw LLUndefinedNameException.undefinedFunction(this, methodName);
         }

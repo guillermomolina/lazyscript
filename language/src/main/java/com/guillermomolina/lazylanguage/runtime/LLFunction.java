@@ -42,7 +42,7 @@ package com.guillermomolina.lazylanguage.runtime;
 
 import java.util.logging.Level;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -58,7 +58,6 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.DirectCallNode;
 import com.oracle.truffle.api.nodes.IndirectCallNode;
-import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.api.utilities.CyclicAssumption;
 import com.oracle.truffle.api.utilities.TriState;
@@ -68,7 +67,7 @@ public final class LLFunction extends LLObject {
 
     public static final int INLINE_CACHE_SIZE = 2;
 
-    private static final TruffleLogger LOG = TruffleLogger.getLogger(LLLanguage.ID, LLFunction.class);
+    private static final TruffleLogger LOG = TruffleLogger.getLogger(LazyLanguage.ID, LLFunction.class);
 
     /** The name of the function. */
     private final String name;
@@ -83,8 +82,7 @@ public final class LLFunction extends LLObject {
      */
     private final CyclicAssumption callTargetStable;
 
-    public LLFunction(Shape shape, LLLanguage language, String name, RootCallTarget callTarget) {
-        super(shape);
+    public LLFunction(LazyLanguage language, String name, RootCallTarget callTarget) {
         this.name = name;
         this.callTarget = callTarget;
         this.callTargetStable = new CyclicAssumption(name);
@@ -118,7 +116,7 @@ public final class LLFunction extends LLObject {
      */
     @Override
     public String toString() {
-        return name;
+        return "aFunction";
     }
 
     @ExportMessage
@@ -128,7 +126,7 @@ public final class LLFunction extends LLObject {
 
     @ExportMessage
     Class<? extends TruffleLanguage<LLContext>> getLanguage() {
-        return LLLanguage.class;
+        return LazyLanguage.class;
     }
 
     /**
@@ -187,7 +185,7 @@ public final class LLFunction extends LLObject {
 
     @ExportMessage
     Object toDisplayString(boolean allowSideEffects) {
-        return name;
+        return "aFunction";
     }
 
     /**

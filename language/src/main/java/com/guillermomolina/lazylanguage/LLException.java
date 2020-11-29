@@ -43,7 +43,7 @@ package com.guillermomolina.lazylanguage;
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
 import com.guillermomolina.lazylanguage.runtime.LLContext;
-import com.guillermomolina.lazylanguage.runtime.LLLanguageView;
+import com.guillermomolina.lazylanguage.runtime.LazyLanguageView;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -115,7 +115,7 @@ public class LLException extends RuntimeException implements TruffleException {
              * Using the language view for core builtins like the typeOf builtin might not be a good
              * idea for performance reasons.
              */
-            Object value = LLLanguageView.forValue(values[i]);
+            Object value = LazyLanguageView.forValue(values[i]);
             result.append(sep);
             sep = ", ";
             if (value == null) {

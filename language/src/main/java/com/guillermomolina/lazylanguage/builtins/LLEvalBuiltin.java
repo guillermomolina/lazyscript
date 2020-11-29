@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazylanguage.builtins;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -65,14 +65,14 @@ public abstract class LLEvalBuiltin extends LLBuiltinNode {
     public Object evalCached(String id, String code,
                     @Cached("id") String cachedId,
                     @Cached("code") String cachedCode,
-                    @CachedContext(LLLanguage.class) LLContext context,
+                    @CachedContext(LazyLanguage.class) LLContext context,
                     @Cached("create(parse(id, code, context))") DirectCallNode callNode) {
         return callNode.call(new Object[]{});
     }
 
     @TruffleBoundary
     @Specialization(replaces = "evalCached")
-    public Object evalUncached(String id, String code, @CachedContext(LLLanguage.class) LLContext context) {
+    public Object evalUncached(String id, String code, @CachedContext(LazyLanguage.class) LLContext context) {
         return parse(id, code, context).call();
     }
 

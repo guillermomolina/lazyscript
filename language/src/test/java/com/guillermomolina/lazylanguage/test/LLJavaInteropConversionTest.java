@@ -49,7 +49,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 import java.util.Map;
 
-import com.guillermomolina.lazylanguage.LLLanguage;
+import com.guillermomolina.lazylanguage.LazyLanguage;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
@@ -110,9 +110,9 @@ public class LLJavaInteropConversionTest {
                         "  obj.b = new();\n" +
                         "  return validator.validateObject(obj, obj);\n" +
                         "}";
-        try (Context context = Context.newBuilder(LLLanguage.ID).build()) {
-            context.eval(Source.newBuilder(LLLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LLLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LazyLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LazyLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LazyLanguage.ID).getMember("test");
             Value res = test.execute(new Validator());
             assertTrue(res.isNumber() && res.asInt() == 42);
         }
@@ -126,9 +126,9 @@ public class LLJavaInteropConversionTest {
                         "  obj.b = new();\n" +
                         "  return validator.validateMap(obj, obj);\n" +
                         "}";
-        try (Context context = Context.newBuilder(LLLanguage.ID).build()) {
-            context.eval(Source.newBuilder(LLLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LLLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LazyLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LazyLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LazyLanguage.ID).getMember("test");
             Value res = test.execute(new Validator());
             assertTrue(res.isNumber() && res.asInt() == 42);
         }
@@ -141,9 +141,9 @@ public class LLJavaInteropConversionTest {
                         "  array[1] = new();\n" +
                         "  return validator.validateList(array, array);\n" +
                         "}";
-        try (Context context = Context.newBuilder(LLLanguage.ID).allowHostAccess(HostAccess.ALL).build()) {
-            context.eval(Source.newBuilder(LLLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LLLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LazyLanguage.ID).allowHostAccess(HostAccess.ALL).build()) {
+            context.eval(Source.newBuilder(LazyLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LazyLanguage.ID).getMember("test");
             Value res = test.execute(new Validator(), new Object[2]);
             assertTrue(res.isNumber() && res.asInt() == 42);
         }
