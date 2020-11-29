@@ -185,20 +185,27 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         return Truffle.getRuntime().createCallTarget(rootNode);
     }
 
-    private static Interval srcFromContext(ParserRuleContext ctx) {
-        int a = ctx.start.getStartIndex();
-        int b = ctx.stop.getStopIndex();
-        return new Interval(a, b);
+    /**
+     * Checks whether a list contains a null.
+     */
+    private static boolean containsNull(List<?> list) {
+        for (Object e : list) {
+            if (e == null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void setSourceFromContext(LLStatementNode node, ParserRuleContext ctx) {
-        Interval sourceInterval = srcFromContext(ctx);
-        assert sourceInterval != null;
+        assert ctx != null;
         if (node == null) {
             throw new LLParseError(source, ctx, "Node is null");
         }
-        assert node != null;
-        node.setSourceSection(sourceInterval.a, sourceInterval.length());
+        Interval sourceInterval = ctx.getSourceInterval();
+        if(sourceInterval != null) {
+            node.setSourceSection(sourceInterval.a, sourceInterval.length());
+        }
     }
 
     public void pushScope(boolean inLoop) {
@@ -504,14 +511,16 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         LLExpressionNode receiver = null;
         LLExpressionNode assignmentName = null;
         if (ctx.IDENTIFIER() != null) {
-            assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol(), false);
+            assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol().getText(), false);
             if (ctx.member() == null) {
-                return createRead(assignmentName);
+                return createRead(ctx.member(), assignmentName);
             }
-        } else if (ctx.STRING_LITERAL() != null) {
-            receiver = createStringLiteral(ctx.STRING_LITERAL().getSymbol(), true);
-        } else if (ctx.NUMERIC_LITERAL() != null) {
-            receiver = createNumericLiteral(ctx.NUMERIC_LITERAL().getSymbol());
+        } else if (ctx.stringLiteral() != null) {
+            receiver = (LLExpressionNode) visit(ctx.stringLiteral());
+        } else if (ctx.numericLiteral() != null) {
+            receiver = (LLExpressionNode) visit(ctx.numericLiteral());
+        } else if (ctx.function() != null) {
+            throw new NotImplementedException();
         } else {// esle ctx.parenExpression()
             receiver = createParenExpression(ctx.parenExpression());
         }
@@ -521,8 +530,8 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         return createMember(ctx.member(), receiver, null, assignmentName);
     }
 
-    public LLExpressionNode createMember(LazyLanguageParser.MemberContext ctx,
-            LLExpressionNode receiver, LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName) {
+    public LLExpressionNode createMember(LazyLanguageParser.MemberContext ctx, LLExpressionNode receiver,
+            LLExpressionNode assignmentReceiver, LLExpressionNode assignmentName) {
         if (ctx.LPAREN() != null) {
             return createCallMember(ctx, receiver, assignmentReceiver, assignmentName);
         }
@@ -548,8 +557,8 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         return result;
     }
 
-    public LLExpressionNode createCallMember(LazyLanguageParser.MemberContext ctx,
-            LLExpressionNode r, LLExpressionNode functionReceiver, LLExpressionNode functionName) {
+    public LLExpressionNode createCallMember(LazyLanguageParser.MemberContext ctx, LLExpressionNode r,
+            LLExpressionNode functionReceiver, LLExpressionNode functionName) {
         LLExpressionNode receiver;
         if (functionReceiver == null) {
             FrameSlot frameSlot = lexicalScope.locals.get(LexicalScope.THIS);
@@ -564,45 +573,89 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
                 parameters.add((LLExpressionNode) visit(expression));
             }
         }
-        LLExpressionNode result = createCall(functionName, parameters, ctx.RPAREN().getSymbol());
+        LLExpressionNode result = createCall(ctx, functionName, parameters);
         if (ctx.member() != null) {
             return createMember(ctx.member(), result, receiver, null);
         }
         return result;
     }
 
-    public LLExpressionNode createDotMember(LazyLanguageParser.MemberContext ctx,
-            LLExpressionNode r, LLExpressionNode assignmentName) {
-        LLExpressionNode receiver = r == null ? createRead(assignmentName) : r;
-        LLExpressionNode nestedAssignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol(), false);
-        LLExpressionNode result = createReadProperty(receiver, nestedAssignmentName);
+    /**
+     * Returns an {@link LLInvokeNode} for the given parameters.
+     *
+     * @param functionNode   The function being called
+     * @param parameterNodes The parameters of the function call
+     * @param finalToken     A token used to determine the end of the
+     *                       sourceSelection for this call
+     * @return An LLInvokeNode for the given parameters. null if functionNode or any
+     *         of the parameterNodes are null.
+     */
+    public LLExpressionNode createCall(LazyLanguageParser.MemberContext ctx, LLExpressionNode functionName,
+            List<LLExpressionNode> parameterNodes) {
+        if (functionName == null || containsNull(parameterNodes)) {
+            return null;
+        }
+
+        final LLExpressionNode result = new LLInvokeNode(functionName,
+                parameterNodes.toArray(new LLExpressionNode[parameterNodes.size()]));
+
+        setSourceFromContext(result, ctx);
+        result.addExpressionTag();
+        return result;
+    }
+
+    public LLExpressionNode createDotMember(LazyLanguageParser.MemberContext ctx, LLExpressionNode r,
+            LLExpressionNode assignmentName) {
+        LLExpressionNode receiver = r == null ? createRead(ctx, assignmentName) : r;
+        LLExpressionNode nestedAssignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol().getText(), false);
+        LLExpressionNode result = createReadProperty(ctx, receiver, nestedAssignmentName);
         if (ctx.member() != null) {
             return createMember(ctx.member(), result, receiver, nestedAssignmentName);
         }
         return result;
     }
 
-    public LLExpressionNode createArrayMember(LazyLanguageParser.MemberContext ctx,
-            LLExpressionNode r, LLExpressionNode assignmentName) {
-        LLExpressionNode receiver = r == null ? createRead(assignmentName) : r;
+    public LLExpressionNode createArrayMember(LazyLanguageParser.MemberContext ctx, LLExpressionNode r,
+            LLExpressionNode assignmentName) {
+        LLExpressionNode receiver = r == null ? createRead(ctx, assignmentName) : r;
         LLExpressionNode nestedAssignmentName = (LLExpressionNode) visit(ctx.expression());
-        LLExpressionNode result = createReadProperty(receiver, nestedAssignmentName);
+        LLExpressionNode result = createReadProperty(ctx, receiver, nestedAssignmentName);
         if (ctx.member() != null) {
             return createMember(ctx.member(), result, receiver, nestedAssignmentName);
         }
+        return result;
+    }
+
+    /**
+     * Returns an {@link LLReadPropertyNode} for the given parameters.
+     *
+     * @param receiverNode The receiver of the property access
+     * @param nameNode     The name of the property being accessed
+     * @return An LLExpressionNode for the given parameters. null if receiverNode or
+     *         nameNode is null.
+     */
+    public LLExpressionNode createReadProperty(LazyLanguageParser.MemberContext ctx, LLExpressionNode receiverNode, LLExpressionNode nameNode) {
+        if (receiverNode == null || nameNode == null) {
+            return null;
+        }
+
+        final LLExpressionNode result = LLReadPropertyNodeGen.create(receiverNode, nameNode);
+        setSourceFromContext(result, ctx);
+        result.addExpressionTag();
+
         return result;
     }
 
     @Override
     public Node visitAssignment(LazyLanguageParser.AssignmentContext ctx) {
         if (ctx.IDENTIFIER() != null) {
-            LLExpressionNode assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol(), false);
+            LLExpressionNode assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol().getText(), false);
             return createAssignmentMember(ctx, null, assignmentName);
         } // else ctx.singleExpression() != null
         LLExpressionNode receiver = (LLExpressionNode) visit(ctx.singleExpression());
         if (ctx.assignable().IDENTIFIER() != null) {
-            LLExpressionNode assignmentName = createStringLiteral(
-                    ctx.assignable().IDENTIFIER().getSymbol(), false);
+            LLExpressionNode assignmentName = createStringLiteral(ctx.assignable().IDENTIFIER().getSymbol().getText(),
+                    false);
             return createAssignmentMember(ctx, receiver, assignmentName);
         } // ctx.assignable().expression() != null
         LLExpressionNode assignmentName = (LLExpressionNode) visit(ctx.assignable().expression());
@@ -618,33 +671,29 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         if (assignmentReceiver == null) {
             result = createAssignment(assignmentName, result);
         } else {
-            result = createWriteProperty(assignmentReceiver, assignmentName, result);
+            result = createWriteProperty(ctx, assignmentReceiver, assignmentName, result);
         }
         return result;
     }
 
     /**
-     * Returns an {@link LLInvokeNode} for the given parameters.
+     * Returns an {@link LLWritePropertyNode} for the given parameters.
      *
-     * @param functionNode   The function being called
-     * @param parameterNodes The parameters of the function call
-     * @param finalToken     A token used to determine the end of the
-     *                       sourceSelection for this call
-     * @return An LLInvokeNode for the given parameters. null if functionNode or any
-     *         of the parameterNodes are null.
+     * @param receiverNode The receiver object of the property assignment
+     * @param nameNode     The name of the property being assigned
+     * @param valueNode    The value to be assigned
+     * @return An LLExpressionNode for the given parameters. null if receiverNode,
+     *         nameNode or valueNode is null.
      */
-    public LLExpressionNode createCall(LLExpressionNode functionName, List<LLExpressionNode> parameterNodes,
-            Token finalToken) {
-        if (functionName == null || containsNull(parameterNodes)) {
+    public LLExpressionNode createWriteProperty(LazyLanguageParser.AssignmentContext ctx, LLExpressionNode receiverNode, LLExpressionNode nameNode,
+            LLExpressionNode valueNode) {
+        if (receiverNode == null || nameNode == null || valueNode == null) {
             return null;
         }
 
-        final LLExpressionNode result = new LLInvokeNode(functionName,
-                parameterNodes.toArray(new LLExpressionNode[parameterNodes.size()]));
+        final LLExpressionNode result = LLWritePropertyNodeGen.create(receiverNode, nameNode, valueNode);
 
-        final int startPos = functionName.getSourceCharIndex();
-        final int endPos = finalToken.getStartIndex() + finalToken.getText().length();
-        result.setSourceSection(startPos, endPos - startPos);
+        setSourceFromContext(result, ctx);
         result.addExpressionTag();
 
         return result;
@@ -683,7 +732,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         lexicalScope.locals.put(name, frameSlot);
         final LLExpressionNode result = LLWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode);
 
-        if (valueNode.hasSource()) {
+        if (nameNode.hasSource() && valueNode.hasSource()) {
             final int start = nameNode.getSourceCharIndex();
             final int length = valueNode.getSourceEndIndex() - start;
             result.setSourceSection(start, length);
@@ -708,7 +757,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
      *         <li>null if nameNode is null.</li>
      *         </ul>
      */
-    public LLExpressionNode createRead(LLExpressionNode nameNode) {
+    public LLExpressionNode createRead(LazyLanguageParser.MemberContext ctx, LLExpressionNode nameNode) {
         if (nameNode == null) {
             return null;
         }
@@ -718,12 +767,12 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         final LLExpressionNode result;
         if (frameSlot != null) {
             result = LLReadLocalVariableNodeGen.create(frameSlot);
+            setSourceFromContext(result, ctx);
         } else {
             frameSlot = lexicalScope.locals.get(LexicalScope.THIS);
             final LLExpressionNode thisNode = LLReadLocalVariableNodeGen.create(frameSlot);
             result = LLReadPropertyNodeGen.create(thisNode, nameNode);
         }
-        result.setSourceSection(nameNode.getSourceCharIndex(), nameNode.getSourceLength());
         result.addExpressionTag();
         return result;
     }
@@ -799,11 +848,10 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         return returnNode;
     }
 
-    public LLExpressionNode createStringLiteral(Token literalToken, boolean removeQuotes) {
-        /* Remove the trailing and ending " */
-        String literal = literalToken.getText();
-        final LLExpressionNode result = createStringLiteral(literal, removeQuotes);
-        srcFromToken(result, literalToken);
+    @Override
+    public Node visitStringLiteral(LazyLanguageParser.StringLiteralContext ctx) {
+        final LLExpressionNode result = createStringLiteral(ctx.STRING_LITERAL().getText(), true);
+        setSourceFromContext(result, ctx);
         return result;
     }
 
@@ -819,85 +867,18 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         return result;
     }
 
-    public LLExpressionNode createNumericLiteral(Token literalToken) {
+    @Override
+    public Node visitNumericLiteral(LazyLanguageParser.NumericLiteralContext ctx) {
         LLExpressionNode result;
         try {
             /* Try if the literal is small enough to fit into a long value. */
-            result = new LLLongLiteralNode(Long.parseLong(literalToken.getText()));
+            result = new LLLongLiteralNode(Long.parseLong(ctx.NUMERIC_LITERAL().getText()));
         } catch (NumberFormatException ex) {
             /* Overflow of long value, so fall back to BigInteger. */
-            result = new LLBigIntegerLiteralNode(new BigInteger(literalToken.getText()));
+            result = new LLBigIntegerLiteralNode(new BigInteger(ctx.NUMERIC_LITERAL().getText()));
         }
-        srcFromToken(result, literalToken);
+        setSourceFromContext(result, ctx);
         result.addExpressionTag();
         return result;
     }
-
-    /**
-     * Returns an {@link LLReadPropertyNode} for the given parameters.
-     *
-     * @param receiverNode The receiver of the property access
-     * @param nameNode     The name of the property being accessed
-     * @return An LLExpressionNode for the given parameters. null if receiverNode or
-     *         nameNode is null.
-     */
-    public LLExpressionNode createReadProperty(LLExpressionNode receiverNode, LLExpressionNode nameNode) {
-        if (receiverNode == null || nameNode == null) {
-            return null;
-        }
-
-        final LLExpressionNode result = LLReadPropertyNodeGen.create(receiverNode, nameNode);
-
-        final int startPos = receiverNode.getSourceCharIndex();
-        final int endPos = nameNode.getSourceEndIndex();
-        result.setSourceSection(startPos, endPos - startPos);
-        result.addExpressionTag();
-
-        return result;
-    }
-
-    /**
-     * Returns an {@link LLWritePropertyNode} for the given parameters.
-     *
-     * @param receiverNode The receiver object of the property assignment
-     * @param nameNode     The name of the property being assigned
-     * @param valueNode    The value to be assigned
-     * @return An LLExpressionNode for the given parameters. null if receiverNode,
-     *         nameNode or valueNode is null.
-     */
-    public LLExpressionNode createWriteProperty(LLExpressionNode receiverNode, LLExpressionNode nameNode,
-            LLExpressionNode valueNode) {
-        if (receiverNode == null || nameNode == null || valueNode == null) {
-            return null;
-        }
-
-        final LLExpressionNode result = LLWritePropertyNodeGen.create(receiverNode, nameNode, valueNode);
-
-        final int start = receiverNode.getSourceCharIndex();
-        final int length = valueNode.getSourceEndIndex() - start;
-        result.setSourceSection(start, length);
-        result.addExpressionTag();
-
-        return result;
-    }
-
-    /**
-     * Creates source description of a single token.
-     */
-    private static void srcFromToken(LLStatementNode node, Token token) {
-        node.setSourceSection(token.getStartIndex(), token.getText().length());
-    }
-
-    /**
-     * Checks whether a list contains a null.
-     */
-    private static boolean containsNull(List<?> list) {
-        for (Object e : list) {
-            if (e == null) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 }

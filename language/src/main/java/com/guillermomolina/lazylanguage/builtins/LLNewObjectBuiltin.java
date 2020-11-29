@@ -41,6 +41,7 @@
 package com.guillermomolina.lazylanguage.builtins;
 
 import com.guillermomolina.lazylanguage.LazyLanguage;
+import com.guillermomolina.lazylanguage.NotImplementedException;
 import com.guillermomolina.lazylanguage.runtime.LLContext;
 import com.guillermomolina.lazylanguage.runtime.LLNull;
 import com.guillermomolina.lazylanguage.runtime.LLUndefinedNameException;
@@ -68,7 +69,8 @@ public abstract class LLNewObjectBuiltin extends LLBuiltinNode {
                     @CachedLanguage LazyLanguage language,
                     @CachedContext(LazyLanguage.class) ContextReference<LLContext> contextRef,
                     @Cached("contextRef.get().getAllocationReporter()") AllocationReporter reporter) {
-        return language.createObject(reporter);
+        throw new NotImplementedException();
+        //return language.createObject(reporter);
     }
 
     @Specialization(guards = "!values.isNull(obj)", limit = "3")

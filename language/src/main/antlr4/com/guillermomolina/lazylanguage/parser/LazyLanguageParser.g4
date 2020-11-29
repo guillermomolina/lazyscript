@@ -91,16 +91,21 @@ factor: singleExpression | assignment;
 singleExpression:
 	(
 		IDENTIFIER
-		| STRING_LITERAL
-		| NUMERIC_LITERAL
+		| stringLiteral
+		| numericLiteral
 		| parenExpression
 		| function
 	) member?;
 
+stringLiteral: STRING_LITERAL;
+
+numericLiteral: NUMERIC_LITERAL;
+
 parenExpression: LPAREN expression RPAREN;
 
 function:
-	FUNCTION? LPAREN functionParameters? RPAREN block;
+	FUNCTION LPAREN functionParameters? RPAREN block|
+	LPAREN functionParameters? RPAREN ARROW block;
 
 functionParameters: IDENTIFIER ( COMMA IDENTIFIER)*;
 
