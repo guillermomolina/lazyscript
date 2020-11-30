@@ -116,6 +116,7 @@ public final class LSContext {
     private final LSObject booleanPrototype;
     private final LSObject functionPrototype;
     private final LSObject stringPrototype;
+    private final LSObject arrayPrototype;
     private final LSObject numberPrototype;
     private final LSObject integerPrototype;
     private final LSObject realPrototype;
@@ -142,6 +143,7 @@ public final class LSContext {
         this.numberPrototype = createObject(objectPrototype);
         this.integerPrototype = createObject(numberPrototype);
         this.realPrototype = createObject(numberPrototype);
+        this.arrayPrototype = createObject(objectPrototype);
         this.stringPrototype = createObject(objectPrototype);
         this.functionPrototype = createObject(objectPrototype);
         this.topContext = createObject(objectPrototype);
@@ -176,6 +178,14 @@ public final class LSContext {
         function.setPrototype(functionPrototype);
         allocationReporter.onReturnValue(function, 0, AllocationReporter.SIZE_UNKNOWN);
         return function;
+    }
+
+    public LSArray createArray(final Object[] data) {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        LSArray array = new LSArray(data);
+        //array.setPrototype(arrayPrototype);
+        allocationReporter.onReturnValue(array, 0, AllocationReporter.SIZE_UNKNOWN);
+        return array;
     }
 
     /**

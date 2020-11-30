@@ -67,7 +67,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(shortName = ".")
 @NodeChild("receiverNode")
 @NodeChild("nameNode")
-public abstract class LSReadOwnPropertyNode extends LSExpressionNode {
+public abstract class LSReadPropertyNode extends LSExpressionNode {
 
     static final int LIBRARY_LIMIT = 3;
 

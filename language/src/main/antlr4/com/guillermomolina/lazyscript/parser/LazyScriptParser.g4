@@ -129,4 +129,4 @@ parameterList: expression (COMMA expression)*;
 arrayLiteral: (LBRACK elementList RBRACK);
 
 elementList:
-	COMMA* expression? (COMMA+ expression)* COMMA*; // Yes, everything is optional
+	COMMA* expression? (COMMA+ expression)* COMMA*;

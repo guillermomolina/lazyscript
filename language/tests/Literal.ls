@@ -47,3 +47,4 @@ a("Hello World");
 
 a = ["Hello", 100];
 a[0].println();
+a[1].println();

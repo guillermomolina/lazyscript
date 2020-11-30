@@ -81,10 +81,10 @@ import com.guillermomolina.lazyscript.nodes.logic.LSLessThanNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSLogicalAndNode;
 import com.guillermomolina.lazyscript.nodes.logic.LSLogicalNotNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSLogicalOrNode;
-import com.guillermomolina.lazyscript.nodes.property.LSReadOwnPropertyNode;
-import com.guillermomolina.lazyscript.nodes.property.LSReadOwnPropertyNodeGen;
-import com.guillermomolina.lazyscript.nodes.property.LSWriteOwnPropertyNode;
-import com.guillermomolina.lazyscript.nodes.property.LSWriteOwnPropertyNodeGen;
+import com.guillermomolina.lazyscript.nodes.property.LSReadPropertyNode;
+import com.guillermomolina.lazyscript.nodes.property.LSReadPropertyNodeGen;
+import com.guillermomolina.lazyscript.nodes.property.LSWritePropertyNode;
+import com.guillermomolina.lazyscript.nodes.property.LSWritePropertyNodeGen;
 import com.guillermomolina.lazyscript.nodes.util.LSUnboxNodeGen;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -652,7 +652,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     }
 
     /**
-     * Returns an {@link LSReadOwnPropertyNode} for the given parameters.
+     * Returns an {@link LSReadPropertyNode} for the given parameters.
      *
      * @param receiverNode The receiver of the property access
      * @param nameNode     The name of the property being accessed
@@ -665,7 +665,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             return null;
         }
 
-        final LSExpressionNode result = LSReadOwnPropertyNodeGen.create(receiverNode, nameNode);
+        final LSExpressionNode result = LSReadPropertyNodeGen.create(receiverNode, nameNode);
         setSourceFromContext(result, ctx);
         result.addExpressionTag();
 
@@ -703,7 +703,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     }
 
     /**
-     * Returns an {@link LSWriteOwnPropertyNode} for the given parameters.
+     * Returns an {@link LSWritePropertyNode} for the given parameters.
      *
      * @param receiverNode The receiver object of the property assignment
      * @param nameNode     The name of the property being assigned
@@ -717,7 +717,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             return null;
         }
 
-        final LSExpressionNode result = LSWriteOwnPropertyNodeGen.create(receiverNode, nameNode, valueNode);
+        final LSExpressionNode result = LSWritePropertyNodeGen.create(receiverNode, nameNode, valueNode);
 
         setSourceFromContext(result, ctx);
         result.addExpressionTag();
@@ -771,7 +771,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     /**
      * Returns a {@link LSReadLocalVariableNode} if this read is a local variable or
-     * a {@link LSReadOwnPropertyNode} if this read is from the object. In Lazy, there
+     * a {@link LSReadPropertyNode} if this read is from the object. In Lazy, there
      * are no global names.
      *
      * @param nameNode The name of the variable/function being read
@@ -779,7 +779,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
      *         <ul>
      *         <li>A LSReadLocalVariableNode representing the local variable being
      *         read.</li>
-     *         <li>A LSReadOwnPropertyNode representing the property being read.</li>
+     *         <li>A LSReadPropertyNode representing the property being read.</li>
      *         <li>null if nameNode is null.</li>
      *         </ul>
      */
@@ -797,7 +797,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         } else {
             frameSlot = lexicalScope.locals.get(LexicalScope.THIS);
             final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(frameSlot);
-            result = LSReadOwnPropertyNodeGen.create(thisNode, nameNode);
+            result = LSReadPropertyNodeGen.create(thisNode, nameNode);
         }
         result.addExpressionTag();
         return result;

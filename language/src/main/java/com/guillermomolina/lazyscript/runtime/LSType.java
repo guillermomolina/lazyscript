@@ -83,6 +83,7 @@ public final class LSType implements TruffleObject {
     public static final LSType STRING = new LSType("String", (l, v) -> l.isString(v));
     public static final LSType BOOLEAN = new LSType("Boolean", (l, v) -> l.isBoolean(v));
     public static final LSType OBJECT = new LSType("Object", (l, v) -> l.hasMembers(v));
+    public static final LSType ARRAY = new LSType("Array", (l, v) -> l.hasArrayElements(v));
     public static final LSType FUNCTION = new LSType("Function", (l, v) -> l.isExecutable(v));
 
     /*
@@ -91,7 +92,7 @@ public final class LSType implements TruffleObject {
      * example, an object might be a function. In LazyScript we decided to make functions,
      * functions and not objects.
      */
-    @CompilationFinal(dimensions = 1) public static final LSType[] PRECEDENCE = new LSType[]{NULL, NUMBER, STRING, BOOLEAN, FUNCTION, OBJECT};
+    @CompilationFinal(dimensions = 1) public static final LSType[] PRECEDENCE = new LSType[]{NULL, NUMBER, STRING, BOOLEAN, FUNCTION, ARRAY, OBJECT};
 
     private final String name;
     private final TypeCheck isInstance;
