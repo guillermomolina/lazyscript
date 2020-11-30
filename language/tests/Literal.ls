@@ -50,8 +50,8 @@ a[0].println();
 a[1].println();
 
 a = {
-    "a": "Hello",
-    "b": 100
+    "a": "Hello you",
+    "b": 1000
 };
 a.println();
 a.a.println();

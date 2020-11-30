@@ -83,18 +83,18 @@ mkdir -p "$COMPONENT_DIR/META-INF"
 
 (
 cd $COMPONENT_DIR || exit 1
-jar cfm ../lazyscript-component.jar META-INF/MANIFEST.MF .
+jar cfm ../ls-component.jar META-INF/MANIFEST.MF .
 
 echo "bin/lazy = ../$JRE/languages/lazyscript/bin/lazy" > META-INF/symlinks
 if [[ $INCLUDE_LLNATIVE = "TRUE" ]]; then
     echo "bin/lsnative = ../$JRE/languages/lazyscript/bin/lsnative" >> META-INF/symlinks
 fi
-jar uf ../lazyscript-component.jar META-INF/symlinks
+jar uf ../ls-component.jar META-INF/symlinks
 
 {
     echo "$JRE"'languages/lazyscript/bin/lazy= rwxrwxr-x'
     echo "$JRE"'languages/lazyscript/bin/lsnative = rwxrwxr-x'
 } > META-INF/permissions
-jar uf ../lazyscript-component.jar META-INF/permissions
+jar uf ../ls-component.jar META-INF/permissions
 )
 rm -rf $COMPONENT_DIR

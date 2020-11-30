@@ -42,9 +42,13 @@ package com.guillermomolina.lazyscript.nodes.literals;
 
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
@@ -77,14 +81,15 @@ public final class LSObjectLiteralNode extends LSExpressionNode {
 
         Object object = lookupContextReference(LazyScriptLanguage.class).get().createObject();
 
-        Object[] names = new Object[nameNodes.length];
         for (int i = 0; i < nameNodes.length; i++) {
-            names[i] = nameNodes[i].executeGeneric(frame);
-        }
-
-        Object[] values = new Object[valueNodes.length];
-        for (int i = 0; i < valueNodes.length; i++) {
-            values[i] = valueNodes[i].executeGeneric(frame);
+            Object name = nameNodes[i].executeGeneric(frame);
+            Object value = valueNodes[i].executeGeneric(frame);
+            try {
+                library.writeMember(object, (String) name, value);
+            } catch (UnsupportedMessageException | UnknownIdentifierException | UnsupportedTypeException e) {
+                // write was not successful. In Lazy we only have basic support for errors.
+                throw LSUndefinedNameException.undefinedProperty(this, name);
+            }
         }
 
         return object;
