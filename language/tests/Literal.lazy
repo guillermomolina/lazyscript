@@ -30,13 +30,17 @@ Object["b"].println();
 Object[Object.a] = "a";
 Object[Object.a].println();
 
-Object.d = { println(); };
+Object.d = () => { println(); };
 Object.d.println();
 Object.d();
 
-a = { println(); };
+a = () => { println(); };
 a.println();
 a();
 
+function a(arg1) {
+    arg1.println();
+}
 
-
+a(100);
+a("Hello World");

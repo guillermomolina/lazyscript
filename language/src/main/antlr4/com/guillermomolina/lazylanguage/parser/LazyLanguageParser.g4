@@ -42,16 +42,19 @@ module: statement* EOF;
 
 block: LCURLY (statement)* RCURLY;
 
-statement: expression SEMI | returnStatement SEMI;
+statement: expression SEMI | returnStatement SEMI | functionStatement;
 
 statement2:
-	function
+	functionStatement
 	| whileStatement
 	| ifStatement
 	| breakStatement SEMI
 	| continueStatement SEMI
 	| expression SEMI
 	| returnStatement SEMI;
+
+functionStatement:
+		FUNCTION IDENTIFIER LPAREN functionParameters? RPAREN block;
 
 whileStatement:
 	WHILE LPAREN condition = expression RPAREN block;
@@ -92,7 +95,7 @@ singleExpression:
 		| stringLiteral
 		| numericLiteral
 		| parenExpression
-		| function
+		| functionExpression
 	) member?;
 
 stringLiteral: STRING_LITERAL;
@@ -101,11 +104,7 @@ numericLiteral: NUMERIC_LITERAL;
 
 parenExpression: LPAREN expression RPAREN;
 
-function:
-	(
-		FUNCTION LPAREN functionParameters? RPAREN
-		| LPAREN functionParameters? RPAREN ARROW
-	)? block;
+functionExpression: LPAREN functionParameters? RPAREN ARROW block;
 
 functionParameters: IDENTIFIER ( COMMA IDENTIFIER)*;
 
@@ -116,8 +115,8 @@ member:
 		| LBRACK expression RBRACK
 	) member?;
 
-assignment: (IDENTIFIER | singleExpression assignable) ASSIGN expression;
+assignment: (IDENTIFIER | singleExpression assignableMember) ASSIGN expression;
 
-assignable: DOT IDENTIFIER | LBRACK expression RBRACK;
+assignableMember: DOT IDENTIFIER | LBRACK expression RBRACK;
 
 parameterList: expression (COMMA expression)*;

@@ -256,7 +256,50 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitFunction(LazyLanguageParser.FunctionContext ctx) {
+    public Node visitFunctionStatement(LazyLanguageParser.FunctionStatementContext ctx) {
+        pushScope(false);
+        
+        LLReadArgumentNode readArg = new LLReadArgumentNode(0);
+        LLExpressionNode stringLiteral = createStringLiteral(LexicalScope.THIS, false);
+        LLExpressionNode assignment = createAssignment(stringLiteral, readArg, 0);
+        lexicalScope.statementNodes.add(assignment);
+        int parameterCount = 1;
+        if (ctx.functionParameters() != null) {
+            for (TerminalNode nameNode : ctx.functionParameters().IDENTIFIER()) {
+                readArg = new LLReadArgumentNode(parameterCount);
+                stringLiteral = createStringLiteral(nameNode.getText(), false);
+                assignment = createAssignment(stringLiteral, readArg, parameterCount);
+                lexicalScope.statementNodes.add(assignment);
+                parameterCount++;
+            }
+        }
+
+        final LLStatementNode methodBlock = (LLStatementNode) visit(ctx.block());
+        if (methodBlock == null) {
+            throw new NotImplementedException();
+        }
+
+        FrameDescriptor frameDescriptor = lexicalScope.frameDescriptor;
+        popScope();
+
+        final LLFunctionBodyNode functionBodyNode = new LLFunctionBodyNode(methodBlock);
+        final int functionStartPos = methodBlock.getSourceCharIndex();
+        final int bodyEndPos = methodBlock.getSourceEndIndex();
+        SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
+        functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
+        RootNode rootNode = new LLRootNode(language, frameDescriptor, functionBodyNode, functionSrc);
+        LLExpressionNode function = new LLFunctionLiteralNode(Truffle.getRuntime().createCallTarget(rootNode));
+        setSourceFromContext(function, ctx);
+        function.addExpressionTag();
+
+        final LLExpressionNode nameNode = createStringLiteral(ctx.IDENTIFIER().getText(), false);
+        LLExpressionNode result = createAssignment(nameNode, function);
+        result.addStatementTag();
+        return result;
+    }
+
+    @Override
+    public Node visitFunctionExpression(LazyLanguageParser.FunctionExpressionContext ctx) {
         pushScope(false);
 
         LLReadArgumentNode readArg = new LLReadArgumentNode(0);
@@ -267,7 +310,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         if (ctx.functionParameters() != null) {
             for (TerminalNode nameNode : ctx.functionParameters().IDENTIFIER()) {
                 readArg = new LLReadArgumentNode(parameterCount);
-                stringLiteral = createStringLiteral(nameNode.getSymbol().getText(), false);
+                stringLiteral = createStringLiteral(nameNode.getText(), false);
                 assignment = createAssignment(stringLiteral, readArg, parameterCount);
                 lexicalScope.statementNodes.add(assignment);
                 parameterCount++;
@@ -470,7 +513,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
         LLExpressionNode receiver = null;
         LLExpressionNode assignmentName = null;
         if (ctx.IDENTIFIER() != null) {
-            assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol().getText(), false);
+            assignmentName = createStringLiteral(ctx.IDENTIFIER().getText(), false);
             if (ctx.member() == null) {
                 return createRead(ctx.member(), assignmentName);
             }
@@ -478,8 +521,8 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
             receiver = (LLExpressionNode) visit(ctx.stringLiteral());
         } else if (ctx.numericLiteral() != null) {
             receiver = (LLExpressionNode) visit(ctx.numericLiteral());
-        } else if (ctx.function() != null) {
-            receiver = (LLExpressionNode) visit(ctx.function());
+        } else if (ctx.functionExpression() != null) {
+            receiver = (LLExpressionNode) visit(ctx.functionExpression());
         } else {// esle ctx.parenExpression()
             receiver = createParenExpression(ctx.parenExpression());
         }
@@ -586,7 +629,7 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
     public LLExpressionNode createDotMember(LazyLanguageParser.MemberContext ctx, LLExpressionNode r,
             LLExpressionNode assignmentName) {
         LLExpressionNode receiver = r == null ? createRead(ctx, assignmentName) : r;
-        LLExpressionNode nestedAssignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol().getText(), false);
+        LLExpressionNode nestedAssignmentName = createStringLiteral(ctx.IDENTIFIER().getText(), false);
         LLExpressionNode result = createReadProperty(ctx, receiver, nestedAssignmentName);
         if (ctx.member() != null) {
             return createMember(ctx.member(), result, receiver, nestedAssignmentName);
@@ -629,16 +672,16 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
     @Override
     public Node visitAssignment(LazyLanguageParser.AssignmentContext ctx) {
         if (ctx.IDENTIFIER() != null) {
-            LLExpressionNode assignmentName = createStringLiteral(ctx.IDENTIFIER().getSymbol().getText(), false);
+            LLExpressionNode assignmentName = createStringLiteral(ctx.IDENTIFIER().getText(), false);
             return createAssignmentMember(ctx, null, assignmentName);
         } // else ctx.singleExpression() != null
         LLExpressionNode receiver = (LLExpressionNode) visit(ctx.singleExpression());
-        if (ctx.assignable().IDENTIFIER() != null) {
-            LLExpressionNode assignmentName = createStringLiteral(ctx.assignable().IDENTIFIER().getSymbol().getText(),
+        if (ctx.assignableMember().IDENTIFIER() != null) {
+            LLExpressionNode assignmentName = createStringLiteral(ctx.assignableMember().IDENTIFIER().getText(),
                     false);
             return createAssignmentMember(ctx, receiver, assignmentName);
-        } // ctx.assignable().expression() != null
-        LLExpressionNode assignmentName = (LLExpressionNode) visit(ctx.assignable().expression());
+        } // ctx.assignableMember().expression() != null
+        LLExpressionNode assignmentName = (LLExpressionNode) visit(ctx.assignableMember().expression());
         return createAssignmentMember(ctx, receiver, assignmentName);
     }
 
