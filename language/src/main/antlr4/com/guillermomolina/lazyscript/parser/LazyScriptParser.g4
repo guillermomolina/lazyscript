@@ -57,7 +57,7 @@ statement2:
 	| returnStatement SEMI;
 
 functionStatement:
-	FUNCTION IDENTIFIER LPAREN functionParameters? RPAREN block;
+	FUNCTION identifier LPAREN functionParameters? RPAREN block;
 
 whileStatement:
 	WHILE LPAREN condition = expression RPAREN block;
@@ -94,7 +94,7 @@ factor: singleExpression | assignment;
 
 singleExpression:
 	(
-		IDENTIFIER
+		identifier
 		| stringLiteral
 		| numericLiteral
 		| arrayLiteral
@@ -102,6 +102,8 @@ singleExpression:
 		| parenExpression
 		| functionExpression
 	) member?;
+
+identifier: IDENTIFIER;
 
 stringLiteral: STRING_LITERAL;
 
@@ -112,18 +114,18 @@ parenExpression: LPAREN expression RPAREN;
 functionExpression:
 	LPAREN functionParameters? RPAREN ARROW block;
 
-functionParameters: IDENTIFIER ( COMMA IDENTIFIER)*;
+functionParameters: identifier ( COMMA identifier)*;
 
 member:
 	(
 		LPAREN parameterList? RPAREN
-		| DOT IDENTIFIER
+		| DOT identifier
 		| LBRACK expression RBRACK
 	) member?;
 
-assignment: (IDENTIFIER | singleExpression assignableMember) ASSIGN expression;
+assignment: (identifier | singleExpression assignableMember) ASSIGN expression;
 
-assignableMember: DOT IDENTIFIER | LBRACK expression RBRACK;
+assignableMember: DOT identifier | LBRACK expression RBRACK;
 
 parameterList: expression (COMMA expression)*;
 
@@ -136,4 +138,4 @@ objectLiteral:
 
 propertyAssignment: propertyName COLON expression;
 
-propertyName: IDENTIFIER | stringLiteral | numericLiteral;
+propertyName: identifier | stringLiteral | numericLiteral;

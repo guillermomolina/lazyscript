@@ -50,9 +50,9 @@ a[0].println();
 a[1].println();
 
 a = {
-    "a": "Hello you",
-    "b": 1000
+    prototype: Array,
+    b: 1000
 };
 a.println();
-a.a.println();
+a.prototype.println();
 a.b.println();

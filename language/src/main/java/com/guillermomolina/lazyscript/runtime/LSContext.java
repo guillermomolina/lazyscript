@@ -183,7 +183,7 @@ public final class LSContext {
     public LSArray createArray(final Object[] data) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         LSArray array = new LSArray(data);
-        //array.setPrototype(arrayPrototype);
+        array.setPrototype(arrayPrototype);
         allocationReporter.onReturnValue(array, 0, AllocationReporter.SIZE_UNKNOWN);
         return array;
     }
@@ -239,6 +239,7 @@ public final class LSContext {
         LSObjectUtil.putProperty(topContext, "Integer", integerPrototype);
         LSObjectUtil.putProperty(topContext, "Real", realPrototype);
         LSObjectUtil.putProperty(topContext, "String", stringPrototype);
+        LSObjectUtil.putProperty(topContext, "Array", stringPrototype);
         LSObjectUtil.putProperty(topContext, "Number", numberPrototype);
 
         installBuiltin(LSReadlnBuiltinFactory.getInstance());

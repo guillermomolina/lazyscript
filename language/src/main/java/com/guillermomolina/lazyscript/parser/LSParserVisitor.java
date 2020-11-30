@@ -87,6 +87,7 @@ import com.guillermomolina.lazyscript.nodes.property.LSReadPropertyNodeGen;
 import com.guillermomolina.lazyscript.nodes.property.LSWritePropertyNode;
 import com.guillermomolina.lazyscript.nodes.property.LSWritePropertyNodeGen;
 import com.guillermomolina.lazyscript.nodes.util.LSUnboxNodeGen;
+import com.guillermomolina.lazyscript.parser.LazyScriptParser.IdentifierContext;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
@@ -106,7 +107,6 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
 /**
  * Helper class used by the Lazy {@link Parser} to create nodes. The code is
@@ -219,7 +219,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         pushScope(false);
 
         final LSReadArgumentNode readArg0 = new LSReadArgumentNode(0);
-        final LSExpressionNode stringLiteral = createStringLiteral(LexicalScope.THIS, false);
+        final LSExpressionNode stringLiteral = new LSStringLiteralNode(LexicalScope.THIS);
         LSExpressionNode assignment = createAssignment(stringLiteral, readArg0, 0);
         lexicalScope.statementNodes.add(assignment);
 
@@ -262,15 +262,15 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         pushScope(false);
 
         LSReadArgumentNode readArg = new LSReadArgumentNode(0);
-        LSExpressionNode stringLiteral = createStringLiteral(LexicalScope.THIS, false);
+        LSExpressionNode stringLiteral = new LSStringLiteralNode(LexicalScope.THIS);
         LSExpressionNode assignment = createAssignment(stringLiteral, readArg, 0);
         lexicalScope.statementNodes.add(assignment);
         int parameterCount = 1;
         if (ctx.functionParameters() != null) {
-            for (TerminalNode nameNode : ctx.functionParameters().IDENTIFIER()) {
+            for (IdentifierContext identifierCtx : ctx.functionParameters().identifier()) {
                 readArg = new LSReadArgumentNode(parameterCount);
-                stringLiteral = createStringLiteral(nameNode.getText(), false);
-                assignment = createAssignment(stringLiteral, readArg, parameterCount);
+                stringLiteral = (LSExpressionNode)visit(identifierCtx);
+                 assignment = createAssignment(stringLiteral, readArg, parameterCount);
                 lexicalScope.statementNodes.add(assignment);
                 parameterCount++;
             }
@@ -294,7 +294,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         setSourceFromContext(function, ctx);
         function.addExpressionTag();
 
-        final LSExpressionNode nameNode = createStringLiteral(ctx.IDENTIFIER().getText(), false);
+        final LSExpressionNode nameNode = (LSExpressionNode)visit(ctx.identifier());
         LSExpressionNode result = createAssignment(nameNode, function);
         result.addStatementTag();
         return result;
@@ -305,14 +305,14 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         pushScope(false);
 
         LSReadArgumentNode readArg = new LSReadArgumentNode(0);
-        LSExpressionNode stringLiteral = createStringLiteral(LexicalScope.THIS, false);
+        LSExpressionNode stringLiteral = new LSStringLiteralNode(LexicalScope.THIS);
         LSExpressionNode assignment = createAssignment(stringLiteral, readArg, 0);
         lexicalScope.statementNodes.add(assignment);
         int parameterCount = 1;
         if (ctx.functionParameters() != null) {
-            for (TerminalNode nameNode : ctx.functionParameters().IDENTIFIER()) {
+            for (IdentifierContext identifierCtx : ctx.functionParameters().identifier()) {
                 readArg = new LSReadArgumentNode(parameterCount);
-                stringLiteral = createStringLiteral(nameNode.getText(), false);
+                stringLiteral = (LSExpressionNode)visit(identifierCtx);
                 assignment = createAssignment(stringLiteral, readArg, parameterCount);
                 lexicalScope.statementNodes.add(assignment);
                 parameterCount++;
@@ -514,8 +514,8 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     public Node visitSingleExpression(LazyScriptParser.SingleExpressionContext ctx) {
         LSExpressionNode receiver = null;
         LSExpressionNode assignmentName = null;
-        if (ctx.IDENTIFIER() != null) {
-            assignmentName = createStringLiteral(ctx.IDENTIFIER().getText(), false);
+        if (ctx.identifier() != null) {
+            assignmentName = (LSExpressionNode)visit(ctx.identifier());
             if (ctx.member() == null) {
                 return createRead(ctx.member(), assignmentName);
             }
@@ -635,7 +635,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     public LSExpressionNode createDotMember(LazyScriptParser.MemberContext ctx, LSExpressionNode r,
             LSExpressionNode assignmentName) {
         LSExpressionNode receiver = r == null ? createRead(ctx, assignmentName) : r;
-        LSExpressionNode nestedAssignmentName = createStringLiteral(ctx.IDENTIFIER().getText(), false);
+        LSExpressionNode nestedAssignmentName = (LSExpressionNode)visit(ctx.identifier());
         LSExpressionNode result = createReadProperty(ctx, receiver, nestedAssignmentName);
         if (ctx.member() != null) {
             return createMember(ctx.member(), result, receiver, nestedAssignmentName);
@@ -677,13 +677,13 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     @Override
     public Node visitAssignment(LazyScriptParser.AssignmentContext ctx) {
-        if (ctx.IDENTIFIER() != null) {
-            LSExpressionNode assignmentName = createStringLiteral(ctx.IDENTIFIER().getText(), false);
+        if (ctx.identifier() != null) {
+            LSExpressionNode assignmentName = (LSExpressionNode)visit(ctx.identifier());
             return createAssignmentMember(ctx, null, assignmentName);
         } // else ctx.singleExpression() != null
         LSExpressionNode receiver = (LSExpressionNode) visit(ctx.singleExpression());
-        if (ctx.assignableMember().IDENTIFIER() != null) {
-            LSExpressionNode assignmentName = createStringLiteral(ctx.assignableMember().IDENTIFIER().getText(), false);
+        if (ctx.assignableMember().identifier() != null) {
+            LSExpressionNode assignmentName = (LSExpressionNode)visit(ctx.assignableMember().identifier());
             return createAssignmentMember(ctx, receiver, assignmentName);
         } // ctx.assignableMember().expression() != null
         LSExpressionNode assignmentName = (LSExpressionNode) visit(ctx.assignableMember().expression());
@@ -877,20 +877,23 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitStringLiteral(LazyScriptParser.StringLiteralContext ctx) {
-        final LSExpressionNode result = createStringLiteral(ctx.STRING_LITERAL().getText(), true);
+    public Node visitIdentifier(LazyScriptParser.IdentifierContext ctx) {
+        final String identifier = ctx.IDENTIFIER().getText();
+
+        final LSStringLiteralNode result = new LSStringLiteralNode(identifier.intern());
+        result.addExpressionTag();
         setSourceFromContext(result, ctx);
         return result;
     }
 
-    public LSExpressionNode createStringLiteral(String literal, boolean removeQuotes) {
-        /* Remove the trailing and ending " */
-        if (removeQuotes) {
-            assert literal.length() >= 2 && literal.startsWith("\"") && literal.endsWith("\"");
-            literal = literal.substring(1, literal.length() - 1);
-        }
+    @Override
+    public Node visitStringLiteral(LazyScriptParser.StringLiteralContext ctx) {
+        String literal = ctx.STRING_LITERAL().getText();
+        assert literal.length() >= 2 && literal.startsWith("\"") && literal.endsWith("\"");
+        literal = literal.substring(1, literal.length() - 1);
 
         final LSStringLiteralNode result = new LSStringLiteralNode(literal.intern());
+        setSourceFromContext(result, ctx);
         result.addExpressionTag();
         return result;
     }
