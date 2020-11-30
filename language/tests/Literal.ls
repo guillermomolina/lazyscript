@@ -51,8 +51,17 @@ a[1].println();
 
 a = {
     prototype: Array,
-    b: 1000
+    b: () => { 
+        "Hello World".println(); 
+    },
+    c: {
+        "0": 1000
+    },
+    d: [ true, "AAA"]
 };
 a.println();
 a.prototype.println();
 a.b.println();
+a.b();
+a.c["0"].println();
+a.d[0].println();

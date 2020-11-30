@@ -138,4 +138,4 @@ objectLiteral:
 
 propertyAssignment: propertyName COLON expression;
 
-propertyName: identifier | stringLiteral | numericLiteral;
+propertyName: identifier | stringLiteral /*| numericLiteral */;
