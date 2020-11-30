@@ -69,6 +69,7 @@ import com.guillermomolina.lazyscript.nodes.literals.LSArrayLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSBigIntegerLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSFunctionLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSLongLiteralNode;
+import com.guillermomolina.lazyscript.nodes.literals.LSObjectLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSStringLiteralNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadArgumentNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadLocalVariableNode;
@@ -259,7 +260,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     @Override
     public Node visitFunctionStatement(LazyScriptParser.FunctionStatementContext ctx) {
         pushScope(false);
-        
+
         LSReadArgumentNode readArg = new LSReadArgumentNode(0);
         LSExpressionNode stringLiteral = createStringLiteral(LexicalScope.THIS, false);
         LSExpressionNode assignment = createAssignment(stringLiteral, readArg, 0);
@@ -524,6 +525,8 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             receiver = (LSExpressionNode) visit(ctx.numericLiteral());
         } else if (ctx.arrayLiteral() != null) {
             receiver = (LSExpressionNode) visit(ctx.arrayLiteral());
+        } else if (ctx.objectLiteral() != null) {
+            receiver = (LSExpressionNode) visit(ctx.objectLiteral());
         } else if (ctx.functionExpression() != null) {
             receiver = (LSExpressionNode) visit(ctx.functionExpression());
         } else {// esle ctx.parenExpression()
@@ -579,12 +582,12 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             }
         }
         LSExpressionNode result;
-        if(r == null) {
+        if (r == null) {
             LSExpressionNode functionNode = createRead(ctx, functionName);
             result = createCallFunction(ctx, functionNode, parameters);
         } else {
-            //LSExpressionNode functionNode = createReadProperty(ctx, r, functionName);
-            //result = createCallFunction(ctx, r, parameters);
+            // LSExpressionNode functionNode = createReadProperty(ctx, r, functionName);
+            // result = createCallFunction(ctx, r, parameters);
             result = createCallMethod(ctx, functionName, parameters);
         }
         if (ctx.member() != null) {
@@ -598,8 +601,8 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
      *
      * @param functionName   The function being called
      * @param parameterNodes The parameters of the function call
-     * @return An LSInvokeMethodNode for the given parameters. null if functionNode or any
-     *         of the parameterNodes are null.
+     * @return An LSInvokeMethodNode for the given parameters. null if functionNode
+     *         or any of the parameterNodes are null.
      */
     public LSExpressionNode createCallMethod(LazyScriptParser.MemberContext ctx, LSExpressionNode functionNameNode,
             List<LSExpressionNode> parameterNodes) {
@@ -680,8 +683,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         } // else ctx.singleExpression() != null
         LSExpressionNode receiver = (LSExpressionNode) visit(ctx.singleExpression());
         if (ctx.assignableMember().IDENTIFIER() != null) {
-            LSExpressionNode assignmentName = createStringLiteral(ctx.assignableMember().IDENTIFIER().getText(),
-                    false);
+            LSExpressionNode assignmentName = createStringLiteral(ctx.assignableMember().IDENTIFIER().getText(), false);
             return createAssignmentMember(ctx, receiver, assignmentName);
         } // ctx.assignableMember().expression() != null
         LSExpressionNode assignmentName = (LSExpressionNode) visit(ctx.assignableMember().expression());
@@ -917,7 +919,26 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             }
         }
 
-        final LSArrayLiteralNode result = new LSArrayLiteralNode(elementNodes.toArray(new LSExpressionNode[elementNodes.size()]));
+        final LSArrayLiteralNode result = new LSArrayLiteralNode(
+                elementNodes.toArray(new LSExpressionNode[elementNodes.size()]));
+        result.addExpressionTag();
+        return result;
+    }
+
+    @Override
+    public Node visitObjectLiteral(LazyScriptParser.ObjectLiteralContext ctx) {
+        List<LSExpressionNode> nameNodes = new ArrayList<>();
+        List<LSExpressionNode> valueNodes = new ArrayList<>();
+        if (ctx.propertyAssignment() != null) {
+            for (LazyScriptParser.PropertyAssignmentContext propertyAssignmentCtx : ctx.propertyAssignment()) {
+                nameNodes.add((LSExpressionNode) visit(propertyAssignmentCtx.propertyName()));
+                valueNodes.add((LSExpressionNode) visit(propertyAssignmentCtx.expression()));
+            }
+        }
+
+        final LSObjectLiteralNode result = new LSObjectLiteralNode(
+                nameNodes.toArray(new LSExpressionNode[nameNodes.size()]),
+                valueNodes.toArray(new LSExpressionNode[valueNodes.size()]));
         result.addExpressionTag();
         return result;
     }

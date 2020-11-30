@@ -98,6 +98,7 @@ singleExpression:
 		| stringLiteral
 		| numericLiteral
 		| arrayLiteral
+		| objectLiteral
 		| parenExpression
 		| functionExpression
 	) member?;
@@ -128,5 +129,11 @@ parameterList: expression (COMMA expression)*;
 
 arrayLiteral: (LBRACK elementList RBRACK);
 
-elementList:
-	COMMA* expression? (COMMA+ expression)* COMMA*;
+elementList: COMMA* expression? (COMMA+ expression)* COMMA*;
+
+objectLiteral:
+	LCURLY (propertyAssignment (COMMA propertyAssignment)*)? COMMA? RCURLY;
+
+propertyAssignment: propertyName COLON expression;
+
+propertyName: IDENTIFIER | stringLiteral | numericLiteral;
