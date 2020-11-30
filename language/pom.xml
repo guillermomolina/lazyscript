@@ -43,10 +43,10 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.guillermomolina</groupId>
-    <artifactId>lazylanguage-parent</artifactId>
+    <artifactId>lazyscript-parent</artifactId>
     <version>${graalvm.version}</version>
   </parent>
-  <artifactId>lazylanguage</artifactId>
+  <artifactId>lazyscript</artifactId>
   <profiles>
     <profile>
       <id>jdk11-graalvm</id>
@@ -149,7 +149,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <finalName>lazylanguage</finalName>
+              <finalName>lazyscript</finalName>
               <artifactSet>
                 <excludes>
                   <exclude>junit:junit</exclude>

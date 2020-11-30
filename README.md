@@ -1,4 +1,4 @@
-# LazyLanguage
+# LazyScript
 
 A language to procastrinate
 

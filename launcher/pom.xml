@@ -43,7 +43,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.guillermomolina</groupId>
-    <artifactId>lazylanguage-parent</artifactId>
+    <artifactId>lazyscript-parent</artifactId>
     <version>${graalvm.version}</version>
   </parent>
   <artifactId>launcher</artifactId>
@@ -79,7 +79,7 @@
               <goal>shade</goal>
             </goals>
             <configuration>
-              <finalName>ll-launcher</finalName>
+              <finalName>ls-launcher</finalName>
               <artifactSet>
                 <excludes>
                   <exclude>junit:junit</exclude>

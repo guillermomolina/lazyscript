@@ -52,30 +52,30 @@ else
 fi
 readonly COMPONENT_DIR="component_temp_dir"
 readonly LANGUAGE_PATH="$COMPONENT_DIR/$JRE/languages/lazy"
-if [[ -f ../native/llnative ]]; then
+if [[ -f ../native/lsnative ]]; then
     INCLUDE_LLNATIVE="TRUE"
 fi
 
 rm -rf COMPONENT_DIR
 
 mkdir -p "$LANGUAGE_PATH"
-cp ../language/target/lazylanguage.jar "$LANGUAGE_PATH"
+cp ../language/target/lazyscript.jar "$LANGUAGE_PATH"
 
 mkdir -p "$LANGUAGE_PATH/launcher"
-cp ../launcher/target/ll-launcher.jar "$LANGUAGE_PATH/launcher/"
+cp ../launcher/target/ls-launcher.jar "$LANGUAGE_PATH/launcher/"
 
 mkdir -p "$LANGUAGE_PATH/bin"
-cp ../lazy$LANGUAGE_PATH/bin/
+cp ../lazyscript$LANGUAGE_PATH/bin/
 if [[ $INCLUDE_LLNATIVE = "TRUE" ]]; then
-    cp ../native/llnative $LANGUAGE_PATH/bin/
+    cp ../native/lsnative $LANGUAGE_PATH/bin/
 fi
 
 touch "$LANGUAGE_PATH/native-image.properties"
 
 mkdir -p "$COMPONENT_DIR/META-INF"
 {
-    echo "Bundle-Name: Lazy Language";
-    echo "Bundle-Symbolic-Name: com.guillermomolina.lazylanguage";
+    echo "Bundle-Name: LazyScript";
+    echo "Bundle-Symbolic-Name: com.guillermomolina.lazyscript";
     echo "Bundle-Version: $GRAALVM_VERSION";
     echo "Bundle-RequireCapability: org.graalvm; filter:=\"(&(graalvm_version=$GRAALVM_VERSION)(os_arch=amd64))\"";
     echo "x-GraalVM-Polyglot-Part: True"
@@ -83,18 +83,18 @@ mkdir -p "$COMPONENT_DIR/META-INF"
 
 (
 cd $COMPONENT_DIR || exit 1
-jar cfm ../ll-component.jar META-INF/MANIFEST.MF .
+jar cfm ../lazyscript-component.jar META-INF/MANIFEST.MF .
 
-echo "bin/lazy = ../$JRE/languages/lazylanguage/bin/lazy" > META-INF/symlinks
+echo "bin/lazy = ../$JRE/languages/lazyscript/bin/lazy" > META-INF/symlinks
 if [[ $INCLUDE_LLNATIVE = "TRUE" ]]; then
-    echo "bin/llnative = ../$JRE/languages/lazylanguage/bin/llnative" >> META-INF/symlinks
+    echo "bin/lsnative = ../$JRE/languages/lazyscript/bin/lsnative" >> META-INF/symlinks
 fi
-jar uf ../ll-component.jar META-INF/symlinks
+jar uf ../lazyscript-component.jar META-INF/symlinks
 
 {
-    echo "$JRE"'languages/lazylanguage/bin/lazy= rwxrwxr-x'
-    echo "$JRE"'languages/lazylanguage/bin/llnative = rwxrwxr-x'
+    echo "$JRE"'languages/lazyscript/bin/lazy= rwxrwxr-x'
+    echo "$JRE"'languages/lazyscript/bin/lsnative = rwxrwxr-x'
 } > META-INF/permissions
-jar uf ../ll-component.jar META-INF/permissions
+jar uf ../lazyscript-component.jar META-INF/permissions
 )
 rm -rf $COMPONENT_DIR

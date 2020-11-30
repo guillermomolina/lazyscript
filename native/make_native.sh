@@ -46,6 +46,6 @@ if [[ $LL_BUILD_NATIVE == "false" ]]; then
 fi
 "$JAVA_HOME"/bin/native-image \
     --macro:truffle --no-fallback --initialize-at-build-time \
-    -cp ../language/target/lazylanguage.jar:../launcher/target/ll-launcher.jar \
-    com.guillermomolina.lazylanguage.launcher.LLMain \
-    llnative
+    -cp ../language/target/lazyscript.jar:../launcher/target/ls-launcher.jar \
+    com.guillermomolina.lazyscript.launcher.LSMain \
+    lsnative

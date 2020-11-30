@@ -7,4 +7,4 @@ NULLs
 bars
 foos
 2 < 4: true
-Type error at String.lazy line 14 col 34: operation "<" not defined for Number 2, String "4"
+Type error at String.ls line 14 col 34: operation "<" not defined for Number 2, String "4"

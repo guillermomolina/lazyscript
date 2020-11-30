@@ -5,7 +5,7 @@
     run: [
       ['mvn', 'clean'],
       ['mvn', 'package'],
-      ['./lazy', 'language/tests/Add.lazy'],
+      ['./lazyscript', 'language/tests/Add.ls'],
     ],
 
     environment+: {
@@ -20,16 +20,16 @@
       ["$JAVA_HOME/bin/gu", 'install', 'native-image'],
       ['mvn', 'clean'],
       ['mvn', 'package'],
-      ['./lazy', 'language/tests/Add.lazy'],
-      ['./native/llnative', 'language/tests/Add.lazy'],
-      ["$JAVA_HOME/bin/gu", 'install', '-L', 'component/ll-component.jar'],
-      ["$JAVA_HOME/bin/lazy", 'language/tests/Add.lazy'],
-      ["$JAVA_HOME/bin/llnative", 'language/tests/Add.lazy'],
-      ["$JAVA_HOME/bin/polyglot", '--jvm', '--language', 'sl', '--file', 'language/tests/Add.lazy'],
-      ["$JAVA_HOME/bin/gu", 'remove', 'sl'],
+      ['./lazyscript', 'language/tests/Add.ls'],
+      ['./native/lsnative', 'language/tests/Add.ls'],
+      ["$JAVA_HOME/bin/gu", 'install', '-L', 'component/ls-component.jar'],
+      ["$JAVA_HOME/bin/lazy", 'language/tests/Add.ls'],
+      ["$JAVA_HOME/bin/lsnative", 'language/tests/Add.ls'],
+      ["$JAVA_HOME/bin/polyglot", '--jvm', '--language', 'ls', '--file', 'language/tests/Add.ls'],
+      ["$JAVA_HOME/bin/gu", 'remove', 'ls'],
       ['./generate_parser.sh'],
       ['mvn', 'package'],
-      ['./lazy', 'language/tests/Add.lazy'],
+      ['./lazyscript', 'language/tests/Add.ls'],
     ]
   },
 
@@ -84,7 +84,7 @@
     graalvmBuild + darwin + fixDarwinJavaHome + graalvm8  + { name: 'darwin-graalvm8' },
     graalvmBuild + darwin + fixDarwinJavaHome + graalvm11 + { name: 'darwin-graalvm11' },
 
-    # Blocked by the sl script being unable to find maven repo
+    # Blocked by the ls script being unable to find maven repo
     # javaBuild + linux + java8  + { name: 'linux-java8' },
     # javaBuild + linux + java11 + { name: 'linux-java11' },
 

@@ -6,7 +6,7 @@
             "name": "Debug ANTLR4 grammar Current File",
             "request": "launch",
             "input": "${file}",
-            "grammar": "language/src/main/antlr4/com/guillermomolina/lazylanguage/parser/LazyLanguageParser.g4",
+            "grammar": "language/src/main/antlr4/com/guillermomolina/lazyscript/parser/LazyScriptParser.g4",
             "startRule": "module",
             "printParseTree": true,
             "visualParseTree": true
@@ -15,12 +15,12 @@
             "type": "java",
             "name": "Debug (Launch) Current File",
             "request": "launch",
-            "mainClass": "com.guillermomolina.lazylanguage.launcher.LLMain",
+            "mainClass": "com.guillermomolina.lazyscript.launcher.LSMain",
             "projectName": "launcher",
-            "args": ["--log.lazy.level=FINEST","${file}"],
+            "args": ["--log.lazyscript.level=FINEST","${file}"],
             "vmArgs": [
                 "-ea",
-                "-Dtruffle.class.path.append=./language/target/lazylanguage.jar"
+                "-Dtruffle.class.path.append=./language/target/lazyscript.jar"
             ],
             "stepFilters": {
                 "skipClasses": [
@@ -35,17 +35,17 @@
         },
         {
             "type": "java",
-            "name": "Debug (Launch) LLMain Literal.lazy",
+            "name": "Debug (Launch) LSMain Literal.ls",
             "request": "launch",
-            "mainClass": "com.guillermomolina.lazylanguage.launcher.LLMain",
+            "mainClass": "com.guillermomolina.lazyscript.launcher.LSMain",
             "projectName": "launcher",
             "args": [
-                "--log.lazy.level=FINEST",
-                "${workspaceFolder}/language/tests/Literal.lazy",
+                "--log.lazyscript.level=FINEST",
+                "${workspaceFolder}/language/tests/Literal.ls",
             ],
             "vmArgs": [
                 "-ea",
-                "-Dtruffle.class.path.append=./language/target/lazylanguage.jar"
+                "-Dtruffle.class.path.append=./language/target/lazyscript.jar"
             ],
             "stepFilters": {
                 "skipClasses": [
@@ -62,16 +62,16 @@
             "type": "java",
             "name": "Debug (Launch and Wait) Current File",
             "request": "launch",
-            "mainClass": "com.guillermomolina.lazylanguage.launcher.LLMain",
+            "mainClass": "com.guillermomolina.lazyscript.launcher.LSMain",
             "projectName": "launcher",
             "args": [
                 "--inspect",
-                "--log.lazy.level=FINEST",
+                "--log.lazyscript.level=FINEST",
                 "${file}"
             ],
             "vmArgs": [
                 "-ea",
-                "-Dtruffle.class.path.append=./language/target/lazylanguage.jar"
+                "-Dtruffle.class.path.append=./language/target/lazyscript.jar"
             ],
             "stepFilters": {
                 "skipClasses": [
@@ -87,8 +87,8 @@
         {
             "type": "graalvm",
             "request": "launch",
-            "name": "Launch Lazy Language Script",
-            "runtimeExecutable": "/home/guille/Fuentes/graal/languages/lazylanguage/lazy",
+            "name": "Launch LazyScript Current File",
+            "runtimeExecutable": "/home/guille/Fuentes/graal/languages/lazyscript/lazy",
             "program": "${file}"
         },
         {
@@ -100,7 +100,7 @@
     ],
     "compounds": [
         {
-            "name": "Debug Lazy Language + Attach",
+            "name": "Debug LazyScript + Attach",
             "configurations": [
                 "Debug (Launch and Wait) Current File",
                 "GraalVM Attach"
