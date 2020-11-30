@@ -166,6 +166,10 @@ public final class LLContext {
         return object;
     }
 
+    public LLObject createObject() {
+        return createObject(objectPrototype);
+    }
+
     public LLFunction createFunction(RootCallTarget callTarget) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         LLFunction function = new LLFunction(callTarget);

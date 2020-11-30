@@ -42,7 +42,10 @@ module: statement* EOF;
 
 block: LCURLY (statement)* RCURLY;
 
-statement: expression SEMI | returnStatement SEMI | functionStatement;
+statement:
+	expression SEMI
+	| returnStatement SEMI
+	| functionStatement;
 
 statement2:
 	functionStatement
@@ -54,7 +57,7 @@ statement2:
 	| returnStatement SEMI;
 
 functionStatement:
-		FUNCTION IDENTIFIER LPAREN functionParameters? RPAREN block;
+	FUNCTION IDENTIFIER LPAREN functionParameters? RPAREN block;
 
 whileStatement:
 	WHILE LPAREN condition = expression RPAREN block;
@@ -94,6 +97,7 @@ singleExpression:
 		IDENTIFIER
 		| stringLiteral
 		| numericLiteral
+		| arrayLiteral
 		| parenExpression
 		| functionExpression
 	) member?;
@@ -104,7 +108,8 @@ numericLiteral: NUMERIC_LITERAL;
 
 parenExpression: LPAREN expression RPAREN;
 
-functionExpression: LPAREN functionParameters? RPAREN ARROW block;
+functionExpression:
+	LPAREN functionParameters? RPAREN ARROW block;
 
 functionParameters: IDENTIFIER ( COMMA IDENTIFIER)*;
 
@@ -120,3 +125,8 @@ assignment: (IDENTIFIER | singleExpression assignableMember) ASSIGN expression;
 assignableMember: DOT IDENTIFIER | LBRACK expression RBRACK;
 
 parameterList: expression (COMMA expression)*;
+
+arrayLiteral: (LBRACK elementList RBRACK);
+
+elementList:
+	COMMA* expression? (COMMA+ expression)* COMMA*; // Yes, everything is optional

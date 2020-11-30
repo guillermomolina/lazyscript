@@ -44,3 +44,6 @@ function a(arg1) {
 
 a(100);
 a("Hello World");
+
+a = ["Hello", 100];
+a[0].println();

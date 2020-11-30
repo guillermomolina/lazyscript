@@ -65,6 +65,7 @@ import com.guillermomolina.lazylanguage.nodes.controlflow.LLWhileNode;
 import com.guillermomolina.lazylanguage.nodes.expression.LLInvokeFunctionNode;
 import com.guillermomolina.lazylanguage.nodes.expression.LLInvokeMethodNode;
 import com.guillermomolina.lazylanguage.nodes.expression.LLParenExpressionNode;
+import com.guillermomolina.lazylanguage.nodes.literals.LLArrayLiteralNode;
 import com.guillermomolina.lazylanguage.nodes.literals.LLBigIntegerLiteralNode;
 import com.guillermomolina.lazylanguage.nodes.literals.LLFunctionLiteralNode;
 import com.guillermomolina.lazylanguage.nodes.literals.LLLongLiteralNode;
@@ -521,6 +522,8 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
             receiver = (LLExpressionNode) visit(ctx.stringLiteral());
         } else if (ctx.numericLiteral() != null) {
             receiver = (LLExpressionNode) visit(ctx.numericLiteral());
+        } else if (ctx.arrayLiteral() != null) {
+            receiver = (LLExpressionNode) visit(ctx.arrayLiteral());
         } else if (ctx.functionExpression() != null) {
             receiver = (LLExpressionNode) visit(ctx.functionExpression());
         } else {// esle ctx.parenExpression()
@@ -901,6 +904,20 @@ public class LLParserVisitor extends LazyLanguageParserBaseVisitor<Node> {
             result = new LLBigIntegerLiteralNode(new BigInteger(ctx.NUMERIC_LITERAL().getText()));
         }
         setSourceFromContext(result, ctx);
+        result.addExpressionTag();
+        return result;
+    }
+
+    @Override
+    public Node visitArrayLiteral(LazyLanguageParser.ArrayLiteralContext ctx) {
+        List<LLExpressionNode> elementNodes = new ArrayList<>();
+        if (ctx.elementList() != null) {
+            for (LazyLanguageParser.ExpressionContext expression : ctx.elementList().expression()) {
+                elementNodes.add((LLExpressionNode) visit(expression));
+            }
+        }
+
+        final LLArrayLiteralNode result = new LLArrayLiteralNode(elementNodes.toArray(new LLExpressionNode[elementNodes.size()]));
         result.addExpressionTag();
         return result;
     }
