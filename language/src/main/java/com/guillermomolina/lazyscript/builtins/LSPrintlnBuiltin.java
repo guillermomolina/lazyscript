@@ -42,7 +42,7 @@ package com.guillermomolina.lazyscript.builtins;
 
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
-import com.guillermomolina.lazyscript.runtime.LSLanguageView;
+import com.guillermomolina.lazyscript.runtime.interop.LSLanguageView;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Specialization;

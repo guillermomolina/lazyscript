@@ -40,6 +40,7 @@
  */
 package com.guillermomolina.lazyscript.runtime.objects;
 
+import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -107,7 +108,7 @@ public final class LSNull implements TruffleObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return LSPrototype.NULL;
+        return LSMetaType.NULL;
     }
 
     @ExportMessage

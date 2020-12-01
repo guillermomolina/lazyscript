@@ -42,6 +42,7 @@ package com.guillermomolina.lazyscript.runtime.objects;
 
 import java.util.logging.Level;
 
+import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.oracle.truffle.api.Assumption;
@@ -155,7 +156,7 @@ public final class LSFunction extends LSObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return LSPrototype.FUNCTION;
+        return LSMetaType.FUNCTION;
     }
 
     @ExportMessage

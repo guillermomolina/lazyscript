@@ -40,8 +40,8 @@
  */
 package com.guillermomolina.lazyscript.builtins;
 
+import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.guillermomolina.lazyscript.runtime.objects.LSNull;
-import com.guillermomolina.lazyscript.runtime.objects.LSPrototype;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;
@@ -61,7 +61,7 @@ public abstract class LSTypeOfBuiltin extends LSBuiltinNode {
     @ExplodeLoop
     public Object doDefault(Object operand,
                     @CachedLibrary("operand") InteropLibrary interop) {
-        for (LSPrototype type : LSPrototype.PRECEDENCE) {
+        for (LSMetaType type : LSMetaType.PRECEDENCE) {
             if (type.isInstance(operand, interop)) {
                 return type;
             }

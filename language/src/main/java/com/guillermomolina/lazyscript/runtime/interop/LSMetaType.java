@@ -38,10 +38,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.runtime.objects;
+package com.guillermomolina.lazyscript.runtime.interop;
 
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
+import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -49,6 +50,7 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -71,29 +73,29 @@ import com.oracle.truffle.api.library.ExportMessage;
  * assigned using language views. See {@link LazyScriptLanguage#getLanguageView}.
  */
 @ExportLibrary(InteropLibrary.class)
-public final class LSPrototype extends LSObject {
+public final class LSMetaType implements TruffleObject {
 
     /*
      * These are the sets of builtin types in lazy languages. In case of lazy language the types
      * nicely match those of the types in InteropLibrary. This might not be the case and more
      * additional checks need to be performed (similar to number checking for LSBigInteger).
      */
-    public static final LSPrototype NULL = new LSPrototype("Null", (l, v) -> l.isNull(v));
-    public static final LSPrototype INTEGER = new LSPrototype("Integer", (l, v) -> l.fitsInLong(v));
-    public static final LSPrototype DECIMAL = new LSPrototype("Decimal", (l, v) -> l.fitsInDouble(v));
-    public static final LSPrototype BIGINTEGER = new LSPrototype("BigInteger", (l, v) -> v instanceof LSBigInteger);
-    public static final LSPrototype STRING = new LSPrototype("String", (l, v) -> l.isString(v));
-    public static final LSPrototype BOOLEAN = new LSPrototype("Boolean", (l, v) -> l.isBoolean(v));
-    public static final LSPrototype FUNCTION = new LSPrototype("Function", (l, v) -> l.isExecutable(v));
-    public static final LSPrototype ARRAY = new LSPrototype("Array", (l, v) -> l.hasArrayElements(v));
-    public static final LSPrototype OBJECT = new LSPrototype("Object", (l, v) -> l.hasMembers(v));
+    public static final LSMetaType NULL = new LSMetaType("Null", InteropLibrary::isNull);
+    public static final LSMetaType INTEGER = new LSMetaType("Integer", InteropLibrary::fitsInLong);
+    public static final LSMetaType DECIMAL = new LSMetaType("Decimal", InteropLibrary::fitsInDouble);
+    public static final LSMetaType BIGINTEGER = new LSMetaType("BigInteger", (l, v) -> v instanceof LSBigInteger);
+    public static final LSMetaType STRING = new LSMetaType("String", InteropLibrary::isString);
+    public static final LSMetaType BOOLEAN = new LSMetaType("Boolean", InteropLibrary::isBoolean);
+    public static final LSMetaType FUNCTION = new LSMetaType("Function", InteropLibrary::isExecutable);
+    public static final LSMetaType ARRAY = new LSMetaType("Array", InteropLibrary::hasArrayElements);
+    public static final LSMetaType OBJECT = new LSMetaType("Object", InteropLibrary::hasMembers);
 
     /*
      * This array is used when all types need to be checked in a certain order. While most interop
      * types like number or string are exclusive, others traits like members might not be. For
      * example, an object might be a function.
      */
-    @CompilationFinal(dimensions = 1) public static final LSPrototype[] PRECEDENCE = new LSPrototype[]{NULL, INTEGER, DECIMAL, BIGINTEGER, STRING, BOOLEAN, FUNCTION, ARRAY, OBJECT};
+    @CompilationFinal(dimensions = 1) public static final LSMetaType[] PRECEDENCE = new LSMetaType[]{NULL, INTEGER, DECIMAL, BIGINTEGER, STRING, BOOLEAN, FUNCTION, ARRAY, OBJECT};
 
     private final String name;
     private final TypeCheck isInstance;
@@ -102,14 +104,14 @@ public final class LSPrototype extends LSObject {
      * We don't allow dynamic instances of LSType. Real languages might want to expose this for
      * types that are user defined.
      */
-    private LSPrototype(String name, TypeCheck isInstance) {
+    private LSMetaType(String name, TypeCheck isInstance) {
         this.name = name;
         this.isInstance = isInstance;
     }
 
     /**
      * Checks whether this type is of a certain instance. If used on fast-paths it is required to
-     * cast {@link LSPrototype} to a constant.
+     * cast {@link LSMetaType} to a constant.
      */
     public boolean isInstance(Object value, InteropLibrary interop) {
         CompilerAsserts.partialEvaluationConstant(this);
@@ -172,15 +174,15 @@ public final class LSPrototype extends LSObject {
          * real world benchmarks.
          */
         @Specialization(guards = "type == cachedType", limit = "3")
-        static boolean doCached(LSPrototype type, Object value,
-                        @Cached("type") LSPrototype cachedType,
+        static boolean doCached(LSMetaType type, Object value,
+                        @Cached("type") LSMetaType cachedType,
                         @CachedLibrary("value") InteropLibrary valueLib) {
             return cachedType.isInstance.check(valueLib, value);
         }
 
         @TruffleBoundary
         @Specialization(replaces = "doCached")
-        static boolean doGeneric(LSPrototype type, Object value) {
+        static boolean doGeneric(LSMetaType type, Object value) {
             return type.isInstance.check(InteropLibrary.getFactory().getUncached(), value);
         }
     }

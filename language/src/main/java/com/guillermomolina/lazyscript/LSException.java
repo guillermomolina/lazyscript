@@ -43,7 +43,7 @@ package com.guillermomolina.lazyscript;
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
 import com.guillermomolina.lazyscript.runtime.LSContext;
-import com.guillermomolina.lazyscript.runtime.LSLanguageView;
+import com.guillermomolina.lazyscript.runtime.interop.LSLanguageView;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.interop.InteropLibrary;

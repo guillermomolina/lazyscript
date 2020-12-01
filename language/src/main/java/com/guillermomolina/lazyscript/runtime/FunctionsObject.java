@@ -44,8 +44,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
-import com.guillermomolina.lazyscript.runtime.objects.LSPrototype;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
@@ -109,7 +109,7 @@ final class FunctionsObject implements TruffleObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return LSPrototype.OBJECT;
+        return LSMetaType.OBJECT;
     }
 
     @ExportMessage

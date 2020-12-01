@@ -52,7 +52,7 @@ import com.guillermomolina.lazyscript.nodes.LSEvalRootNode;
 import com.guillermomolina.lazyscript.nodes.local.LSLexicalScope;
 import com.guillermomolina.lazyscript.parser.LSParserVisitor;
 import com.guillermomolina.lazyscript.runtime.LSContext;
-import com.guillermomolina.lazyscript.runtime.LSLanguageView;
+import com.guillermomolina.lazyscript.runtime.interop.LSLanguageView;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.Truffle;

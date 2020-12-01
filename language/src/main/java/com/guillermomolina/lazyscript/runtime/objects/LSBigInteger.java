@@ -43,6 +43,7 @@ package com.guillermomolina.lazyscript.runtime.objects;
 import java.math.BigInteger;
 
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -223,7 +224,7 @@ public final class LSBigInteger implements TruffleObject, Comparable<LSBigIntege
 
     @ExportMessage
     Object getMetaObject() {
-        return LSPrototype.BIGINTEGER;
+        return LSMetaType.BIGINTEGER;
     }
 
     @ExportMessage

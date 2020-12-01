@@ -38,12 +38,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.runtime;
+package com.guillermomolina.lazyscript.runtime.interop;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
-import com.guillermomolina.lazyscript.runtime.objects.LSPrototype;
+import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -100,7 +100,7 @@ public final class LSLanguageView implements TruffleObject {
          * LSFunction is already associated with the LazyScript and therefore the language view will
          * not be used.
          */
-        for (LSPrototype type : LSPrototype.PRECEDENCE) {
+        for (LSMetaType type : LSMetaType.PRECEDENCE) {
             if (type.isInstance(delegate, interop)) {
                 return true;
             }
@@ -114,7 +114,7 @@ public final class LSLanguageView implements TruffleObject {
         /*
          * We do the same as in hasMetaObject but actually return the type this time.
          */
-        for (LSPrototype type : LSPrototype.PRECEDENCE) {
+        for (LSMetaType type : LSMetaType.PRECEDENCE) {
             if (type.isInstance(delegate, interop)) {
                 return type;
             }
@@ -125,22 +125,22 @@ public final class LSLanguageView implements TruffleObject {
     @ExportMessage
     @ExplodeLoop
     Object toDisplayString(boolean allowSideEffects, @CachedLibrary("this.delegate") InteropLibrary interop) {
-        for (LSPrototype type : LSPrototype.PRECEDENCE) {
+        for (LSMetaType type : LSMetaType.PRECEDENCE) {
             if (type.isInstance(this.delegate, interop)) {
                 try {
                     /*
                      * The type is a partial evaluation constant here as we use @ExplodeLoop. So
                      * this if-else cascade should fold after partial evaluation.
                      */
-                    if (type == LSPrototype.INTEGER) {
+                    if (type == LSMetaType.INTEGER) {
                         return longToString(interop.asLong(delegate));
-                    } else if (type == LSPrototype.BIGINTEGER) {
+                    } else if (type == LSMetaType.BIGINTEGER) {
                         return longToString(interop.asLong(delegate));
-                    } else if (type == LSPrototype.DECIMAL) {
+                    } else if (type == LSMetaType.DECIMAL) {
                         return doubleToString(interop.asDouble(delegate));
-                    } else if (type == LSPrototype.BOOLEAN) {
+                    } else if (type == LSMetaType.BOOLEAN) {
                         return Boolean.toString(interop.asBoolean(delegate));
-                    } else if (type == LSPrototype.STRING) {
+                    } else if (type == LSMetaType.STRING) {
                         return interop.asString(delegate);
                     } else {
                         /* We use the type name as fallback for any other type */
