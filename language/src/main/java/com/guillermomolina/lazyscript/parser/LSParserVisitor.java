@@ -137,7 +137,11 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             this.inLoop = inLoop;
             this.locals = new HashMap<>();
             this.statementNodes = new ArrayList<>();
-            this.frameDescriptor = new FrameDescriptor();
+            if(inLoop) {
+                this.frameDescriptor = outer.frameDescriptor;
+            } else {
+                this.frameDescriptor = new FrameDescriptor();
+            }
 
             if (outer != null) {
                 locals.putAll(outer.locals);
@@ -235,6 +239,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
         FrameDescriptor frameDescriptor = lexicalScope.frameDescriptor;
         popScope();
+        assert lexicalScope == null;
 
         if (containsNull(bodyNodes)) {
             return null;
@@ -839,6 +844,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
         pushScope(true);
         LSStatementNode blockNode = (LSStatementNode) visit(ctx.block());
+        popScope();
 
         if (conditionNode == null || blockNode == null) {
             return null;
@@ -856,11 +862,13 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
         pushScope(lexicalScope.inLoop);
         LSStatementNode thenPartNode = (LSStatementNode) visit(ctx.then);
+        popScope();
 
         LSStatementNode elsePartNode = null;
         if (ctx.ELSE() != null) {
             pushScope(lexicalScope.inLoop);
             elsePartNode = (LSStatementNode) visit(ctx.block(1));
+            popScope();
         }
 
         if (conditionNode == null || thenPartNode == null) {

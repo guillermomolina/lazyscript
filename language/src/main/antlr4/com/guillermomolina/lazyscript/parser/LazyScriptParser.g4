@@ -43,11 +43,6 @@ module: statement* EOF;
 block: LCURLY (statement)* RCURLY;
 
 statement:
-	expression SEMI
-	| returnStatement SEMI
-	| functionStatement;
-
-statement2:
 	functionStatement
 	| whileStatement
 	| ifStatement

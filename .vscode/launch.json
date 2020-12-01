@@ -35,13 +35,13 @@
         },
         {
             "type": "java",
-            "name": "Debug (Launch) LSMain Literal.ls",
+            "name": "Debug (Launch) LSMain Loop.ls",
             "request": "launch",
             "mainClass": "com.guillermomolina.lazyscript.launcher.LSMain",
             "projectName": "launcher",
             "args": [
                 "--log.lazyscript.level=FINEST",
-                "${workspaceFolder}/language/tests/Literal.ls",
+                "${workspaceFolder}/language/tests/Loop.ls",
             ],
             "vmArgs": [
                 "-ea",
