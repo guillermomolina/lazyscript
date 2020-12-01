@@ -247,7 +247,7 @@ public final class LSContext {
         LSObjectUtil.putProperty(topContext, "BigInteger", bigIntegerPrototype);
         LSObjectUtil.putProperty(topContext, "Decimal", decimalPrototype);
         LSObjectUtil.putProperty(topContext, "String", stringPrototype);
-        LSObjectUtil.putProperty(topContext, "Array", stringPrototype);
+        LSObjectUtil.putProperty(topContext, "Array", arrayPrototype);
         LSObjectUtil.putProperty(topContext, "Number", numberPrototype);
 
         installBuiltin(LSReadlnBuiltinFactory.getInstance());
