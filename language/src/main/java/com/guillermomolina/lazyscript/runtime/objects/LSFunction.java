@@ -42,14 +42,11 @@ package com.guillermomolina.lazyscript.runtime.objects;
 
 import java.util.logging.Level;
 
-import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
-import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -117,16 +114,6 @@ public final class LSFunction extends LSObject {
         return "aFunction";
     }
 
-    @ExportMessage
-    boolean hasLanguage() {
-        return true;
-    }
-
-    @ExportMessage
-    Class<? extends TruffleLanguage<LSContext>> getLanguage() {
-        return LazyScriptLanguage.class;
-    }
-
     /**
      * {@link LSFunction} instances are always visible as executable to other languages.
      */
@@ -147,16 +134,6 @@ public final class LSFunction extends LSObject {
     @ExportMessage
     boolean isExecutable() {
         return true;
-    }
-
-    @ExportMessage
-    boolean hasMetaObject() {
-        return true;
-    }
-
-    @ExportMessage
-    Object getMetaObject() {
-        return LSMetaType.FUNCTION;
     }
 
     @ExportMessage

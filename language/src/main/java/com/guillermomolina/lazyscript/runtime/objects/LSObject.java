@@ -43,7 +43,6 @@ package com.guillermomolina.lazyscript.runtime.objects;
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.LSObjectUtil;
-import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -169,16 +168,6 @@ public class LSObject extends DynamicObject {
     @TruffleBoundary
     int identityHashCode() {
         return System.identityHashCode(this);
-    }
-
-    @ExportMessage
-    boolean hasMetaObject() {
-        return true;
-    }
-
-    @ExportMessage
-    Object getMetaObject() {
-        return LSMetaType.OBJECT;
     }
 
     @ExportMessage
