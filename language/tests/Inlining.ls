@@ -15,6 +15,8 @@ function g() {return d() + e() + f();}
 i = 0;
 result = 0;
 while (i < 10000) {
+    println(i);
+    println(result);
     result = result + g();
     i = i + 1;
 }

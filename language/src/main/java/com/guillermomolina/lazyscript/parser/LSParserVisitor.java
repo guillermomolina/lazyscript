@@ -139,12 +139,9 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             this.statementNodes = new ArrayList<>();
             if(inLoop) {
                 this.frameDescriptor = outer.frameDescriptor;
+                locals.putAll(outer.locals);
             } else {
                 this.frameDescriptor = new FrameDescriptor();
-            }
-
-            if (outer != null) {
-                locals.putAll(outer.locals);
             }
         }
     }
