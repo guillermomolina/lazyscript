@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2019, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2019, Guillermo Adrián Molina. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -194,7 +194,10 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     }
 
     private void setSourceFromContext(LSStatementNode node, ParserRuleContext ctx) {
-        assert ctx != null;
+        //assert ctx != null;
+        if (ctx == null) {
+            throw new LSParseError(source, ctx, "Context is null");
+        }
         if (node == null) {
             throw new LSParseError(source, ctx, "Node is null");
         }
@@ -518,7 +521,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         if (ctx.identifier() != null) {
             assignmentName = (LSExpressionNode) visit(ctx.identifier());
             if (ctx.member() == null) {
-                return createRead(ctx.member(), assignmentName);
+                return createRead(assignmentName);
             }
         } else if (ctx.stringLiteral() != null) {
             receiver = (LSExpressionNode) visit(ctx.stringLiteral());
@@ -586,7 +589,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         }
         LSExpressionNode result;
         if (r == null) {
-            LSExpressionNode functionNode = createRead(ctx, functionName);
+            LSExpressionNode functionNode = createRead(functionName);
             result = createCallFunction(ctx, functionNode, parameters);
         } else {
             // LSExpressionNode functionNode = createReadProperty(ctx, r, functionName);
@@ -637,7 +640,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     public LSExpressionNode createDotMember(LazyScriptParser.MemberContext ctx, LSExpressionNode r,
             LSExpressionNode assignmentName) {
-        LSExpressionNode receiver = r == null ? createRead(ctx, assignmentName) : r;
+        LSExpressionNode receiver = r == null ? createRead(assignmentName) : r;
         LSExpressionNode nestedAssignmentName = (LSExpressionNode) visit(ctx.identifier());
         LSExpressionNode result = createReadProperty(ctx, receiver, nestedAssignmentName);
         if (ctx.member() != null) {
@@ -648,7 +651,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     public LSExpressionNode createArrayMember(LazyScriptParser.MemberContext ctx, LSExpressionNode r,
             LSExpressionNode assignmentName) {
-        LSExpressionNode receiver = r == null ? createRead(ctx, assignmentName) : r;
+        LSExpressionNode receiver = r == null ? createRead(assignmentName) : r;
         LSExpressionNode nestedAssignmentName = (LSExpressionNode) visit(ctx.expression());
         LSExpressionNode result = createReadProperty(ctx, receiver, nestedAssignmentName);
         if (ctx.member() != null) {
@@ -791,7 +794,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
      *         <li>null if nameNode is null.</li>
      *         </ul>
      */
-    public LSExpressionNode createRead(LazyScriptParser.MemberContext ctx, LSExpressionNode nameNode) {
+    public LSExpressionNode createRead(LSExpressionNode nameNode) {
         if (nameNode == null) {
             return null;
         }
@@ -801,7 +804,6 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         final LSExpressionNode result;
         if (frameSlot != null) {
             result = LSReadLocalVariableNodeGen.create(frameSlot);
-            setSourceFromContext(result, ctx);
         } else {
             frameSlot = lexicalScope.locals.get(LexicalScope.THIS);
             final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(frameSlot);

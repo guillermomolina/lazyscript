@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Guillermo Adrián Molina. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 
@@ -11,11 +11,10 @@ function loop(n, obj, name) {
   return obj[name];
 }  
 
-function main() {
-  i = 0;
-  while (i < 20) {
-    loop(1000, new(), "prop");
-    i = i + 1;
-  }
-  println(loop(1000, new(), "prop"));  
-}  
+i = 0;
+while (i < 20) {
+  loop(1000, new(), "prop");
+  i = i + 1;
+}
+println(loop(1000, new(), "prop"));  
+

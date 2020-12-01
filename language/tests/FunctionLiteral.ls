@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Guillermo Adrián Molina. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 
@@ -15,7 +15,5 @@ function foo(f) {
   println(f(40, 2));
 }
 
-function main() {
-  foo(add);
-  foo(sub);
-}  
+foo(add);
+foo(sub);

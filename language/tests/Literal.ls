@@ -1,72 +1,72 @@
 println();
-"Hello World".println();
-101.println();
-null.println();
-true.println();
-false.println();
-Object.println();
-Null.println();
-Object.prototype.println();
-true.prototype.prototype.prototype.prototype.println();
-"Hello World".println();
-"Hello World".prototype.println();
+println("Hello World");
+println(101);
+println(null);
+println(true);
+println(false);
+println(Object);
+println(Null);
+println(Object.prototype);
+println(true.prototype.prototype.prototype.prototype);
+println("Hello World");
+println("Hello World".prototype);
 
 a = 101 + 1;
-a.println();
+println(a);
 
 a = "Hello World";
-a.println();
+println(a);
 a = (Object.prototype == null);
-a.println();
+println(a);
 a = (true.prototype == True);
-a.println();
+println(a);
 
 Object.a = "c";
-Object.a.println();
+println(Object.a);
 
 Object["b"] = "b";
-Object["b"].println();
+println(Object["b"]);
 
 Object[Object.a] = "a";
-Object[Object.a].println();
+println(Object[Object.a]);
 
 Object.d = () => { println(); };
-Object.d.println();
+println(Object.d);
 Object.d();
 
 a = () => { println(); };
-a.println();
+println(a);
 a();
 
 function a(arg1) {
-    arg1.println();
+    println(arg1);
 }
 
 a(100);
 a("Hello World");
 
 a = ["Hello", 100];
-a[0].println();
-a[1].println();
+println(a[0]);
+println(a[1]);
 
 a = {
     prototype: Array,
     b: () => { 
-        "Hello World".println(); 
+        println("Hello World"); 
     },
     c: {
         "0": 1000
     },
     d: [ true, "AAA"]
 };
-a.println();
-a.prototype.println();
-a.b.println();
+println(a);
+println(a.prototype);
+println(a.b);
 a.b();
-a.c["0"].println();
-a.d[0].println();
+println(a.c["0"]);
+println(a.d[0]);
 
-12.5.println();
-(12.332/2.1).println();
-(12.332/2).println();
-(12/2.1).println();
+println(12.5);
+println(12.332/2.1);
+println(12.332/2);
+println(12/2.1);

@@ -1,4 +1,38 @@
-1
-println
+== running on org.graalvm.polyglot.Engine@56f4468b
+Null
+Hello World
+101
+Null
 true
+false
+anObject
+anObject
+Null
+Null
+Hello World
+anObject
+102
+Hello World
+true
+true
+c
+b
+a
+aFunction
+Null
+aFunction
+Null
+100
+Hello World
 Hello
+100
+anObject
+anObject
+aFunction
+Hello World
+1000
+true
+12.5
+5.8723809523809525
+6.166
+5.714285714285714

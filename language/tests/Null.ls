@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Guillermo Adrián Molina. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 
@@ -7,12 +7,10 @@
 function null() {
 }
 
-function main() {  
-  println(null());  
-  println(null() == null());  
-  println(null() != null());  
-  println(null() == 42);  
-  println(null() != 42);  
-  println(null() == "42");  
-  println(null() != "42");  
-}  
+println(null());  
+println(null() == null());  
+println(null() != null());  
+println(null() == 42);  
+println(null() != 42);  
+println(null() == "42");  
+println(null() != "42");  

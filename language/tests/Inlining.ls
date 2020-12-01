@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2020, Guillermo Adrián Molina. All rights reserved.
  * Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 
@@ -12,12 +12,10 @@ function e() {return c();}
 function f() {return c();}
 function g() {return d() + e() + f();}
 
-function main() {
-    i = 0;
-    result = 0;
-    while (i < 10000) {
-        result = result + g();
-        i = i + 1;
-    }
-    return result;
+i = 0;
+result = 0;
+while (i < 10000) {
+    result = result + g();
+    i = i + 1;
 }
+return result;
