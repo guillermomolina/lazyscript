@@ -43,9 +43,9 @@ package com.guillermomolina.lazyscript.nodes.logic;
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
 import com.guillermomolina.lazyscript.nodes.LSBinaryNode;
-import com.guillermomolina.lazyscript.runtime.LSBigInteger;
-import com.guillermomolina.lazyscript.runtime.LSFunction;
-import com.guillermomolina.lazyscript.runtime.LSNull;
+import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
+import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
+import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;

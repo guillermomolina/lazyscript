@@ -42,8 +42,8 @@ package com.guillermomolina.lazyscript.nodes.expression;
 
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
-import com.guillermomolina.lazyscript.runtime.LSFunction;
 import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
+import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.StandardTags;

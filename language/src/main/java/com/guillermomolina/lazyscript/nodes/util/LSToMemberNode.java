@@ -43,7 +43,7 @@ package com.guillermomolina.lazyscript.nodes.util;
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
 import com.guillermomolina.lazyscript.nodes.LSTypes;
-import com.guillermomolina.lazyscript.runtime.LSBigInteger;
+import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.GenerateUncached;
 import com.oracle.truffle.api.dsl.Specialization;

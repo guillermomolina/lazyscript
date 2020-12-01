@@ -38,9 +38,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.runtime;
+package com.guillermomolina.lazyscript.runtime.objects;
 
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.runtime.LSContext;
+import com.guillermomolina.lazyscript.runtime.LSObjectUtil;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Fallback;
@@ -109,7 +111,7 @@ public class LSObject extends DynamicObject {
     }
 
     @TruffleBoundary
-    Object getFunction(String name, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
+    public Object getFunction(String name, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
             throws UnknownIdentifierException {
         LSObject object = this;
         while (object != null) {

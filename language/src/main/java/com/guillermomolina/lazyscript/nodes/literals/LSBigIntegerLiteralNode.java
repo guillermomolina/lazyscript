@@ -43,7 +43,7 @@ package com.guillermomolina.lazyscript.nodes.literals;
 import java.math.BigInteger;
 
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
-import com.guillermomolina.lazyscript.runtime.LSBigInteger;
+import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 

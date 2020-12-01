@@ -49,7 +49,7 @@ import com.guillermomolina.lazyscript.nodes.LSEvalRootNode;
 import com.guillermomolina.lazyscript.nodes.LSRootNode;
 import com.guillermomolina.lazyscript.nodes.LSStatementNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSBlockNode;
-import com.guillermomolina.lazyscript.runtime.LSNull;
+import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;

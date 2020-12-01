@@ -38,7 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.runtime;
+package com.guillermomolina.lazyscript.runtime.objects;
 
 import java.util.List;
 

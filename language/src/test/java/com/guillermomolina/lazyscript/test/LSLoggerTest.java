@@ -102,7 +102,7 @@ public class LSLoggerTest {
 
     @Test
     public void testLoggerSlFunctionLevelFine() {
-        final Context context = createContext(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.LSFunction", "FINE"));
+        final Context context = createContext(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.objects.LSFunction", "FINE"));
         executeSlScript(context);
         Assert.assertFalse(functionNames(testHandler.getRecords()).isEmpty());
     }
@@ -124,15 +124,15 @@ public class LSLoggerTest {
     @Test
     public void testMultipleContextsExclusiveFineLevel() {
         final TestHandler handler1 = new TestHandler();
-        try (Context ctx = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.LSFunction", "FINE")).logHandler(handler1).build()) {
+        try (Context ctx = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.objects.LSFunction", "FINE")).logHandler(handler1).build()) {
             executeSlScript(ctx, ADD_LS, 2);
         }
         final TestHandler handler2 = new TestHandler();
-        try (Context ctx = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.LSFunction", "FINE")).logHandler(handler2).build()) {
+        try (Context ctx = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.objects.LSFunction", "FINE")).logHandler(handler2).build()) {
             executeSlScript(ctx, MUL_LS, 1);
         }
         final TestHandler handler3 = new TestHandler();
-        try (Context ctx = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.LSFunction", "FINE")).logHandler(handler3).build()) {
+        try (Context ctx = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.objects.LSFunction", "FINE")).logHandler(handler3).build()) {
             executeSlScript(ctx, ADD_LS, 2);
         }
         Set<String> functionNames = functionNames(handler1.getRecords());
@@ -149,7 +149,7 @@ public class LSLoggerTest {
     @Test
     public void testMultipleContextsExclusiveDifferentLogLevel() {
         final TestHandler handler1 = new TestHandler();
-        try (Context ctx = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.LSFunction", "FINE")).logHandler(handler1).build()) {
+        try (Context ctx = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.objects.LSFunction", "FINE")).logHandler(handler1).build()) {
             executeSlScript(ctx, ADD_LS, 2);
         }
         final TestHandler handler2 = new TestHandler();
@@ -157,7 +157,7 @@ public class LSLoggerTest {
             executeSlScript(ctx, MUL_LS, 1);
         }
         final TestHandler handler3 = new TestHandler();
-        try (Context ctx = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.LSFunction", "FINE")).logHandler(handler3).build()) {
+        try (Context ctx = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.objects.LSFunction", "FINE")).logHandler(handler3).build()) {
             executeSlScript(ctx, ADD_LS, 2);
         }
         Set<String> functionNames = functionNames(handler1.getRecords());
@@ -175,9 +175,9 @@ public class LSLoggerTest {
         final TestHandler handler1 = new TestHandler();
         final TestHandler handler2 = new TestHandler();
         final TestHandler handler3 = new TestHandler();
-        try (Context ctx1 = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.LSFunction", "FINE")).logHandler(handler1).build()) {
-            try (Context ctx2 = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.LSFunction", "FINE")).logHandler(handler2).build()) {
-                try (Context ctx3 = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.LSFunction", "FINE")).logHandler(handler3).build()) {
+        try (Context ctx1 = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.objects.LSFunction", "FINE")).logHandler(handler1).build()) {
+            try (Context ctx2 = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.objects.LSFunction", "FINE")).logHandler(handler2).build()) {
+                try (Context ctx3 = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.objects.LSFunction", "FINE")).logHandler(handler3).build()) {
                     executeSlScript(ctx1, ADD_LS, 2);
                     executeSlScript(ctx2, MUL_LS, 1);
                     executeSlScript(ctx3, ADD_LS, 2);
@@ -200,8 +200,8 @@ public class LSLoggerTest {
         final TestHandler handler1 = new TestHandler();
         final TestHandler handler2 = new TestHandler();
         final TestHandler handler3 = new TestHandler();
-        try (Context ctx1 = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.LSFunction", "FINE")).logHandler(handler1).build()) {
-            try (Context ctx2 = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.LSFunction", "FINE")).logHandler(handler2).build()) {
+        try (Context ctx1 = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.objects.LSFunction", "FINE")).logHandler(handler1).build()) {
+            try (Context ctx2 = Context.newBuilder("ls").options(createLoggingOptions("ls", "com.guillermomolina.lazyscript.runtime.objects.LSFunction", "FINE")).logHandler(handler2).build()) {
                 try (Context ctx3 = Context.newBuilder("ls").logHandler(handler3).build()) {
                     executeSlScript(ctx1, ADD_LS, 2);
                     executeSlScript(ctx2, MUL_LS, 1);
@@ -241,7 +241,7 @@ public class LSLoggerTest {
     }
 
     private static Set<String> functionNames(final List<? extends LogRecord> records) {
-        return records.stream().filter((lr) -> "lazy.com.guillermomolina.lazyscript.runtime.LSFunction".equals(lr.getLoggerName())).map((lr) -> (String) lr.getParameters()[0]).collect(Collectors.toSet());
+        return records.stream().filter((lr) -> "lazy.com.guillermomolina.lazyscript.runtime.objects.LSFunction".equals(lr.getLoggerName())).map((lr) -> (String) lr.getParameters()[0]).collect(Collectors.toSet());
     }
 
     private static final class TestHandler extends Handler {

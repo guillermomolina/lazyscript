@@ -42,7 +42,7 @@ package com.guillermomolina.lazyscript.nodes.literals;
 
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
-import com.guillermomolina.lazyscript.runtime.LSFunction;
+import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.RootCallTarget;

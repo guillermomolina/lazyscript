@@ -43,8 +43,8 @@ package com.guillermomolina.lazyscript.nodes;
 import java.math.BigInteger;
 
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
-import com.guillermomolina.lazyscript.runtime.LSBigInteger;
-import com.guillermomolina.lazyscript.runtime.LSNull;
+import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
+import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.ImplicitCast;
 import com.oracle.truffle.api.dsl.TypeCast;

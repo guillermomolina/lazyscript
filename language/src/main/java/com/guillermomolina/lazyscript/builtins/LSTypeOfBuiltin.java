@@ -40,8 +40,8 @@
  */
 package com.guillermomolina.lazyscript.builtins;
 
-import com.guillermomolina.lazyscript.runtime.LSNull;
-import com.guillermomolina.lazyscript.runtime.LSPrototype;
+import com.guillermomolina.lazyscript.runtime.objects.LSNull;
+import com.guillermomolina.lazyscript.runtime.objects.LSPrototype;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.CachedLibrary;

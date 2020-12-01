@@ -1,5 +1,6 @@
 package com.guillermomolina.lazyscript.runtime;
 
+import com.guillermomolina.lazyscript.runtime.objects.LSObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
 import com.oracle.truffle.api.object.DynamicObjectLibrary;
