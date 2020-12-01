@@ -119,7 +119,8 @@ public final class LSContext {
     private final LSObject arrayPrototype;
     private final LSObject numberPrototype;
     private final LSObject integerPrototype;
-    private final LSObject realPrototype;
+    private final LSObject bigIntegerPrototype;
+    private final LSObject decimalPrototype;
     private final LSObject truePrototype;
     private final LSObject falsePrototype;
     private final LSObject topContext;
@@ -142,7 +143,8 @@ public final class LSContext {
         this.falsePrototype = createObject(booleanPrototype);
         this.numberPrototype = createObject(objectPrototype);
         this.integerPrototype = createObject(numberPrototype);
-        this.realPrototype = createObject(numberPrototype);
+        this.bigIntegerPrototype = createObject(numberPrototype);
+        this.decimalPrototype = createObject(numberPrototype);
         this.arrayPrototype = createObject(objectPrototype);
         this.stringPrototype = createObject(objectPrototype);
         this.functionPrototype = createObject(objectPrototype);
@@ -237,7 +239,8 @@ public final class LSContext {
         LSObjectUtil.putProperty(topContext, "False", falsePrototype);
         LSObjectUtil.putProperty(topContext, "Number", numberPrototype);
         LSObjectUtil.putProperty(topContext, "Integer", integerPrototype);
-        LSObjectUtil.putProperty(topContext, "Real", realPrototype);
+        LSObjectUtil.putProperty(topContext, "BigInteger", bigIntegerPrototype);
+        LSObjectUtil.putProperty(topContext, "Decimal", decimalPrototype);
         LSObjectUtil.putProperty(topContext, "String", stringPrototype);
         LSObjectUtil.putProperty(topContext, "Array", stringPrototype);
         LSObjectUtil.putProperty(topContext, "Number", numberPrototype);
@@ -317,10 +320,12 @@ public final class LSContext {
             return ((LSObject) obj).getPrototype();
         } else if (obj instanceof String) {
             return stringPrototype;
-        } else if (obj instanceof LSBigInteger || interop.fitsInLong(obj)) {
+        } else if (obj instanceof LSBigInteger) {
+            return bigIntegerPrototype;
+        } else if (interop.fitsInLong(obj)) {
             return integerPrototype;
         } else if (interop.fitsInDouble(obj)) {
-            return realPrototype;
+            return decimalPrototype;
         } else if (interop.isNull(obj)) {
             return nullPrototype;
         } else if (interop.isBoolean(obj)) {

@@ -38,48 +38,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.nodes.arithmetic;
+package com.guillermomolina.lazyscript.nodes.literals;
 
-import com.guillermomolina.lazyscript.LSException;
-import com.guillermomolina.lazyscript.nodes.LSBinaryNode;
-import com.guillermomolina.lazyscript.runtime.LSBigInteger;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.dsl.Fallback;
-import com.oracle.truffle.api.dsl.Specialization;
+import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 /**
- * This class is similar to the extensively documented {@link LSAddNode}. Divisions by 0 throw the
- * same {@link ArithmeticException exception} as in Java, Lazy has no special handling for it to keep
- * the code lazy.
+ * Constant literal for a primitive {@code double} value. The unboxed value can be returned when the
+ * parent expects a double value and calls {@link LSIntegerLiteralNode#executeLong}. In the generic case,
+ * the primitive value is automatically boxed by Java.
  */
-@NodeInfo(shortName = "/")
-public abstract class LSDivNode extends LSBinaryNode {
-    @Specialization(rewriteOn = ArithmeticException.class)
-    protected long div(long left, long right) throws ArithmeticException {
-        long result = left / right;
-        /*
-         * The division overflows if left is Long.MIN_VALUE and right is -1.
-         */
-        if ((left & right & result) < 0) {
-            throw new ArithmeticException("long overflow");
-        }
-        return result;
+@NodeInfo(shortName = "const")
+public final class LSDecimalLiteralNode extends LSExpressionNode {
+
+    private final double value;
+
+    public LSDecimalLiteralNode(double value) {
+        this.value = value;
     }
 
-    @Specialization
-    protected double div(double left, double right) {
-        return left / right;
+    @Override
+    public double executeDouble(VirtualFrame frame) throws UnexpectedResultException {
+        return value;
     }
 
-    @Specialization
-    @TruffleBoundary
-    protected LSBigInteger div(LSBigInteger left, LSBigInteger right) {
-        return new LSBigInteger(left.getValue().divide(right.getValue()));
-    }
-
-    @Fallback
-    protected Object typeError(Object left, Object right) {
-        throw LSException.typeError(this, left, right);
+    @Override
+    public Object executeGeneric(VirtualFrame frame) {
+        return value;
     }
 }

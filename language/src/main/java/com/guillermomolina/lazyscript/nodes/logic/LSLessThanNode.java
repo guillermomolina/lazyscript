@@ -62,6 +62,11 @@ public abstract class LSLessThanNode extends LSBinaryNode {
     }
 
     @Specialization
+    protected boolean lessThan(double left, double right) {
+        return left < right;
+    }
+
+    @Specialization
     @TruffleBoundary
     protected boolean lessThan(LSBigInteger left, LSBigInteger right) {
         return left.compareTo(right) < 0;

@@ -1,4 +1,3 @@
-
 lexer grammar LazyScriptLexer;
 
 BREAK: 'break';
@@ -41,18 +40,21 @@ ARROW: '=>';
 
 WS: [ \t\r\n\u000C]+ -> skip;
 COMMENT: '/*' .*? '*/' -> skip;
-LINE_COMMENT: '//' ~[\r\n]* -> skip;
-
-fragment LETTER: [A-Z] | [a-z] | '_' | '$';
-fragment NON_ZERO_DIGIT: [1-9];
-fragment DIGIT: [0-9];
-fragment HEX_DIGIT: [0-9] | [a-f] | [A-F];
-fragment OCT_DIGIT: [0-7];
-fragment BINARY_DIGIT: '0' | '1';
-fragment TAB: '\t';
-fragment STRING_CHAR: ~('"' | '\\' | '\r' | '\n');
+LINE_COMMENT: '//' ~[\r\n\u2028\u2029]* -> skip;
 
 IDENTIFIER: LETTER (LETTER | DIGIT)*;
 STRING_LITERAL: '"' STRING_CHAR* '"';
-NUMERIC_LITERAL: '0' | NON_ZERO_DIGIT DIGIT*;
 
+/// Numeric _LITERALs
+
+DECIMAL_INTEGER_LITERAL: '0' | [1-9] [0-9_]*;
+HEX_INTEGER_LITERAL: '0' [xX] [0-9a-fA-F] [_0-9a-fA-F]*;
+OCTAL_INTEGER_LITERAL: '0' [oO] [0-7] [_0-7]*;
+BINARY_INTEGER_LITERAL: '0' [bB] [01] [_01]*;
+DECIMAL_LITERAL:
+	('0' | [1-9] [0-9_]*) '.' [0-9] [0-9_]* ([eE] [+-]? [0-9_]+)?;
+
+fragment DIGIT: [0-9];
+fragment LETTER: [A-Z] | [a-z] | '_' | '$';
+fragment TAB: '\t';
+fragment STRING_CHAR: ~('"' | '\\' | '\r' | '\n');

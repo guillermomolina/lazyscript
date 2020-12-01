@@ -70,7 +70,7 @@ public class LSTCKLanguageProvider implements LanguageProvider {
                     "function %s(p1) {r = 0;\n%s\nreturn r;\n}",
     };
 
-    private static final TypeDescriptor NUMBER_RETURN = TypeDescriptor.union(TypeDescriptor.NUMBER, TypeDescriptor.intersection());
+    private static final TypeDescriptor INTEGER_RETURN = TypeDescriptor.union(TypeDescriptor.INTEGER, TypeDescriptor.intersection());
 
     @Override
     public String getId() {
@@ -87,7 +87,7 @@ public class LSTCKLanguageProvider implements LanguageProvider {
         final Collection<Snippet> res = new ArrayList<>();
 
         res.add(createValueConstructor(context, "1 == 2", "boolean", "createBoolean", TypeDescriptor.BOOLEAN));
-        res.add(createValueConstructor(context, "1", "number", "createNumber", TypeDescriptor.NUMBER));
+        res.add(createValueConstructor(context, "1", "number", "createNumber", TypeDescriptor.INTEGER));
         res.add(createValueConstructor(context, "9223372036854775808", "bigInteger", "createBigInteger", TypeDescriptor.intersection()));
         res.add(createValueConstructor(context, "\"string\"", "string", "createString", TypeDescriptor.STRING));
         Snippet.Builder opb = Snippet.newBuilder(
@@ -115,7 +115,7 @@ public class LSTCKLanguageProvider implements LanguageProvider {
                         TypeDescriptor.EXECUTABLE);
 
         res.add(createValueConstructor(context, "wrapPrimitive(1 == 2)", "wrapped-boolean", "createWrappedBoolean", TypeDescriptor.BOOLEAN));
-        res.add(createValueConstructor(context, "wrapPrimitive(1)", "wrapped-number", "createWrappedNumber", TypeDescriptor.NUMBER));
+        res.add(createValueConstructor(context, "wrapPrimitive(1)", "wrapped-number", "createWrappedNumber", TypeDescriptor.INTEGER));
         res.add(createValueConstructor(context, "wrapPrimitive(\"string\")", "wrapped-string", "createWrappedString", TypeDescriptor.STRING));
 
         res.add(createValueConstructor(context, "typeOf(1 == 2)", "boolean-metaobject",
@@ -140,15 +140,15 @@ public class LSTCKLanguageProvider implements LanguageProvider {
     public Collection<? extends Snippet> createExpressions(Context context) {
         final Collection<Snippet> res = new ArrayList<>();
         final Value fnc = eval(context, String.format(PATTERN_BIN_OP_FNC, "add", "+"), "add");
-        Snippet.Builder opb = Snippet.newBuilder("+", fnc, NUMBER_RETURN).parameterTypes(TypeDescriptor.NUMBER, TypeDescriptor.NUMBER);
+        Snippet.Builder opb = Snippet.newBuilder("+", fnc, INTEGER_RETURN).parameterTypes(TypeDescriptor.INTEGER, TypeDescriptor.INTEGER);
         res.add(opb.build());
         opb = Snippet.newBuilder("+", fnc, TypeDescriptor.STRING).parameterTypes(TypeDescriptor.STRING, TypeDescriptor.ANY);
         res.add(opb.build());
         opb = Snippet.newBuilder("+", fnc, TypeDescriptor.STRING).parameterTypes(TypeDescriptor.ANY, TypeDescriptor.STRING);
         res.add(opb.build());
-        res.add(createBinaryOperator(context, "-", "sub", NUMBER_RETURN, TypeDescriptor.NUMBER, TypeDescriptor.NUMBER).build());
-        res.add(createBinaryOperator(context, "*", "mul", NUMBER_RETURN, TypeDescriptor.NUMBER, TypeDescriptor.NUMBER).build());
-        res.add(createBinaryOperator(context, "/", "div", NUMBER_RETURN, TypeDescriptor.NUMBER, TypeDescriptor.NUMBER).resultVerifier((snippetRun) -> {
+        res.add(createBinaryOperator(context, "-", "sub", INTEGER_RETURN, TypeDescriptor.INTEGER, TypeDescriptor.INTEGER).build());
+        res.add(createBinaryOperator(context, "*", "mul", INTEGER_RETURN, TypeDescriptor.INTEGER, TypeDescriptor.INTEGER).build());
+        res.add(createBinaryOperator(context, "/", "div", INTEGER_RETURN, TypeDescriptor.INTEGER, TypeDescriptor.INTEGER).resultVerifier((snippetRun) -> {
             final Value dividend = snippetRun.getParameters().get(0);
             final Value divider = snippetRun.getParameters().get(1);
             final PolyglotException exception = snippetRun.getException();
@@ -157,15 +157,15 @@ public class LSTCKLanguageProvider implements LanguageProvider {
             } else if (exception != null) {
                 throw exception;
             } else {
-                Assert.assertTrue(TypeDescriptor.NUMBER.isAssignable(TypeDescriptor.forValue(snippetRun.getResult())));
+                Assert.assertTrue(TypeDescriptor.INTEGER.isAssignable(TypeDescriptor.forValue(snippetRun.getResult())));
             }
         }).build());
         res.add(createBinaryOperator(context, "==", "eq", TypeDescriptor.BOOLEAN, TypeDescriptor.ANY, TypeDescriptor.ANY).build());
         res.add(createBinaryOperator(context, "!=", "neq", TypeDescriptor.BOOLEAN, TypeDescriptor.ANY, TypeDescriptor.ANY).build());
-        res.add(createBinaryOperator(context, "<=", "le", TypeDescriptor.BOOLEAN, TypeDescriptor.NUMBER, TypeDescriptor.NUMBER).build());
-        res.add(createBinaryOperator(context, ">=", "ge", TypeDescriptor.BOOLEAN, TypeDescriptor.NUMBER, TypeDescriptor.NUMBER).build());
-        res.add(createBinaryOperator(context, "<", "l", TypeDescriptor.BOOLEAN, TypeDescriptor.NUMBER, TypeDescriptor.NUMBER).build());
-        res.add(createBinaryOperator(context, ">", "g", TypeDescriptor.BOOLEAN, TypeDescriptor.NUMBER, TypeDescriptor.NUMBER).build());
+        res.add(createBinaryOperator(context, "<=", "le", TypeDescriptor.BOOLEAN, TypeDescriptor.INTEGER, TypeDescriptor.INTEGER).build());
+        res.add(createBinaryOperator(context, ">=", "ge", TypeDescriptor.BOOLEAN, TypeDescriptor.INTEGER, TypeDescriptor.INTEGER).build());
+        res.add(createBinaryOperator(context, "<", "l", TypeDescriptor.BOOLEAN, TypeDescriptor.INTEGER, TypeDescriptor.INTEGER).build());
+        res.add(createBinaryOperator(context, ">", "g", TypeDescriptor.BOOLEAN, TypeDescriptor.INTEGER, TypeDescriptor.INTEGER).build());
         res.add(createBinaryOperator(context, "||", "or", TypeDescriptor.BOOLEAN, TypeDescriptor.BOOLEAN, TypeDescriptor.ANY).resultVerifier((snippetRun) -> {
             final Value firstParam = snippetRun.getParameters().get(0);
             final Value secondParam = snippetRun.getParameters().get(1);
@@ -191,8 +191,8 @@ public class LSTCKLanguageProvider implements LanguageProvider {
             }
         }).build());
         res.add(createPostfixOperator(context, "()", "callNoArg", TypeDescriptor.NULL, TypeDescriptor.executable(TypeDescriptor.ANY)).build());
-        res.add(createPostfixOperator(context, "(1)", "callOneArg", TypeDescriptor.NULL, TypeDescriptor.executable(TypeDescriptor.ANY, TypeDescriptor.NUMBER)).build());
-        res.add(createPostfixOperator(context, "(1, \"\")", "callTwoArgs", TypeDescriptor.NULL, TypeDescriptor.executable(TypeDescriptor.ANY, TypeDescriptor.NUMBER, TypeDescriptor.STRING)).build());
+        res.add(createPostfixOperator(context, "(1)", "callOneArg", TypeDescriptor.NULL, TypeDescriptor.executable(TypeDescriptor.ANY, TypeDescriptor.INTEGER)).build());
+        res.add(createPostfixOperator(context, "(1, \"\")", "callTwoArgs", TypeDescriptor.NULL, TypeDescriptor.executable(TypeDescriptor.ANY, TypeDescriptor.INTEGER, TypeDescriptor.STRING)).build());
 
         return Collections.unmodifiableCollection(res);
     }
@@ -200,12 +200,12 @@ public class LSTCKLanguageProvider implements LanguageProvider {
     @Override
     public Collection<? extends Snippet> createStatements(Context context) {
         final Collection<Snippet> res = new ArrayList<>();
-        res.add(createStatement(context, "if", "iffnc", "if ({1}) '{'\n{0}=1;\n'}' else '{'\n{0}=0;\n'}'", TypeDescriptor.NUMBER, TypeDescriptor.BOOLEAN));
-        res.add(createStatement(context, "while", "whilefnc", "while ({1}) '{'break;\n'}'", TypeDescriptor.NUMBER, TypeDescriptor.BOOLEAN));
+        res.add(createStatement(context, "if", "iffnc", "if ({1}) '{'\n{0}=1;\n'}' else '{'\n{0}=0;\n'}'", TypeDescriptor.INTEGER, TypeDescriptor.BOOLEAN));
+        res.add(createStatement(context, "while", "whilefnc", "while ({1}) '{'break;\n'}'", TypeDescriptor.INTEGER, TypeDescriptor.BOOLEAN));
         res.add(createStatement(context, "assign", "assignfnc", "{1} = {0};", TypeDescriptor.ANY, TypeDescriptor.ANY));
 
         // relevant builtins
-        res.add(createBuiltin(context, "getSize", TypeDescriptor.NUMBER, TypeDescriptor.ARRAY));
+        res.add(createBuiltin(context, "getSize", TypeDescriptor.INTEGER, TypeDescriptor.ARRAY));
         res.add(createBuiltin(context, "hasSize", TypeDescriptor.BOOLEAN, TypeDescriptor.ANY));
         res.add(createBuiltin(context, "isExecutable", TypeDescriptor.BOOLEAN, TypeDescriptor.ANY));
         res.add(createBuiltin(context, "isNull", TypeDescriptor.BOOLEAN, TypeDescriptor.ANY));

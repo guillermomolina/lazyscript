@@ -47,15 +47,15 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 
 /**
  * Constant literal for a primitive {@code long} value. The unboxed value can be returned when the
- * parent expects a long value and calls {@link LSLongLiteralNode#executeLong}. In the generic case,
+ * parent expects a long value and calls {@link LSIntegerLiteralNode#executeLong}. In the generic case,
  * the primitive value is automatically boxed by Java.
  */
 @NodeInfo(shortName = "const")
-public final class LSLongLiteralNode extends LSExpressionNode {
+public final class LSIntegerLiteralNode extends LSExpressionNode {
 
     private final long value;
 
-    public LSLongLiteralNode(long value) {
+    public LSIntegerLiteralNode(long value) {
         this.value = value;
     }
 

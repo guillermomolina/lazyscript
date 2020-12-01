@@ -65,3 +65,8 @@ a.b.println();
 a.b();
 a.c["0"].println();
 a.d[0].println();
+
+12.5.println();
+(12.332/2.1).println();
+(12.332/2).println();
+(12/2.1).println();

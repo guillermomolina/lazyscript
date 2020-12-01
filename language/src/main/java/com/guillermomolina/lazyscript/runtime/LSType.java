@@ -78,13 +78,15 @@ public final class LSType implements TruffleObject {
      * nicely match those of the types in InteropLibrary. This might not be the case and more
      * additional checks need to be performed (similar to number checking for LSBigInteger).
      */
-    public static final LSType NUMBER = new LSType("Number", (l, v) -> l.fitsInLong(v) || v instanceof LSBigInteger);
-    public static final LSType NULL = new LSType("NULL", (l, v) -> l.isNull(v));
+    public static final LSType NULL = new LSType("Null", (l, v) -> l.isNull(v));
+    public static final LSType INTEGER = new LSType("Integer", (l, v) -> l.fitsInLong(v));
+    public static final LSType DECIMAL = new LSType("Decimal", (l, v) -> l.fitsInDouble(v));
+    public static final LSType BIGINTEGER = new LSType("BigInteger", (l, v) -> v instanceof LSBigInteger);
     public static final LSType STRING = new LSType("String", (l, v) -> l.isString(v));
     public static final LSType BOOLEAN = new LSType("Boolean", (l, v) -> l.isBoolean(v));
-    public static final LSType OBJECT = new LSType("Object", (l, v) -> l.hasMembers(v));
-    public static final LSType ARRAY = new LSType("Array", (l, v) -> l.hasArrayElements(v));
     public static final LSType FUNCTION = new LSType("Function", (l, v) -> l.isExecutable(v));
+    public static final LSType ARRAY = new LSType("Array", (l, v) -> l.hasArrayElements(v));
+    public static final LSType OBJECT = new LSType("Object", (l, v) -> l.hasMembers(v));
 
     /*
      * This array is used when all types need to be checked in a certain order. While most interop
@@ -92,7 +94,7 @@ public final class LSType implements TruffleObject {
      * example, an object might be a function. In LazyScript we decided to make functions,
      * functions and not objects.
      */
-    @CompilationFinal(dimensions = 1) public static final LSType[] PRECEDENCE = new LSType[]{NULL, NUMBER, STRING, BOOLEAN, FUNCTION, ARRAY, OBJECT};
+    @CompilationFinal(dimensions = 1) public static final LSType[] PRECEDENCE = new LSType[]{NULL, INTEGER, DECIMAL, BIGINTEGER, STRING, BOOLEAN, FUNCTION, ARRAY, OBJECT};
 
     private final String name;
     private final TypeCheck isInstance;

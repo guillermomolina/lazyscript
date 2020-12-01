@@ -49,7 +49,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
  * Constant literal for a arbitrary-precision number that exceeds the range of
- * {@link LSLongLiteralNode}.
+ * {@link LSIntegerLiteralNode}.
  */
 @NodeInfo(shortName = "const")
 public final class LSBigIntegerLiteralNode extends LSExpressionNode {

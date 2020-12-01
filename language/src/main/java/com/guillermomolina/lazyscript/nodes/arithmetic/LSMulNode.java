@@ -43,7 +43,6 @@ package com.guillermomolina.lazyscript.nodes.arithmetic;
 import com.guillermomolina.lazyscript.LSException;
 import com.guillermomolina.lazyscript.nodes.LSBinaryNode;
 import com.guillermomolina.lazyscript.runtime.LSBigInteger;
-import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -60,9 +59,13 @@ public abstract class LSMulNode extends LSBinaryNode {
     }
 
     @Specialization
-    @TruffleBoundary
     protected LSBigInteger mul(LSBigInteger left, LSBigInteger right) {
         return new LSBigInteger(left.getValue().multiply(right.getValue()));
+    }
+
+    @Specialization
+    protected double mul(double left, double right) {
+        return left * right;
     }
 
     @Fallback

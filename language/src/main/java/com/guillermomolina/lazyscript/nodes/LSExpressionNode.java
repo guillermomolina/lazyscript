@@ -102,6 +102,10 @@ public abstract class LSExpressionNode extends LSStatementNode {
      * subclasses overwrite the appropriate methods.
      */
 
+    public double executeDouble(VirtualFrame frame) throws UnexpectedResultException {
+        return LSTypesGen.expectDouble(executeGeneric(frame));
+    }
+
     public long executeLong(VirtualFrame frame) throws UnexpectedResultException {
         return LSTypesGen.expectLong(executeGeneric(frame));
     }

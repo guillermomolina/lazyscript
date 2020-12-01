@@ -60,6 +60,11 @@ public abstract class LSSubNode extends LSBinaryNode {
     }
 
     @Specialization
+    protected double sub(double left, double right) {
+        return left - right;
+    }
+
+    @Specialization
     @TruffleBoundary
     protected LSBigInteger sub(LSBigInteger left, LSBigInteger right) {
         return new LSBigInteger(left.getValue().subtract(right.getValue()));

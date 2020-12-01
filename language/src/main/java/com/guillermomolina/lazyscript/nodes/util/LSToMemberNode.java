@@ -84,6 +84,12 @@ public abstract class LSToMemberNode extends Node {
 
     @Specialization
     @TruffleBoundary
+    protected static String fromDouble(double value) {
+        return String.valueOf(value);
+    }
+
+    @Specialization
+    @TruffleBoundary
     protected static String fromBigInteger(LSBigInteger value) {
         return value.toString();
     }
@@ -93,6 +99,8 @@ public abstract class LSToMemberNode extends Node {
         try {
             if (interop.fitsInLong(value)) {
                 return longToString(interop.asLong(value));
+            } else if (interop.fitsInDouble(value)) {
+                return doubleToString(interop.asDouble(value));
             } else if (interop.isString(value)) {
                 return interop.asString(value);
             } else if (interop.isNumber(value) && value instanceof LSBigInteger) {
@@ -113,6 +121,11 @@ public abstract class LSToMemberNode extends Node {
     @TruffleBoundary
     private static String bigIntegerToString(LSBigInteger value) {
         return value.toString();
+    }
+
+    @TruffleBoundary
+    private static String doubleToString(double doubleValue) {
+        return String.valueOf(doubleValue);
     }
 
     @TruffleBoundary

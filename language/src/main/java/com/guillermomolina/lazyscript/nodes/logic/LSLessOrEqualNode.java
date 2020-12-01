@@ -60,6 +60,11 @@ public abstract class LSLessOrEqualNode extends LSBinaryNode {
     }
 
     @Specialization
+    protected boolean lessOrEqual(double left, double right) {
+        return left <= right;
+    }
+
+    @Specialization
     @TruffleBoundary
     protected boolean lessOrEqual(LSBigInteger left, LSBigInteger right) {
         return left.compareTo(right) <= 0;

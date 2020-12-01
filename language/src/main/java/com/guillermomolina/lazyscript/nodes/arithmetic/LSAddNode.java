@@ -83,6 +83,11 @@ public abstract class LSAddNode extends LSBinaryNode {
         return Math.addExact(left, right);
     }
 
+    @Specialization
+    protected double add(double left, double right) {
+        return left + right;
+    }
+
     /**
      * This is the slow path of the arbitrary-precision arithmetic. The {@link LSBigInteger} type of
      * Java is doing everything we need.

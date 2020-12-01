@@ -80,6 +80,11 @@ public abstract class LSUnboxNode extends LSExpressionNode {
     }
 
     @Specialization
+    protected static double fromDouble(double value) {
+        return value;
+    }
+
+    @Specialization
     protected static LSBigInteger fromBigInteger(LSBigInteger value) {
         return value;
     }
@@ -100,7 +105,7 @@ public abstract class LSUnboxNode extends LSExpressionNode {
             if (interop.fitsInLong(value)) {
                 return interop.asLong(value);
             } else if (interop.fitsInDouble(value)) {
-                return (long) interop.asDouble(value);
+                return interop.asDouble(value);
             } else if (interop.isString(value)) {
                 return interop.asString(value);
             } else if (interop.isBoolean(value)) {

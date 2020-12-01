@@ -131,8 +131,12 @@ public final class LSLanguageView implements TruffleObject {
                      * The type is a partial evaluation constant here as we use @ExplodeLoop. So
                      * this if-else cascade should fold after partial evaluation.
                      */
-                    if (type == LSType.NUMBER) {
+                    if (type == LSType.INTEGER) {
                         return longToString(interop.asLong(delegate));
+                    } else if (type == LSType.BIGINTEGER) {
+                        return longToString(interop.asLong(delegate));
+                    } else if (type == LSType.DECIMAL) {
+                        return doubleToString(interop.asDouble(delegate));
                     } else if (type == LSType.BOOLEAN) {
                         return Boolean.toString(interop.asBoolean(delegate));
                     } else if (type == LSType.STRING) {
@@ -156,6 +160,15 @@ public final class LSLanguageView implements TruffleObject {
     @TruffleBoundary
     private static String longToString(long l) {
         return Long.toString(l);
+    }
+
+    /*
+     * Double.toString is not safe for partial evaluation and therefore needs to be called behind a
+     * boundary.
+     */
+    @TruffleBoundary
+    private static String doubleToString(double d) {
+        return Double.toString(d);
     }
 
     public static Object create(Object value) {

@@ -70,6 +70,11 @@ public abstract class LSEqualNode extends LSBinaryNode {
     }
 
     @Specialization
+    protected boolean doDouble(double left, double right) {
+        return left == right;
+    }
+
+    @Specialization
     @TruffleBoundary
     protected boolean doBigInteger(LSBigInteger left, LSBigInteger right) {
         return left.equals(right);

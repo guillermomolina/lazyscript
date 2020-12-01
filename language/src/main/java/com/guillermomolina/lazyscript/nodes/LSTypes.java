@@ -57,7 +57,7 @@ import com.oracle.truffle.api.dsl.TypeSystem;
  * conversion methods for some types. In this class, we only cover types where the automatically
  * generated ones would not be sufficient.
  */
-@TypeSystem({long.class, boolean.class})
+@TypeSystem({double.class, long.class, boolean.class})
 public abstract class LSTypes {
 
     /**
@@ -93,5 +93,11 @@ public abstract class LSTypes {
     @TruffleBoundary
     public static LSBigInteger castBigInteger(long value) {
         return new LSBigInteger(BigInteger.valueOf(value));
+    }
+
+    @ImplicitCast
+    @TruffleBoundary
+    public static double castDouble(long value) {
+        return value;
     }
 }
