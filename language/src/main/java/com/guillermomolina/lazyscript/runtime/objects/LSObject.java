@@ -93,7 +93,7 @@ public class LSObject extends DynamicObject {
         super(SHAPE);
     }
 
-    public LSObject(LSObject prototype) {
+    public LSObject(Object prototype) {
         super(SHAPE);
         setPrototype(prototype);
     }
