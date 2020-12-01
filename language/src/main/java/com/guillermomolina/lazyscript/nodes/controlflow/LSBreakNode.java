@@ -45,7 +45,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
- * Implementation of the Lazy break statement. We need to unwind an unknown number of interpreter
+ * Implementation of the LazyScript break statement. We need to unwind an unknown number of interpreter
  * frames that are between this {@link LSBreakNode} and the {@link LSWhileNode} of the loop we are
  * breaking out. This is done by throwing an {@link LSBreakException exception} that is caught by
  * the {@link LSWhileNode#executeVoid loop node}.

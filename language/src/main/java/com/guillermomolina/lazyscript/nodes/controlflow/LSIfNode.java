@@ -90,7 +90,7 @@ public final class LSIfNode extends LSStatementNode {
             /* Execute the then-branch. */
             thenPartNode.executeVoid(frame);
         } else {
-            /* Execute the else-branch (which is optional according to the Lazy syntax). */
+            /* Execute the else-branch (which is optional according to the LazyScript syntax). */
             if (elsePartNode != null) {
                 elsePartNode.executeVoid(frame);
             }
@@ -106,7 +106,7 @@ public final class LSIfNode extends LSStatementNode {
             return conditionNode.executeBoolean(frame);
         } catch (UnexpectedResultException ex) {
             /*
-             * The condition evaluated to a non-boolean result. This is a type error in the Lazy
+             * The condition evaluated to a non-boolean result. This is a type error in the LazyScript
              * program.
              */
             throw LSException.typeError(this, ex.getResult());

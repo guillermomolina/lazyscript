@@ -54,7 +54,7 @@ import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
 /**
- * The builtin type definitions for LazyScript. Lazy has no custom types, so it is not possible
+ * The builtin type definitions for LazyScript. LazyScript has no custom types, so it is not possible
  * for a guest program to create new instances of LSType.
  * <p>
  * The isInstance type checks are declared using an functional interface and are expressed using the
@@ -65,7 +65,7 @@ import com.oracle.truffle.api.library.ExportMessage;
  * {@link InteropLibrary#isMetaInstance(Object, Object)}. The latter allows other languages and
  * tools to perform type checks using types of lazy language.
  * <p>
- * In order to assign types to guest language values, Lazy values implement
+ * In order to assign types to guest language values, LazyScript values implement
  * {@link InteropLibrary#getMetaObject(Object)}. The interop contracts for primitive values cannot
  * be overriden, so in order to assign meta-objects to primitive values, the primitive values are
  * assigned using language views. See {@link LazyScriptLanguage#getLanguageView}.
@@ -136,7 +136,7 @@ public final class LSPrototype extends LSObject {
     }
 
     /*
-     * Lazy does not have the notion of a qualified or lazy name, so we return the same type name
+     * LazyScript does not have the notion of a qualified or lazy name, so we return the same type name
      * for both.
      */
     @ExportMessage(name = "getMetaQualifiedName")
@@ -158,7 +158,7 @@ public final class LSPrototype extends LSObject {
     /*
      * The interop message isMetaInstance might be used from other languages or by the {@link
      * LSIsInstanceBuiltin isInstance} builtin. It checks whether a given value, which might be a
-     * primitive, foreign or Lazy value is of a given Lazy type. This allows other languages to make
+     * primitive, foreign or LazyScript value is of a given LazyScript type. This allows other languages to make
      * their instanceOf interopable with foreign values.
      */
     @ExportMessage

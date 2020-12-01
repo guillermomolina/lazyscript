@@ -109,7 +109,7 @@ public final class LSFunction extends LSObject {
 
     /**
      * This method is, e.g., called when using a function literal in a string concatenation. So
-     * changing it has an effect on Lazy programs.
+     * changing it has an effect on LazyScript programs.
      */
     @Override
     public String toString() {
@@ -205,13 +205,13 @@ public final class LSFunction extends LSObject {
          * Inline cached specialization of the dispatch.
          *
          * <p>
-         * Since Lazy is a quite lazy language, the benefit of the inline cache seems small: after
+         * Since LazyScript is a quite lazy language, the benefit of the inline cache seems small: after
          * checking that the actual function to be executed is the same as the cachedFuntion, we can
          * safely execute the cached call target. You can reasonably argue that caching the call
          * target is overkill, since we could just retrieve it via {@code function.getCallTarget()}.
          * However, caching the call target and using a {@link DirectCallNode} allows Truffle to
          * perform method inlining. In addition, in a more complex language the lookup of the call
-         * target is usually much more complicated than in Lazy.
+         * target is usually much more complicated than in LazyScript.
          * </p>
          *
          * <p>
@@ -263,7 +263,7 @@ public final class LSFunction extends LSObject {
         protected static Object doIndirect(LSFunction function, Object[] arguments,
                         @Cached IndirectCallNode callNode) {
             /*
-             * Lazy has a quite lazy call lookup: just ask the function for the current call target,
+             * LazyScript has a quite lazy call lookup: just ask the function for the current call target,
              * and call it.
              */
             return callNode.call(function.getCallTarget(), arguments);

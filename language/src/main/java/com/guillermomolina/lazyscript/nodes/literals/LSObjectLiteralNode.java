@@ -87,7 +87,7 @@ public final class LSObjectLiteralNode extends LSExpressionNode {
             try {
                 library.writeMember(object, (String) name, value);
             } catch (UnsupportedMessageException | UnknownIdentifierException | UnsupportedTypeException e) {
-                // write was not successful. In Lazy we only have basic support for errors.
+                // write was not successful. In LazyScript we only have basic support for errors.
                 throw LSUndefinedNameException.undefinedProperty(this, name);
             }
         }

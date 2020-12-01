@@ -95,7 +95,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.Source;
 
 /**
- * The run-time state of Lazy during execution. The topContext is created by the
+ * The run-time state of LazyScript during execution. The topContext is created by the
  * {@link LazyScriptLanguage}. It is used, for example, by
  * {@link LSBuiltinNode#getContext() builtin functions}.
  * <p>
@@ -106,7 +106,7 @@ import com.oracle.truffle.api.source.Source;
  */
 public final class LSContext {
 
-    private static final Source BUILTIN_SOURCE = Source.newBuilder(LazyScriptLanguage.ID, "", "Lazy builtin").build();
+    private static final Source BUILTIN_SOURCE = Source.newBuilder(LazyScriptLanguage.ID, "", "LazyScript builtin").build();
 
     private final Env env;
     private final BufferedReader input;

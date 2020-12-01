@@ -326,7 +326,7 @@ public class LSTestRunner extends ParentRunner<TestCase> {
 
     private static void run(Context context, Path path, PrintWriter out) throws IOException {
         try {
-            /* Parse the Lazy source file. */
+            /* Parse the LazyScript source file. */
             Source source = Source.newBuilder(LazyScriptLanguage.ID, path.toFile()).interactive(true).build();
 
             /* Call the main entry point, without any arguments. */

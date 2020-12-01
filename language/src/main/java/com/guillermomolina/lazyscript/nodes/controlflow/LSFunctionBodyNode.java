@@ -49,7 +49,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 /**
- * The body of a user-defined Lazy function. This is the node referenced by a {@link LSRootNode} for
+ * The body of a user-defined LazyScript function. This is the node referenced by a {@link LSRootNode} for
  * user-defined functions. It handles the return value of a function: the {@link LSReturnNode return
  * statement} throws an {@link LSReturnException exception} with the return value. This node catches
  * the exception. If the method ends without an explicit {@code return}, return the

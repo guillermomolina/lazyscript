@@ -52,7 +52,7 @@ import com.oracle.truffle.api.dsl.TypeCheck;
 import com.oracle.truffle.api.dsl.TypeSystem;
 
 /**
- * The type system of Lazy, as explained in {@link LazyScriptLanguage}. Based on the {@link TypeSystem}
+ * The type system of LazyScript, as explained in {@link LazyScriptLanguage}. Based on the {@link TypeSystem}
  * annotation, the Truffle DLL generates the subclass {@link LSTypesGen} with type test and type
  * conversion methods for some types. In this class, we only cover types where the automatically
  * generated ones would not be sufficient.
@@ -84,7 +84,7 @@ public abstract class LSTypes {
 
     /**
      * Informs the Truffle DLL that a primitive {@code long} value can be used in all
-     * specializations where a {@link LSBigInteger} is expected. This models the semantic of Lazy: It
+     * specializations where a {@link LSBigInteger} is expected. This models the semantic of LazyScript: It
      * only has an arbitrary precision Number type (implemented as {@link LSBigInteger}, and
      * {@code long} is only used as a performance optimization to avoid the costly
      * {@link LSBigInteger} arithmetic for values that fit into a 64-bit primitive value.

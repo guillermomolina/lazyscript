@@ -53,10 +53,10 @@ import com.oracle.truffle.api.nodes.RootNode;
  *
  * <ul>
  * <li>Lazily registration of functions on first execution. This fulfills the semantics of
- * "evaluating" source code in Lazy.</li>
- * <li>Conversion of arguments to types understood by Lazy. The Lazy source code can be evaluated from a
+ * "evaluating" source code in LazyScript.</li>
+ * <li>Conversion of arguments to types understood by LazyScript. The LazyScript source code can be evaluated from a
  * different language, i.e., the caller can be a node from a different language that uses types not
- * understood by Lazy.</li>
+ * understood by LazyScript.</li>
  * </ul>
  */
 public final class LSEvalRootNode extends RootNode {
@@ -94,7 +94,7 @@ public final class LSEvalRootNode extends RootNode {
             /* The source code did not have a "main" function, so nothing to execute. */
             return LSNull.INSTANCE;
         } else {
-            /* Conversion of arguments to types understood by Lazy. */
+            /* Conversion of arguments to types understood by LazyScript. */
             Object[] frameArguments = frame.getArguments();
             Object[] arguments = new Object[frameArguments.length + 1];
             arguments[0] = lookupContextReference(LazyScriptLanguage.class).get().getTopContext();

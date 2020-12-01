@@ -55,7 +55,7 @@ import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 
 /**
- * The node to normalize any value to an Lazy value. This is useful to reduce the number of values
+ * The node to normalize any value to an LazyScript value. This is useful to reduce the number of values
  * expression nodes need to expect.
  */
 @TypeSystemReference(LSTypes.class)

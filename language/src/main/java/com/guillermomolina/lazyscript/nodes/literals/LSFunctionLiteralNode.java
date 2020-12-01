@@ -50,7 +50,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
- * Constant literal for a Lazy functions.
+ * Constant literal for a LazyScript functions.
  */
 @NodeInfo(shortName = "const")
 public final class LSFunctionLiteralNode extends LSExpressionNode {

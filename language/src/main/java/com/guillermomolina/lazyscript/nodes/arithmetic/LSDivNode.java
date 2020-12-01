@@ -50,7 +50,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
  * This class is similar to the extensively documented {@link LSAddNode}. Divisions by 0 throw the
- * same {@link ArithmeticException exception} as in Java, Lazy has no special handling for it to keep
+ * same {@link ArithmeticException exception} as in Java, LazyScript has no special handling for it to keep
  * the code lazy.
  */
 @NodeInfo(shortName = "/")

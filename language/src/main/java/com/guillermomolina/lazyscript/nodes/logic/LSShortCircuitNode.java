@@ -47,7 +47,7 @@ import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
 
 /**
- * Logical operations in Lazy use short circuit evaluation: if the evaluation of the left operand
+ * Logical operations in LazyScript use short circuit evaluation: if the evaluation of the left operand
  * already decides the result of the operation, the right operand must not be executed. This is
  * expressed in using this base class for {@link LSLogicalAndNode} and {@link LSLogicalOrNode}.
  */

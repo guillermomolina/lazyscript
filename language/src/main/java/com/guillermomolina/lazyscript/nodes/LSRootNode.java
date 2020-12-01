@@ -50,12 +50,12 @@ import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
 /**
- * The root of all Lazy execution trees. It is a Truffle requirement that the tree root extends the
+ * The root of all LazyScript execution trees. It is a Truffle requirement that the tree root extends the
  * class {@link RootNode}. This class is used for both builtin and user-defined functions. For
  * builtin functions, the {@link #bodyNode} is a subclass of {@link LSBuiltinNode}. For user-defined
  * functions, the {@link #bodyNode} is a {@link LSFunctionBodyNode}.
  */
-@NodeInfo(language = "LazyScript", description = "The root of all Lazy execution trees")
+@NodeInfo(language = "LazyScript", description = "The root of all LazyScript execution trees")
 public class LSRootNode extends RootNode {
     /** The function body that is executed, and specialized during execution. */
     @Child private LSExpressionNode bodyNode;

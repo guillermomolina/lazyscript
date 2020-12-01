@@ -53,8 +53,8 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.SourceSection;
 
 /**
- * Lazy does not need a sophisticated error checking and reporting mechanism, so all unexpected
- * conditions just abort execution. This exception class is used when we abort from within the Lazy
+ * LazyScript does not need a sophisticated error checking and reporting mechanism, so all unexpected
+ * conditions just abort execution. This exception class is used when we abort from within the LazyScript
  * implementation.
  */
 public class LSException extends RuntimeException implements TruffleException {
@@ -80,7 +80,7 @@ public class LSException extends RuntimeException implements TruffleException {
     }
 
     /**
-     * Provides a user-readable message for run-time type errors. Lazy is strongly typed, i.e., there
+     * Provides a user-readable message for run-time type errors. LazyScript is strongly typed, i.e., there
      * are no automatic type conversions of values.
      */
     @TruffleBoundary

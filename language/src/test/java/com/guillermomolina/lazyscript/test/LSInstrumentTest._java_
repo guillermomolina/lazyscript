@@ -96,7 +96,7 @@ import org.graalvm.polyglot.Value;
 import org.junit.Test;
 
 /**
- * Test of Lazy instrumentation.
+ * Test of LazyScript instrumentation.
  */
 public class LSInstrumentTest {
 

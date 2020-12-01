@@ -57,7 +57,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
- * The node for function invocation in Lazy. Since Lazy has first class
+ * The node for function invocation in LazyScript. Since LazyScript has first class
  * functions, the {@link LSFunction target function} can be computed by an
  * arbitrary expression. This node is responsible for evaluating this
  * expression, as well as evaluating the {@link #argumentNodes arguments}. The

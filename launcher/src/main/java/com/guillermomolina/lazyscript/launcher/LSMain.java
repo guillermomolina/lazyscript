@@ -55,7 +55,7 @@ import org.graalvm.polyglot.Value;
 
 public final class LSMain {
 
-    private static final String Lazy = "ls";
+    private static final String LazyScript = "ls";
 
     /**
      * The main entry point.
@@ -76,10 +76,10 @@ public final class LSMain {
 
         if (file == null) {
             // @formatter:off
-            source = Source.newBuilder(Lazy, new InputStreamReader(System.in), "<stdin>").build();
+            source = Source.newBuilder(LazyScript, new InputStreamReader(System.in), "<stdin>").build();
             // @formatter:on
         } else {
-            source = Source.newBuilder(Lazy, new File(file)).build();
+            source = Source.newBuilder(LazyScript, new File(file)).build();
         }
 
         System.exit(executeSource(source, System.in, System.out, options));
@@ -89,7 +89,7 @@ public final class LSMain {
         Context context;
         PrintStream err = System.err;
         try {
-            context = Context.newBuilder(Lazy).in(in).out(out).options(options).build();
+            context = Context.newBuilder(LazyScript).in(in).out(out).options(options).build();
         } catch (IllegalArgumentException e) {
             err.println(e.getMessage());
             return 1;

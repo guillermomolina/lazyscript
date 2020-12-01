@@ -47,7 +47,7 @@ import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
- * Implementation of the Lazy return statement. We need to unwind an unknown number of interpreter
+ * Implementation of the LazyScript return statement. We need to unwind an unknown number of interpreter
  * frames that are between this {@link LSReturnNode} and the {@link LSFunctionBodyNode} of the
  * method we are exiting. This is done by throwing an {@link LSReturnException exception} that is
  * caught by the {@link LSFunctionBodyNode#executeGeneric function body}. The exception transports
@@ -69,7 +69,7 @@ public final class LSReturnNode extends LSStatementNode {
             result = valueNode.executeGeneric(frame);
         } else {
             /*
-             * Return statement that was not followed by an expression, so return the Lazy null value.
+             * Return statement that was not followed by an expression, so return the LazyScript null value.
              */
             result = LSNull.INSTANCE;
         }

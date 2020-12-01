@@ -50,7 +50,7 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.utilities.TriState;
 
 /**
- * The Lazy type for a {@code null} (i.e., undefined) value. In Truffle, it is generally discouraged
+ * The LazyScript type for a {@code null} (i.e., undefined) value. In Truffle, it is generally discouraged
  * to use the Java {@code null} value to represent the guest language {@code null} value. It is not
  * possible to specialize on Java {@code null} (since you cannot ask it for the Java class), and
  * there is always the danger of a spurious {@link NullPointerException}. Representing the guest
@@ -61,7 +61,7 @@ import com.oracle.truffle.api.utilities.TriState;
 public final class LSNull implements TruffleObject {
 
     /**
-     * The canonical value to represent {@code null} in Lazy.
+     * The canonical value to represent {@code null} in LazyScript.
      */
     public static final LSNull INSTANCE = new LSNull();
     private static final int IDENTITY_HASH = System.identityHashCode(INSTANCE);
@@ -75,7 +75,7 @@ public final class LSNull implements TruffleObject {
 
     /**
      * This method is, e.g., called when using the {@code null} value in a string concatenation. So
-     * changing it has an effect on Lazy programs.
+     * changing it has an effect on LazyScript programs.
      */
     @Override
     public String toString() {

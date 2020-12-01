@@ -77,7 +77,7 @@ public abstract class LSReadPropertyNode extends LSExpressionNode {
         try {
             return arrays.readArrayElement(receiver, numbers.asLong(index));
         } catch (UnsupportedMessageException | InvalidArrayIndexException e) {
-            // read was not successful. In Lazy we only have basic support for errors.
+            // read was not successful. In LazyScript we only have basic support for errors.
             throw LSUndefinedNameException.undefinedProperty(this, index);
         }
     }
@@ -88,7 +88,7 @@ public abstract class LSReadPropertyNode extends LSExpressionNode {
         try {
             return objects.readMember(receiver, asMember.execute(name));
         } catch (UnsupportedMessageException | UnknownIdentifierException e) {
-            // read was not successful. In Lazy we only have basic support for errors.
+            // read was not successful. In LazyScript we only have basic support for errors.
             throw LSUndefinedNameException.undefinedProperty(this, name);
         }
     }
@@ -103,7 +103,7 @@ public abstract class LSReadPropertyNode extends LSExpressionNode {
             }
             return objects.readMember(prototype, asMember.execute(name));
         } catch (UnsupportedMessageException | UnknownIdentifierException e) {
-            // read was not successful. In Lazy we only have basic support for errors.
+            // read was not successful. In LazyScript we only have basic support for errors.
             throw LSUndefinedNameException.undefinedProperty(this, name);
         }
     }

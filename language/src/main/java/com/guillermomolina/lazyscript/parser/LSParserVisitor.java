@@ -110,9 +110,9 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.Interval;
 
 /**
- * Helper class used by the Lazy {@link Parser} to create nodes. The code is
+ * Helper class used by the LazyScript {@link Parser} to create nodes. The code is
  * factored out of the automatically generated parser to keep the attributed
- * grammar of Lazy small.
+ * grammar of LazyScript small.
  */
 public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
@@ -779,7 +779,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     /**
      * Returns a {@link LSReadLocalVariableNode} if this read is a local variable or
-     * a {@link LSReadPropertyNode} if this read is from the object. In Lazy, there
+     * a {@link LSReadPropertyNode} if this read is from the object. In LazyScript, there
      * are no global names.
      *
      * @param nameNode The name of the variable/function being read

@@ -99,7 +99,7 @@ public class LSSeparatedClassLoadersTest {
 
         Map<?, ?> languages = (Map<?, ?>) engineClass.getMethod("getLanguages").invoke(engine);
         Object lang = languages.get("ls");
-        assertNotNull("Lazy language found: " + languages, lang);
+        assertNotNull("LazyScript language found: " + languages, lang);
     }
 
     @After

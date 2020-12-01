@@ -333,7 +333,7 @@ public class LSDebugDirectTest {
 
         String val = value.toString();
         assertNotNull(val);
-        assertEquals("Lazy displays null as NULL", "NULL", val);
+        assertEquals("LazyScript displays null as NULL", "NULL", val);
     }
 
     private void performWork() {

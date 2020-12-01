@@ -66,7 +66,7 @@ import com.oracle.truffle.api.nodes.NodeVisitor;
 import com.oracle.truffle.api.nodes.RootNode;
 
 /**
- * Lazy language lexical scope. There can be a block scope, or function scope.
+ * LazyScript language lexical scope. There can be a block scope, or function scope.
  */
 public final class LSLexicalScope {
 
@@ -78,7 +78,7 @@ public final class LSLexicalScope {
     private Map<String, FrameSlot> varSlots;
 
     /**
-     * Create a new block Lazy lexical scope.
+     * Create a new block LazyScript lexical scope.
      *
      * @param current the current node
      * @param block a nearest block enclosing the current node
@@ -92,7 +92,7 @@ public final class LSLexicalScope {
     }
 
     /**
-     * Create a new functional Lazy lexical scope.
+     * Create a new functional LazyScript lexical scope.
      *
      * @param current the current node, or <code>null</code> when it would be above the block
      * @param block a nearest block enclosing the current node
@@ -111,9 +111,9 @@ public final class LSLexicalScope {
             // We're in the root.
             block = findChildrenBlock(node);
             if (block == null) {
-                // Corrupted Lazy AST, no block was found
+                // Corrupted LazyScript AST, no block was found
                 RootNode root = node.getRootNode();
-                assert root instanceof LSEvalRootNode || root instanceof LSRootNode : "Corrupted Lazy AST under " + node;
+                assert root instanceof LSEvalRootNode || root instanceof LSRootNode : "Corrupted LazyScript AST under " + node;
                 return new LSLexicalScope(null, null, (LSBlockNode) null);
             }
             node = null; // node is above the block
@@ -303,7 +303,7 @@ public final class LSLexicalScope {
                     args.put(name, slot);
                     return true;
                 } else if (wn == null && (node instanceof LSStatementNode)) {
-                    // A different Lazy node - we're done.
+                    // A different LazyScript node - we're done.
                     return false;
                 } else {
                     return NodeUtil.forEachChild(node, this);

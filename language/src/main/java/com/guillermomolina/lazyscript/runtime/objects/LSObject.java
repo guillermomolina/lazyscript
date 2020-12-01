@@ -60,23 +60,23 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.utilities.TriState;
 
 /**
- * Represents an Lazy object.
+ * Represents an LazyScript object.
  *
- * This class defines operations that can be performed on Lazy Objects. While we
+ * This class defines operations that can be performed on LazyScript Objects. While we
  * could define all these operations as individual AST nodes, we opted to define
  * those operations by using {@link com.oracle.truffle.api.library.Library a
  * Truffle library}, or more concretely the {@link InteropLibrary}. This has
- * several advantages, but the primary one is that it allows Lazy objects to be
+ * several advantages, but the primary one is that it allows LazyScript objects to be
  * used in the interoperability message protocol, i.e. It allows other languages
- * and tools to operate on Lazy objects without necessarily knowing they are
- * Lazy objects.
+ * and tools to operate on LazyScript objects without necessarily knowing they are
+ * LazyScript objects.
  *
- * Lazy Objects are essentially instances of {@link DynamicObject} (objects
+ * LazyScript Objects are essentially instances of {@link DynamicObject} (objects
  * whose members can be dynamically added and removed). We also annotate the
  * class with {@link ExportLibrary} with value {@link InteropLibrary
  * InteropLibrary.class}. This essentially ensures that the build system and
  * runtime know that this class specifies the interop messages (i.e. operations)
- * that Lazy can do on {@link LSObject} instances.
+ * that LazyScript can do on {@link LSObject} instances.
  *
  * @see ExportLibrary
  * @see ExportMessage
