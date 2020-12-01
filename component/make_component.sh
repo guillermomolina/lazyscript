@@ -53,7 +53,7 @@ fi
 readonly COMPONENT_DIR="component_temp_dir"
 readonly LANGUAGE_PATH="$COMPONENT_DIR/$JRE/languages/lazy"
 if [[ -f ../native/lsnative ]]; then
-    INCLUDE_LLNATIVE="TRUE"
+    INCLUDE_LSNATIVE="TRUE"
 fi
 
 rm -rf COMPONENT_DIR
@@ -66,7 +66,7 @@ cp ../launcher/target/ls-launcher.jar "$LANGUAGE_PATH/launcher/"
 
 mkdir -p "$LANGUAGE_PATH/bin"
 cp ../lazyscript$LANGUAGE_PATH/bin/
-if [[ $INCLUDE_LLNATIVE = "TRUE" ]]; then
+if [[ $INCLUDE_LSNATIVE = "TRUE" ]]; then
     cp ../native/lsnative $LANGUAGE_PATH/bin/
 fi
 
@@ -86,7 +86,7 @@ cd $COMPONENT_DIR || exit 1
 jar cfm ../ls-component.jar META-INF/MANIFEST.MF .
 
 echo "bin/lazy = ../$JRE/languages/lazyscript/bin/lazy" > META-INF/symlinks
-if [[ $INCLUDE_LLNATIVE = "TRUE" ]]; then
+if [[ $INCLUDE_LSNATIVE = "TRUE" ]]; then
     echo "bin/lsnative = ../$JRE/languages/lazyscript/bin/lsnative" >> META-INF/symlinks
 fi
 jar uf ../ls-component.jar META-INF/symlinks

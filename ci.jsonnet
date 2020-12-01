@@ -9,7 +9,7 @@
     ],
 
     environment+: {
-      LL_BUILD_NATIVE: 'false'
+      LS_BUILD_NATIVE: 'false'
     },
   },
 

@@ -40,8 +40,8 @@
 # SOFTWARE.
 #
 
-if [[ $LL_BUILD_NATIVE == "false" ]]; then
-    echo "Skipping the native image build because LL_BUILD_NATIVE is set to false."
+if [[ $LS_BUILD_NATIVE == "false" ]]; then
+    echo "Skipping the native image build because LS_BUILD_NATIVE is set to false."
     exit 0
 fi
 "$JAVA_HOME"/bin/native-image \

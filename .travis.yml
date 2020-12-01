@@ -11,7 +11,7 @@ jdk:
 env:
     - GRAALVM_VERSION="20.1.0" GRAALVM_JAVA_VERSION="8"
     - GRAALVM_VERSION="20.1.0" GRAALVM_JAVA_VERSION="11"
-    - GRAALVM_VERSION="NONE" LL_BUILD_NATIVE="false"
+    - GRAALVM_VERSION="NONE" LS_BUILD_NATIVE="false"
 
 matrix:
     exclude:
@@ -27,7 +27,7 @@ matrix:
           # There seems to be an issue with this setup where maven runs on java 10
         - jdk: openjdk11
           os: osx
-          env: GRAALVM_VERSION="NONE" LL_BUILD_NATIVE="false"
+          env: GRAALVM_VERSION="NONE" LS_BUILD_NATIVE="false"
 
 install:
     - cd .. && mv lazyscript "lazyscript language" && cd "lazyscript language"

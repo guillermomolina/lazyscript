@@ -67,7 +67,7 @@ public abstract class LSTypes {
      * singleton} instance.
      */
     @TypeCheck(LSNull.class)
-    public static boolean isLLNull(Object value) {
+    public static boolean isLSNull(Object value) {
         return value == LSNull.INSTANCE;
     }
 
@@ -77,8 +77,8 @@ public abstract class LSTypes {
      * because we know that there is only a {@link LSNull#INSTANCE singleton} instance.
      */
     @TypeCast(LSNull.class)
-    public static LSNull asLLNull(Object value) {
-        assert isLLNull(value);
+    public static LSNull asLSNull(Object value) {
+        assert isLSNull(value);
         return LSNull.INSTANCE;
     }
 
