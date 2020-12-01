@@ -107,7 +107,7 @@ final class FunctionsObject implements TruffleObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return LSType.OBJECT;
+        return LSPrototype.OBJECT;
     }
 
     @ExportMessage

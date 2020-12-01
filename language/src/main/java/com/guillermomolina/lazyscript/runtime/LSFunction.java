@@ -154,7 +154,7 @@ public final class LSFunction extends LSObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return LSType.FUNCTION;
+        return LSPrototype.FUNCTION;
     }
 
     @ExportMessage

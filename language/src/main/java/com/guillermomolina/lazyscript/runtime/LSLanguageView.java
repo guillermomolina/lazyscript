@@ -99,7 +99,7 @@ public final class LSLanguageView implements TruffleObject {
          * LSFunction is already associated with the LazyScript and therefore the language view will
          * not be used.
          */
-        for (LSType type : LSType.PRECEDENCE) {
+        for (LSPrototype type : LSPrototype.PRECEDENCE) {
             if (type.isInstance(delegate, interop)) {
                 return true;
             }
@@ -113,7 +113,7 @@ public final class LSLanguageView implements TruffleObject {
         /*
          * We do the same as in hasMetaObject but actually return the type this time.
          */
-        for (LSType type : LSType.PRECEDENCE) {
+        for (LSPrototype type : LSPrototype.PRECEDENCE) {
             if (type.isInstance(delegate, interop)) {
                 return type;
             }
@@ -124,22 +124,22 @@ public final class LSLanguageView implements TruffleObject {
     @ExportMessage
     @ExplodeLoop
     Object toDisplayString(boolean allowSideEffects, @CachedLibrary("this.delegate") InteropLibrary interop) {
-        for (LSType type : LSType.PRECEDENCE) {
+        for (LSPrototype type : LSPrototype.PRECEDENCE) {
             if (type.isInstance(this.delegate, interop)) {
                 try {
                     /*
                      * The type is a partial evaluation constant here as we use @ExplodeLoop. So
                      * this if-else cascade should fold after partial evaluation.
                      */
-                    if (type == LSType.INTEGER) {
+                    if (type == LSPrototype.INTEGER) {
                         return longToString(interop.asLong(delegate));
-                    } else if (type == LSType.BIGINTEGER) {
+                    } else if (type == LSPrototype.BIGINTEGER) {
                         return longToString(interop.asLong(delegate));
-                    } else if (type == LSType.DECIMAL) {
+                    } else if (type == LSPrototype.DECIMAL) {
                         return doubleToString(interop.asDouble(delegate));
-                    } else if (type == LSType.BOOLEAN) {
+                    } else if (type == LSPrototype.BOOLEAN) {
                         return Boolean.toString(interop.asBoolean(delegate));
-                    } else if (type == LSType.STRING) {
+                    } else if (type == LSPrototype.STRING) {
                         return interop.asString(delegate);
                     } else {
                         /* We use the type name as fallback for any other type */

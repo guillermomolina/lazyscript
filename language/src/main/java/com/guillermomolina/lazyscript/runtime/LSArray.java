@@ -76,7 +76,7 @@ public class LSArray extends LSObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return LSType.ARRAY;
+        return LSPrototype.ARRAY;
     }
 
     @ExportMessage

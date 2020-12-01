@@ -106,7 +106,7 @@ public final class LSNull implements TruffleObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return LSType.NULL;
+        return LSPrototype.NULL;
     }
 
     @ExportMessage

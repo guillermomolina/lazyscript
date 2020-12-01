@@ -91,6 +91,11 @@ public class LSObject extends DynamicObject {
         super(SHAPE);
     }
 
+    public LSObject(LSObject prototype) {
+        super(SHAPE);
+        setPrototype(prototype);
+    }
+
     public Object getPrototype() {
         Object prototype = LSObjectUtil.getProperty(this, PROTOTYPE);
         if (prototype == LSNull.INSTANCE) {
@@ -170,7 +175,7 @@ public class LSObject extends DynamicObject {
 
     @ExportMessage
     Object getMetaObject() {
-        return LSType.OBJECT;
+        return LSPrototype.OBJECT;
     }
 
     @ExportMessage

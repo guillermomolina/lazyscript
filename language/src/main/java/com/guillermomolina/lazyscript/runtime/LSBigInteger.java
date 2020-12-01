@@ -222,7 +222,7 @@ public final class LSBigInteger implements TruffleObject, Comparable<LSBigIntege
 
     @ExportMessage
     Object getMetaObject() {
-        return LSType.BIGINTEGER;
+        return LSPrototype.BIGINTEGER;
     }
 
     @ExportMessage

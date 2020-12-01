@@ -48,7 +48,6 @@ import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -71,30 +70,29 @@ import com.oracle.truffle.api.library.ExportMessage;
  * assigned using language views. See {@link LazyScriptLanguage#getLanguageView}.
  */
 @ExportLibrary(InteropLibrary.class)
-public final class LSType implements TruffleObject {
+public final class LSPrototype extends LSObject {
 
     /*
      * These are the sets of builtin types in lazy languages. In case of lazy language the types
      * nicely match those of the types in InteropLibrary. This might not be the case and more
      * additional checks need to be performed (similar to number checking for LSBigInteger).
      */
-    public static final LSType NULL = new LSType("Null", (l, v) -> l.isNull(v));
-    public static final LSType INTEGER = new LSType("Integer", (l, v) -> l.fitsInLong(v));
-    public static final LSType DECIMAL = new LSType("Decimal", (l, v) -> l.fitsInDouble(v));
-    public static final LSType BIGINTEGER = new LSType("BigInteger", (l, v) -> v instanceof LSBigInteger);
-    public static final LSType STRING = new LSType("String", (l, v) -> l.isString(v));
-    public static final LSType BOOLEAN = new LSType("Boolean", (l, v) -> l.isBoolean(v));
-    public static final LSType FUNCTION = new LSType("Function", (l, v) -> l.isExecutable(v));
-    public static final LSType ARRAY = new LSType("Array", (l, v) -> l.hasArrayElements(v));
-    public static final LSType OBJECT = new LSType("Object", (l, v) -> l.hasMembers(v));
+    public static final LSPrototype NULL = new LSPrototype("Null", (l, v) -> l.isNull(v));
+    public static final LSPrototype INTEGER = new LSPrototype("Integer", (l, v) -> l.fitsInLong(v));
+    public static final LSPrototype DECIMAL = new LSPrototype("Decimal", (l, v) -> l.fitsInDouble(v));
+    public static final LSPrototype BIGINTEGER = new LSPrototype("BigInteger", (l, v) -> v instanceof LSBigInteger);
+    public static final LSPrototype STRING = new LSPrototype("String", (l, v) -> l.isString(v));
+    public static final LSPrototype BOOLEAN = new LSPrototype("Boolean", (l, v) -> l.isBoolean(v));
+    public static final LSPrototype FUNCTION = new LSPrototype("Function", (l, v) -> l.isExecutable(v));
+    public static final LSPrototype ARRAY = new LSPrototype("Array", (l, v) -> l.hasArrayElements(v));
+    public static final LSPrototype OBJECT = new LSPrototype("Object", (l, v) -> l.hasMembers(v));
 
     /*
      * This array is used when all types need to be checked in a certain order. While most interop
      * types like number or string are exclusive, others traits like members might not be. For
-     * example, an object might be a function. In LazyScript we decided to make functions,
-     * functions and not objects.
+     * example, an object might be a function.
      */
-    @CompilationFinal(dimensions = 1) public static final LSType[] PRECEDENCE = new LSType[]{NULL, INTEGER, DECIMAL, BIGINTEGER, STRING, BOOLEAN, FUNCTION, ARRAY, OBJECT};
+    @CompilationFinal(dimensions = 1) public static final LSPrototype[] PRECEDENCE = new LSPrototype[]{NULL, INTEGER, DECIMAL, BIGINTEGER, STRING, BOOLEAN, FUNCTION, ARRAY, OBJECT};
 
     private final String name;
     private final TypeCheck isInstance;
@@ -103,14 +101,14 @@ public final class LSType implements TruffleObject {
      * We don't allow dynamic instances of LSType. Real languages might want to expose this for
      * types that are user defined.
      */
-    private LSType(String name, TypeCheck isInstance) {
+    private LSPrototype(String name, TypeCheck isInstance) {
         this.name = name;
         this.isInstance = isInstance;
     }
 
     /**
      * Checks whether this type is of a certain instance. If used on fast-paths it is required to
-     * cast {@link LSType} to a constant.
+     * cast {@link LSPrototype} to a constant.
      */
     public boolean isInstance(Object value, InteropLibrary interop) {
         CompilerAsserts.partialEvaluationConstant(this);
@@ -173,15 +171,15 @@ public final class LSType implements TruffleObject {
          * real world benchmarks.
          */
         @Specialization(guards = "type == cachedType", limit = "3")
-        static boolean doCached(LSType type, Object value,
-                        @Cached("type") LSType cachedType,
+        static boolean doCached(LSPrototype type, Object value,
+                        @Cached("type") LSPrototype cachedType,
                         @CachedLibrary("value") InteropLibrary valueLib) {
             return cachedType.isInstance.check(valueLib, value);
         }
 
         @TruffleBoundary
         @Specialization(replaces = "doCached")
-        static boolean doGeneric(LSType type, Object value) {
+        static boolean doGeneric(LSPrototype type, Object value) {
             return type.isInstance.check(InteropLibrary.getFactory().getUncached(), value);
         }
     }
