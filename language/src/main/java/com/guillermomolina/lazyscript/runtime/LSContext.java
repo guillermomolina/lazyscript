@@ -179,9 +179,9 @@ public final class LSContext {
         return createObject(objectPrototype);
     }
 
-    public LSFunction createFunction(RootCallTarget callTarget) {
+    public LSFunction createFunction(final String name, RootCallTarget callTarget) {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
-        LSFunction function = new LSFunction(callTarget);
+        LSFunction function = new LSFunction(name, callTarget);
         function.setPrototype(functionPrototype);
         allocationReporter.onReturnValue(function, 0, AllocationReporter.SIZE_UNKNOWN);
         return function;
@@ -303,7 +303,7 @@ public final class LSContext {
         LSRootNode rootNode = new LSRootNode(language, new FrameDescriptor(), builtinBodyNode,
                 BUILTIN_SOURCE.createUnavailableSection(), name);
         RootCallTarget rootCallTarget = Truffle.getRuntime().createCallTarget(rootNode);
-        LSFunction rootFunction = createFunction(rootCallTarget);
+        LSFunction rootFunction = createFunction(name, rootCallTarget);
         LSObjectUtil.putProperty(objectPrototype, name, rootFunction);
     }
 

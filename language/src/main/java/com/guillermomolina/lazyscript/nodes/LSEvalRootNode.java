@@ -99,9 +99,10 @@ public final class LSEvalRootNode extends RootNode {
             return LSNull.INSTANCE;
         } 
         
+        final String name = "main";
         final LSContext context = lookupContextReference(LazyScriptLanguage.class).get();
-        final LSFunction main = context.createFunction(rootCallTarget);
-        LSObjectUtil.putProperty(context.getTopContext(), "main", main);     
+        final LSFunction main = context.createFunction(name, rootCallTarget);
+        LSObjectUtil.putProperty(context.getTopContext(), name, main);     
 
         /* Conversion of arguments to types understood by LazyScript. */
         Object[] frameArguments = frame.getArguments();

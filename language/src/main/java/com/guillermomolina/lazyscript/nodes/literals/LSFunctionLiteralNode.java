@@ -77,7 +77,7 @@ public final class LSFunctionLiteralNode extends LSExpressionNode {
             /* We are about to change a @CompilationFinal field. */
             CompilerDirectives.transferToInterpreterAndInvalidate();
             /* First execution of the node: lookup the function in the function registry. */
-            cachedFunction = lookupContextReference(LazyScriptLanguage.class).get().createFunction(callTarget);
+            cachedFunction = lookupContextReference(LazyScriptLanguage.class).get().createFunction("unnamed", callTarget);
         }
         return cachedFunction;
     }

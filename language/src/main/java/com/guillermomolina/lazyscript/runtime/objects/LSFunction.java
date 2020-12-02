@@ -68,6 +68,9 @@ public final class LSFunction extends LSObject {
 
     private static final TruffleLogger LOG = TruffleLogger.getLogger(LazyScriptLanguage.ID, LSFunction.class);
 
+    /** The name of the function. */
+    private final String name;
+
     /** The current implementation of this function. */
     private RootCallTarget callTarget;
 
@@ -78,24 +81,15 @@ public final class LSFunction extends LSObject {
      */
     private final CyclicAssumption callTargetStable;
 
-    public LSFunction(RootCallTarget callTarget) {
-        //this.callTarget = callTarget;
-        this.callTargetStable = new CyclicAssumption(getName());
-        setCallTarget(callTarget);
+    public LSFunction(final String name, RootCallTarget callTarget) {
+        this.name = name;
+        this.callTarget = callTarget;
+        LOG.log(Level.FINE, "Installed call target for: {0}", getName());
+        this.callTargetStable = new CyclicAssumption(name);
     }
 
     public String getName() {
-        return "aFunction";
-    }
-
-    private void setCallTarget(RootCallTarget callTarget) {
-        this.callTarget = callTarget;
-        /*
-         * We have a new call target. Invalidate all code that speculated that the old call target
-         * was stable.
-         */
-        LOG.log(Level.FINE, "Installed call target for: {0}", getName());
-        callTargetStable.invalidate();
+        return name;
     }
 
     public RootCallTarget getCallTarget() {
