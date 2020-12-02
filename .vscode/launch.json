@@ -17,7 +17,7 @@
             "request": "launch",
             "mainClass": "com.guillermomolina.lazyscript.launcher.LSMain",
             "projectName": "launcher",
-            "args": ["--log.lazyscript.level=FINEST","${file}"],
+            "args": ["--log.ls.level=FINEST","${file}"],
             "vmArgs": [
                 "-ea",
                 "-Dtruffle.class.path.append=./language/target/lazyscript.jar"
@@ -40,7 +40,7 @@
             "mainClass": "com.guillermomolina.lazyscript.launcher.LSMain",
             "projectName": "launcher",
             "args": [
-                "--log.lazyscript.level=FINEST",
+                "--log.ls.level=FINEST",
                 "${workspaceFolder}/language/tests/Literal.ls"
             ],
             "vmArgs": [
@@ -66,7 +66,7 @@
             "projectName": "launcher",
             "args": [
                 "--inspect",
-                "--log.lazyscript.level=FINEST",
+                "--log.ls.level=FINEST",
                 "${file}"
             ],
             "vmArgs": [
@@ -92,7 +92,7 @@
             "projectName": "launcher",
             "args": [
                 "--inspect",
-                "--log.lazyscript.level=FINEST",
+                "--log.ls.level=FINEST",
                 "${workspaceFolder}/language/tests/Literal.ls"
             ],
             "vmArgs": [
