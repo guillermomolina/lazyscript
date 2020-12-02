@@ -40,12 +40,12 @@
  */
 package com.guillermomolina.lazyscript.builtins;
 
+import com.guillermomolina.lazyscript.runtime.LSException;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.CachedLibrary;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazyscript.LSException;
 
 /**
  * Built-in function that queries the size property of a foreign object. See

@@ -43,9 +43,9 @@ package com.guillermomolina.lazyscript.builtins;
 import java.io.BufferedReader;
 import java.io.IOException;
 
-import com.guillermomolina.lazyscript.LSException;
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
+import com.guillermomolina.lazyscript.runtime.LSException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.dsl.CachedContext;
 import com.oracle.truffle.api.dsl.Specialization;

@@ -40,6 +40,8 @@
  */
 package com.guillermomolina.lazyscript.nodes.local;
 
+import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.interop.NodeObjectDescriptor;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
@@ -51,8 +53,6 @@ import com.oracle.truffle.api.instrumentation.StandardTags.WriteVariableTag;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
-import com.guillermomolina.lazyscript.nodes.interop.NodeObjectDescriptor;
 
 /**
  * Node to write a local variable to a function's {@link VirtualFrame frame}. The Truffle frame API
@@ -67,13 +67,13 @@ public abstract class LSWriteLocalVariableNode extends LSExpressionNode {
      * Returns the descriptor of the accessed local variable. The implementation of this method is
      * created by the Truffle DLL based on the {@link NodeField} annotation on the class.
      */
-    protected abstract FrameSlot getSlot();
+    public abstract FrameSlot getSlot();
 
     /**
      * Returns the child node <code>nameNode</code>. The implementation of this method is created by
      * the Truffle DLL based on the {@link NodeChild} annotation on the class.
      */
-    protected abstract LSExpressionNode getNameNode();
+    public abstract LSExpressionNode getNameNode();
 
     /**
      * Specialized method to write a primitive {@code long} value. This is only possible if the

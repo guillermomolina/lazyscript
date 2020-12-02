@@ -42,9 +42,7 @@ package com.guillermomolina.lazyscript.parser;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.guillermomolina.lazyscript.LazyScriptLanguage;
 import com.guillermomolina.lazyscript.NotImplementedException;
@@ -115,37 +113,6 @@ import org.antlr.v4.runtime.misc.Interval;
  * grammar of LazyScript small.
  */
 public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
-
-    /**
-     * Local variable names that are visible in the current block. Variables are not
-     * visible outside of their defining block, to prevent the usage of undefined
-     * variables. Because of that, we can decide during parsing if a name references
-     * a local variable or is a function name.
-     */
-    static class LexicalScope {
-        public static final String THIS = "this";
-        public static final String CONTEXT = "context";
-        public static final String SUPER = "super";
-        protected final LexicalScope outer;
-        protected final Map<String, FrameSlot> locals;
-        protected final boolean inLoop;
-        protected final List<LSStatementNode> statementNodes;
-        FrameDescriptor frameDescriptor;
-
-        LexicalScope(LexicalScope outer, boolean inLoop) {
-            this.outer = outer;
-            this.inLoop = inLoop;
-            this.locals = new HashMap<>();
-            this.statementNodes = new ArrayList<>();
-            if(inLoop) {
-                this.frameDescriptor = outer.frameDescriptor;
-                locals.putAll(outer.locals);
-            } else {
-                this.frameDescriptor = new FrameDescriptor();
-            }
-        }
-    }
-
     private static final class BailoutErrorListener extends BaseErrorListener {
         private final Source source;
 
@@ -161,7 +128,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         }
     }
 
-    private LexicalScope lexicalScope;
+    private LSLexicalScope lexicalScope;
     private final LazyScriptLanguage language;
     private final Source source;
 
@@ -209,7 +176,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     }
 
     public void pushScope(boolean inLoop) {
-        lexicalScope = new LexicalScope(lexicalScope, inLoop);
+        lexicalScope = new LSLexicalScope(lexicalScope, inLoop);
     }
 
     public void popScope() {
@@ -224,7 +191,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         pushScope(false);
 
         final LSReadArgumentNode readArg0 = new LSReadArgumentNode(0);
-        final LSExpressionNode stringLiteral = new LSStringLiteralNode(LexicalScope.THIS);
+        final LSExpressionNode stringLiteral = new LSStringLiteralNode(LSLexicalScope.THIS);
         LSExpressionNode assignment = createAssignment(stringLiteral, readArg0, 0);
         lexicalScope.statementNodes.add(assignment);
 
@@ -268,7 +235,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         pushScope(false);
 
         LSReadArgumentNode readArg = new LSReadArgumentNode(0);
-        LSExpressionNode stringLiteral = new LSStringLiteralNode(LexicalScope.THIS);
+        LSExpressionNode stringLiteral = new LSStringLiteralNode(LSLexicalScope.THIS);
         LSExpressionNode assignment = createAssignment(stringLiteral, readArg, 0);
         lexicalScope.statementNodes.add(assignment);
         int parameterCount = 1;
@@ -311,7 +278,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         pushScope(false);
 
         LSReadArgumentNode readArg = new LSReadArgumentNode(0);
-        LSExpressionNode stringLiteral = new LSStringLiteralNode(LexicalScope.THIS);
+        LSExpressionNode stringLiteral = new LSStringLiteralNode(LSLexicalScope.THIS);
         LSExpressionNode assignment = createAssignment(stringLiteral, readArg, 0);
         lexicalScope.statementNodes.add(assignment);
         int parameterCount = 1;
@@ -577,7 +544,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             LSExpressionNode functionReceiver, LSExpressionNode functionName) {
         LSExpressionNode receiver;
         if (functionReceiver == null) {
-            FrameSlot frameSlot = lexicalScope.locals.get(LexicalScope.THIS);
+            FrameSlot frameSlot = lexicalScope.locals.get(LSLexicalScope.THIS);
             receiver = LSReadLocalVariableNodeGen.create(frameSlot);
         } else {
             receiver = functionReceiver;
@@ -807,7 +774,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         if (frameSlot != null) {
             result = LSReadLocalVariableNodeGen.create(frameSlot);
         } else {
-            frameSlot = lexicalScope.locals.get(LexicalScope.THIS);
+            frameSlot = lexicalScope.locals.get(LSLexicalScope.THIS);
             final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(frameSlot);
             result = LSReadPropertyNodeGen.create(thisNode, nameNode);
         }

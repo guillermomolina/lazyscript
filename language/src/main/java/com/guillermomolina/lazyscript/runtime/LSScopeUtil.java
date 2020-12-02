@@ -38,7 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.nodes.local;
+package com.guillermomolina.lazyscript.runtime;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -49,6 +49,8 @@ import com.guillermomolina.lazyscript.nodes.LSEvalRootNode;
 import com.guillermomolina.lazyscript.nodes.LSRootNode;
 import com.guillermomolina.lazyscript.nodes.LSStatementNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSBlockNode;
+import com.guillermomolina.lazyscript.nodes.local.LSReadArgumentNode;
+import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.Frame;
@@ -68,13 +70,13 @@ import com.oracle.truffle.api.nodes.RootNode;
 /**
  * LazyScript language lexical scope. There can be a block scope, or function scope.
  */
-public final class LSLexicalScope {
+public final class LSScopeUtil {
 
     private final Node current;
     private final LSBlockNode block;
     private final LSBlockNode parentBlock;
     private final RootNode root;
-    private LSLexicalScope parent;
+    private LSScopeUtil parent;
     private Map<String, FrameSlot> varSlots;
 
     /**
@@ -84,7 +86,7 @@ public final class LSLexicalScope {
      * @param block a nearest block enclosing the current node
      * @param parentBlock a next parent block
      */
-    private LSLexicalScope(Node current, LSBlockNode block, LSBlockNode parentBlock) {
+    private LSScopeUtil(Node current, LSBlockNode block, LSBlockNode parentBlock) {
         this.current = current;
         this.block = block;
         this.parentBlock = parentBlock;
@@ -98,14 +100,14 @@ public final class LSLexicalScope {
      * @param block a nearest block enclosing the current node
      * @param root a functional root node for top-most block
      */
-    private LSLexicalScope(Node current, LSBlockNode block, RootNode root) {
+    private LSScopeUtil(Node current, LSBlockNode block, RootNode root) {
         this.current = current;
         this.block = block;
         this.parentBlock = null;
         this.root = root;
     }
 
-    public static LSLexicalScope createScope(Node node) {
+    public static LSScopeUtil createScope(Node node) {
         LSBlockNode block = getParentBlock(node);
         if (block == null) {
             // We're in the root.
@@ -114,16 +116,16 @@ public final class LSLexicalScope {
                 // Corrupted LazyScript AST, no block was found
                 RootNode root = node.getRootNode();
                 assert root instanceof LSEvalRootNode || root instanceof LSRootNode : "Corrupted LazyScript AST under " + node;
-                return new LSLexicalScope(null, null, (LSBlockNode) null);
+                return new LSScopeUtil(null, null, (LSBlockNode) null);
             }
             node = null; // node is above the block
         }
         // Test if there is a parent block. If not, we're in the root scope.
         LSBlockNode parentBlock = getParentBlock(block);
         if (parentBlock == null) {
-            return new LSLexicalScope(node, block, block.getRootNode());
+            return new LSScopeUtil(node, block, block.getRootNode());
         } else {
-            return new LSLexicalScope(node, block, parentBlock);
+            return new LSScopeUtil(node, block, parentBlock);
         }
     }
 
@@ -158,7 +160,7 @@ public final class LSLexicalScope {
         return blockPtr[0];
     }
 
-    public LSLexicalScope findParent() {
+    public LSScopeUtil findParent() {
         if (parentBlock == null) {
             // This was a root scope.
             return null;
@@ -169,9 +171,9 @@ public final class LSLexicalScope {
             // Test if there is a next parent block. If not, we're in the root scope.
             LSBlockNode newParentBlock = getParentBlock(newBlock);
             if (newParentBlock == null) {
-                parent = new LSLexicalScope(node, newBlock, newBlock.getRootNode());
+                parent = new LSScopeUtil(node, newBlock, newBlock.getRootNode());
             } else {
-                parent = new LSLexicalScope(node, newBlock, newParentBlock);
+                parent = new LSScopeUtil(node, newBlock, newParentBlock);
             }
         }
         return parent;
@@ -238,7 +240,7 @@ public final class LSLexicalScope {
     }
 
     private boolean hasParentVar(String name) {
-        LSLexicalScope p = this;
+        LSScopeUtil p = this;
         while ((p = p.findParent()) != null) {
             if (p.getVars().containsKey(name)) {
                 return true;

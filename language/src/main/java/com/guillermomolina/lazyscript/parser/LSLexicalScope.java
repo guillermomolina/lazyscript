@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2018, Guillermo Adrián Molina. All rights reserved.
+ * Copyright (c) 2012, 2019, Guillermo Adrián Molina. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,31 +38,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript;
+package com.guillermomolina.lazyscript.parser;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.guillermomolina.lazyscript.nodes.LSStatementNode;
+import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.MaterializedFrame;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.RootNode;
 
-final class LSEvaluateLocalNode extends RootNode {
+public class LSLexicalScope {
+    public static final String THIS = "this";
+    public static final String CONTEXT = "context";
+    public static final String SUPER = "super";
+    protected final LSLexicalScope outer;
+    protected final Map<String, FrameSlot> locals;
+    protected final boolean inLoop;
+    protected final List<LSStatementNode> statementNodes;
+    FrameDescriptor frameDescriptor;
 
-    private final String variable;
-    private final MaterializedFrame inspectFrame;
-
-    LSEvaluateLocalNode(LazyScriptLanguage language, String variableName, MaterializedFrame frame) {
-        super(language);
-        this.variable = variableName;
-        this.inspectFrame = frame;
-    }
-
-    @Override
-    public Object execute(VirtualFrame currentFrame) {
-        for (FrameSlot slot : inspectFrame.getFrameDescriptor().getSlots()) {
-            if (variable.equals(slot.getIdentifier())) {
-                return inspectFrame.getValue(slot);
-            }
+    LSLexicalScope(LSLexicalScope outer, boolean inLoop) {
+        this.outer = outer;
+        this.inLoop = inLoop;
+        this.locals = new HashMap<>();
+        this.statementNodes = new ArrayList<>();
+        if(inLoop) {
+            this.frameDescriptor = outer.frameDescriptor;
+            locals.putAll(outer.locals);
+        } else {
+            this.frameDescriptor = new FrameDescriptor();
         }
-        return null;
     }
+
 }

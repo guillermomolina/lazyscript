@@ -40,8 +40,8 @@
  */
 package com.guillermomolina.lazyscript.nodes.logic;
 
-import com.guillermomolina.lazyscript.LSException;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.guillermomolina.lazyscript.runtime.LSException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.ConditionProfile;

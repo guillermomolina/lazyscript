@@ -40,9 +40,9 @@
  */
 package com.guillermomolina.lazyscript.nodes.logic;
 
-import com.guillermomolina.lazyscript.LSException;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.arithmetic.LSAddNode;
+import com.guillermomolina.lazyscript.runtime.LSException;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.Specialization;

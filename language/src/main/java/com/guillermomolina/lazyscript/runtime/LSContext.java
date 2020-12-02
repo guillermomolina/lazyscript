@@ -139,7 +139,6 @@ public final class LSContext {
 
         this.input = new BufferedReader(new InputStreamReader(env.in()));
         this.output = new PrintWriter(env.out(), true);
-        this.topScopes = Collections.singleton(Scope.newBuilder("global", new FunctionsObject()).build());
 
         this.objectPrototype = createObject(LSNull.INSTANCE);
         this.nullPrototype = createObject(objectPrototype);
@@ -154,6 +153,7 @@ public final class LSContext {
         this.stringPrototype = createObject(objectPrototype);
         this.functionPrototype = createObject(objectPrototype);
         this.topContext = createObject(objectPrototype);
+        this.topScopes = Collections.singleton(Scope.newBuilder("global", createObject(objectPrototype)).build());
         installBuiltins();
     }
 

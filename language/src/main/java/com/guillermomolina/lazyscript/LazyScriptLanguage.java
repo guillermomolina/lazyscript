@@ -49,9 +49,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import com.guillermomolina.lazyscript.builtins.LSBuiltinNode;
 import com.guillermomolina.lazyscript.nodes.LSEvalRootNode;
-import com.guillermomolina.lazyscript.nodes.local.LSLexicalScope;
 import com.guillermomolina.lazyscript.parser.LSParserVisitor;
 import com.guillermomolina.lazyscript.runtime.LSContext;
+import com.guillermomolina.lazyscript.runtime.LSScopeUtil;
 import com.guillermomolina.lazyscript.runtime.interop.LSLanguageView;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.Scope;
@@ -114,13 +114,13 @@ public final class LazyScriptLanguage extends TruffleLanguage<LSContext> {
 
     @Override
     public Iterable<Scope> findLocalScopes(LSContext context, Node node, Frame frame) {
-        final LSLexicalScope scope = LSLexicalScope.createScope(node);
+        final LSScopeUtil scope = LSScopeUtil.createScope(node);
         return new Iterable<Scope>() {
             @Override
             public Iterator<Scope> iterator() {
                 return new Iterator<Scope>() {
-                    private LSLexicalScope previousScope;
-                    private LSLexicalScope nextScope = scope;
+                    private LSScopeUtil previousScope;
+                    private LSScopeUtil nextScope = scope;
 
                     @Override
                     public boolean hasNext() {

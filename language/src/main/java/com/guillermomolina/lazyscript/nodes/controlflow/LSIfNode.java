@@ -40,14 +40,14 @@
  */
 package com.guillermomolina.lazyscript.nodes.controlflow;
 
+import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.LSStatementNode;
+import com.guillermomolina.lazyscript.nodes.util.LSUnboxNodeGen;
+import com.guillermomolina.lazyscript.runtime.LSException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
 import com.oracle.truffle.api.profiles.ConditionProfile;
-import com.guillermomolina.lazyscript.LSException;
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
-import com.guillermomolina.lazyscript.nodes.LSStatementNode;
-import com.guillermomolina.lazyscript.nodes.util.LSUnboxNodeGen;
 
 @NodeInfo(shortName = "if", description = "The node implementing a condional statement")
 public final class LSIfNode extends LSStatementNode {

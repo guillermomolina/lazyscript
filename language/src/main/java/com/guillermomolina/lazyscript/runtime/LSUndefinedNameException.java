@@ -40,7 +40,6 @@
  */
 package com.guillermomolina.lazyscript.runtime;
 
-import com.guillermomolina.lazyscript.LSException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.nodes.Node;
 
