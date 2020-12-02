@@ -35,13 +35,13 @@
         },
         {
             "type": "java",
-            "name": "Debug (Launch) LSMain Inlining.ls",
+            "name": "Debug (Launch) Literal.ls",
             "request": "launch",
             "mainClass": "com.guillermomolina.lazyscript.launcher.LSMain",
             "projectName": "launcher",
             "args": [
                 "--log.lazyscript.level=FINEST",
-                "${workspaceFolder}/language/tests/Inlining.ls",
+                "${workspaceFolder}/language/tests/Literal.ls"
             ],
             "vmArgs": [
                 "-ea",
@@ -85,6 +85,32 @@
             "console": "internalConsole"
         },
         {
+            "type": "java",
+            "name": "Debug (Launch and Wait) Literal.ls",
+            "request": "launch",
+            "mainClass": "com.guillermomolina.lazyscript.launcher.LSMain",
+            "projectName": "launcher",
+            "args": [
+                "--inspect",
+                "--log.lazyscript.level=FINEST",
+                "${workspaceFolder}/language/tests/Literal.ls"
+            ],
+            "vmArgs": [
+                "-ea",
+                "-Dtruffle.class.path.append=./language/target/lazyscript.jar"
+            ],
+            "stepFilters": {
+                "skipClasses": [
+                    "$JDK",
+                    "junit.*"
+                ],
+                "skipSynthetics": true,
+                "skipStaticInitializers": true,
+                "skipConstructors": false
+            },
+            "console": "internalConsole"
+        },
+        {
             "type": "graalvm",
             "request": "launch",
             "name": "Launch LazyScript Current File",
@@ -103,6 +129,13 @@
             "name": "Debug LazyScript + Attach",
             "configurations": [
                 "Debug (Launch and Wait) Current File",
+                "GraalVM Attach"
+            ]
+        },
+        {
+            "name": "Debug Literal.ls + Attach",
+            "configurations": [
+                "Debug (Launch and Wait) Literal.ls",
                 "GraalVM Attach"
             ]
         }

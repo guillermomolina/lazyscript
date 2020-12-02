@@ -51,6 +51,7 @@ import com.guillermomolina.lazyscript.builtins.LSBuiltinNode;
 import com.guillermomolina.lazyscript.nodes.LSEvalRootNode;
 import com.guillermomolina.lazyscript.parser.LSParserVisitor;
 import com.guillermomolina.lazyscript.runtime.LSContext;
+import com.guillermomolina.lazyscript.runtime.LSObjectUtil;
 import com.guillermomolina.lazyscript.runtime.LSScopeUtil;
 import com.guillermomolina.lazyscript.runtime.interop.LSLanguageView;
 import com.oracle.truffle.api.CallTarget;
@@ -64,6 +65,7 @@ import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
@@ -99,7 +101,7 @@ public final class LazyScriptLanguage extends TruffleLanguage<LSContext> {
             throw new NotImplementedException();
         }
         RootNode evalMain = new LSEvalRootNode(this, visitor.parse());
-        return Truffle.getRuntime().createCallTarget(evalMain);        
+        return Truffle.getRuntime().createCallTarget(evalMain);
     }
 
     @Override
@@ -145,11 +147,12 @@ public final class LazyScriptLanguage extends TruffleLanguage<LSContext> {
                     }
 
                     private Object findFunctionObject() {
-                        throw new NotImplementedException();
-                        /*
-                         * String name = node.getRootNode().getName(); return
-                         * context.getTopContext().getFunction(name);
-                         */
+                        String name = node.getRootNode().getName();
+                        try {
+                            return LSObjectUtil.getFunction(context.getTopContext(), name);
+                        } catch (UnknownIdentifierException e) {
+                            throw new NoSuchElementException();
+                        }
                     }
                 };
             }

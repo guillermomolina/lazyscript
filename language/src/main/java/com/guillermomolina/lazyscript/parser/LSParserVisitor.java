@@ -162,7 +162,6 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     }
 
     private void setSourceFromContext(LSStatementNode node, ParserRuleContext ctx) {
-        //assert ctx != null;
         if (ctx == null) {
             throw new LSParseError(source, ctx, "Context is null");
         }
@@ -223,11 +222,12 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         assert lexicalScope == null : "Wrong scoping of blocks in parser";
 
         final LSFunctionBodyNode functionBodyNode = new LSFunctionBodyNode(methodBlock);
-        setSourceFromContext(functionBodyNode, ctx);
-        final LSRootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode,
-                functionBodyNode.getSourceSection());
-
-        return rootNode;
+        final int functionStartPos = methodBlock.getSourceCharIndex();
+        final int bodyEndPos = methodBlock.getSourceEndIndex();
+        SourceSection moduleSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
+        functionBodyNode.setSourceSection(moduleSrc.getCharIndex(), moduleSrc.getCharLength());
+        return new LSRootNode(language, frameDescriptor, functionBodyNode,
+        moduleSrc, "main");
     }
 
     @Override
@@ -257,12 +257,13 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         FrameDescriptor frameDescriptor = lexicalScope.frameDescriptor;
         popScope();
 
+        final String functionName = ctx.identifier().getText();
         final LSFunctionBodyNode functionBodyNode = new LSFunctionBodyNode(methodBlock);
         final int functionStartPos = methodBlock.getSourceCharIndex();
         final int bodyEndPos = methodBlock.getSourceEndIndex();
         SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
         functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
-        RootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc);
+        RootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, functionName);
         LSExpressionNode function = new LSFunctionLiteralNode(Truffle.getRuntime().createCallTarget(rootNode));
         setSourceFromContext(function, ctx);
         function.addExpressionTag();
@@ -305,7 +306,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         final int bodyEndPos = methodBlock.getSourceEndIndex();
         SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
         functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
-        RootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc);
+        RootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, "anonymous");
         LSExpressionNode result = new LSFunctionLiteralNode(Truffle.getRuntime().createCallTarget(rootNode));
         setSourceFromContext(result, ctx);
         result.addExpressionTag();
@@ -354,7 +355,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     public Node visitStatement(LazyScriptParser.StatementContext ctx) {
         // Tricky: avoid calling visit on ctx.SEMI()
         if (ctx.getChild(0) != null && ctx.getChild(0) != ctx.SEMI()) {
-            return visit(ctx.getChild(0));
+            return (LSExpressionNode)visit(ctx.getChild(0));
         }
         throw new LSParseError(source, ctx, "Malformed statement");
     }

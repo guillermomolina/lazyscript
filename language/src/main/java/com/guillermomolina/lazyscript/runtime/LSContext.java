@@ -301,7 +301,7 @@ public final class LSContext {
          * RootNode.
          */
         LSRootNode rootNode = new LSRootNode(language, new FrameDescriptor(), builtinBodyNode,
-                BUILTIN_SOURCE.createUnavailableSection());
+                BUILTIN_SOURCE.createUnavailableSection(), name);
         RootCallTarget rootCallTarget = Truffle.getRuntime().createCallTarget(rootNode);
         LSFunction rootFunction = createFunction(rootCallTarget);
         LSObjectUtil.putProperty(objectPrototype, name, rootFunction);

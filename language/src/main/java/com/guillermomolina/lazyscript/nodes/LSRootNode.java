@@ -60,14 +60,18 @@ public class LSRootNode extends RootNode {
     /** The function body that is executed, and specialized during execution. */
     @Child private LSExpressionNode bodyNode;
 
+    /** The name of the function, for printing purposes only. */
+    private final String name;
+
     private boolean isCloningAllowed;
 
     private final SourceSection sourceSection;
 
-    public LSRootNode(LazyScriptLanguage language, FrameDescriptor frameDescriptor, LSExpressionNode bodyNode, SourceSection sourceSection) {
+    public LSRootNode(LazyScriptLanguage language, FrameDescriptor frameDescriptor, LSExpressionNode bodyNode, SourceSection sourceSection, String name) {
         super(language, frameDescriptor);
         this.bodyNode = bodyNode;
         this.sourceSection = sourceSection;
+        this.name = name;
     }
 
     @Override
@@ -92,5 +96,15 @@ public class LSRootNode extends RootNode {
     @Override
     public boolean isCloningAllowed() {
         return isCloningAllowed;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public String toString() {
+        return "root " + name;
     }
 }
