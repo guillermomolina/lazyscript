@@ -79,15 +79,16 @@ public final class LSFunction extends LSObject {
     private final CyclicAssumption callTargetStable;
 
     public LSFunction(RootCallTarget callTarget) {
-        this.callTarget = callTarget;
+        //this.callTarget = callTarget;
         this.callTargetStable = new CyclicAssumption(getName());
+        setCallTarget(callTarget);
     }
 
     public String getName() {
         return "aFunction";
     }
 
-    protected void setCallTarget(RootCallTarget callTarget) {
+    private void setCallTarget(RootCallTarget callTarget) {
         this.callTarget = callTarget;
         /*
          * We have a new call target. Invalidate all code that speculated that the old call target
