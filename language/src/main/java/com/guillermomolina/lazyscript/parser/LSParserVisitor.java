@@ -105,11 +105,10 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.misc.Interval;
 
 /**
- * Helper class used by the LazyScript {@link Parser} to create nodes. The code is
- * factored out of the automatically generated parser to keep the attributed
+ * Helper class used by the LazyScript {@link Parser} to create nodes. The code
+ * is factored out of the automatically generated parser to keep the attributed
  * grammar of LazyScript small.
  */
 public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
@@ -168,10 +167,9 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         if (node == null) {
             throw new LSParseError(source, ctx, "Node is null");
         }
-        Interval sourceInterval = ctx.getSourceInterval();
-        if (sourceInterval != null) {
-            node.setSourceSection(sourceInterval.a, sourceInterval.length());
-        }
+        int start = ctx.stop.getStartIndex();
+        int stop = ctx.stop.getStopIndex();
+        node.setSourceSection(start, stop - start + 1);
     }
 
     public void pushScope(boolean inLoop) {
@@ -226,8 +224,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         final int bodyEndPos = methodBlock.getSourceEndIndex();
         SourceSection moduleSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
         functionBodyNode.setSourceSection(moduleSrc.getCharIndex(), moduleSrc.getCharLength());
-        return new LSRootNode(language, frameDescriptor, functionBodyNode,
-        moduleSrc, "main");
+        return new LSRootNode(language, frameDescriptor, functionBodyNode, moduleSrc, "main");
     }
 
     @Override
@@ -355,7 +352,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     public Node visitStatement(LazyScriptParser.StatementContext ctx) {
         // Tricky: avoid calling visit on ctx.SEMI()
         if (ctx.getChild(0) != null && ctx.getChild(0) != ctx.SEMI()) {
-            return (LSExpressionNode)visit(ctx.getChild(0));
+            return (LSExpressionNode) visit(ctx.getChild(0));
         }
         throw new LSParseError(source, ctx, "Malformed statement");
     }
@@ -752,8 +749,8 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     /**
      * Returns a {@link LSReadLocalVariableNode} if this read is a local variable or
-     * a {@link LSReadPropertyNode} if this read is from the object. In LazyScript, there
-     * are no global names.
+     * a {@link LSReadPropertyNode} if this read is from the object. In LazyScript,
+     * there are no global names.
      *
      * @param nameNode The name of the variable/function being read
      * @return either:
