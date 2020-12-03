@@ -63,10 +63,9 @@ import com.oracle.truffle.api.utilities.TriState;
 
 @ExportLibrary(InteropLibrary.class)
 public final class LSFunction extends LSObject {
+    private static final TruffleLogger LOG = TruffleLogger.getLogger(LazyScriptLanguage.ID, LSFunction.class);
 
     public static final int INLINE_CACHE_SIZE = 2;
-
-    private static final TruffleLogger LOG = TruffleLogger.getLogger(LazyScriptLanguage.ID, LSFunction.class);
 
     /** The name of the function. */
     private final String name;
@@ -223,8 +222,7 @@ public final class LSFunction extends LSObject {
                         @Cached("create(cachedTarget)") DirectCallNode callNode) {
 
             /* Inline cache hit, we are safe to execute the cached call target. */
-            Object returnValue = callNode.call(arguments);
-            return returnValue;
+            return callNode.call(arguments);
         }
 
         /**

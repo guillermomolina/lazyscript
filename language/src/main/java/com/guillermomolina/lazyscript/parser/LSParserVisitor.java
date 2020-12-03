@@ -91,7 +91,6 @@ import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameSlotKind;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
@@ -177,7 +176,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     }
 
     public void popScope() {
-        lexicalScope = lexicalScope.outer;
+        lexicalScope = lexicalScope.getOuter();
     }
 
     @Override
@@ -190,15 +189,15 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         final LSReadArgumentNode readArg0 = new LSReadArgumentNode(0);
         final LSExpressionNode stringLiteral = new LSStringLiteralNode(LSLexicalScope.THIS);
         LSExpressionNode assignment = createAssignment(stringLiteral, readArg0, 0);
-        lexicalScope.statementNodes.add(assignment);
+        lexicalScope.addArgumentInitializationNode(assignment);
 
-        List<LSStatementNode> bodyNodes = lexicalScope.statementNodes;
+        List<LSStatementNode> bodyNodes = lexicalScope.getArgumentInitializationNodes();
 
         for (LazyScriptParser.StatementContext statement : ctx.statement()) {
             bodyNodes.add((LSStatementNode) visit(statement));
         }
 
-        FrameDescriptor frameDescriptor = lexicalScope.frameDescriptor;
+        FrameDescriptor frameDescriptor = lexicalScope.getFrameDescriptor();
         popScope();
         assert lexicalScope == null;
 
@@ -234,14 +233,14 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         LSReadArgumentNode readArg = new LSReadArgumentNode(0);
         LSExpressionNode stringLiteral = new LSStringLiteralNode(LSLexicalScope.THIS);
         LSExpressionNode assignment = createAssignment(stringLiteral, readArg, 0);
-        lexicalScope.statementNodes.add(assignment);
+        lexicalScope.addArgumentInitializationNode(assignment);
         int parameterCount = 1;
         if (ctx.functionParameters() != null) {
             for (IdentifierContext identifierCtx : ctx.functionParameters().identifier()) {
                 readArg = new LSReadArgumentNode(parameterCount);
                 stringLiteral = (LSExpressionNode) visit(identifierCtx);
                 assignment = createAssignment(stringLiteral, readArg, parameterCount);
-                lexicalScope.statementNodes.add(assignment);
+                lexicalScope.addArgumentInitializationNode(assignment);
                 parameterCount++;
             }
         }
@@ -251,7 +250,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             throw new NotImplementedException();
         }
 
-        FrameDescriptor frameDescriptor = lexicalScope.frameDescriptor;
+        FrameDescriptor frameDescriptor = lexicalScope.getFrameDescriptor();
         popScope();
 
         final String functionName = ctx.identifier().getText();
@@ -278,14 +277,14 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         LSReadArgumentNode readArg = new LSReadArgumentNode(0);
         LSExpressionNode stringLiteral = new LSStringLiteralNode(LSLexicalScope.THIS);
         LSExpressionNode assignment = createAssignment(stringLiteral, readArg, 0);
-        lexicalScope.statementNodes.add(assignment);
+        lexicalScope.addArgumentInitializationNode(assignment);
         int parameterCount = 1;
         if (ctx.functionParameters() != null) {
             for (IdentifierContext identifierCtx : ctx.functionParameters().identifier()) {
                 readArg = new LSReadArgumentNode(parameterCount);
                 stringLiteral = (LSExpressionNode) visit(identifierCtx);
                 assignment = createAssignment(stringLiteral, readArg, parameterCount);
-                lexicalScope.statementNodes.add(assignment);
+                lexicalScope.addArgumentInitializationNode(assignment);
                 parameterCount++;
             }
         }
@@ -295,7 +294,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             throw new NotImplementedException();
         }
 
-        FrameDescriptor frameDescriptor = lexicalScope.frameDescriptor;
+        FrameDescriptor frameDescriptor = lexicalScope.getFrameDescriptor();
         popScope();
 
         final LSFunctionBodyNode functionBodyNode = new LSFunctionBodyNode(methodBlock);
@@ -312,7 +311,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     @Override
     public Node visitBlock(LazyScriptParser.BlockContext ctx) {
-        List<LSStatementNode> bodyNodes = lexicalScope.statementNodes;
+        List<LSStatementNode> bodyNodes = lexicalScope.getArgumentInitializationNodes();
 
         for (LazyScriptParser.StatementContext statement : ctx.statement()) {
             bodyNodes.add((LSStatementNode) visit(statement));
@@ -352,7 +351,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     public Node visitStatement(LazyScriptParser.StatementContext ctx) {
         // Tricky: avoid calling visit on ctx.SEMI()
         if (ctx.getChild(0) != null && ctx.getChild(0) != ctx.SEMI()) {
-            return (LSExpressionNode) visit(ctx.getChild(0));
+            return visit(ctx.getChild(0));
         }
         throw new LSParseError(source, ctx, "Malformed statement");
     }
@@ -542,7 +541,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             LSExpressionNode functionReceiver, LSExpressionNode functionName) {
         LSExpressionNode receiver;
         if (functionReceiver == null) {
-            FrameSlot frameSlot = lexicalScope.locals.get(LSLexicalScope.THIS);
+            FrameSlot frameSlot = lexicalScope.getLocal(LSLexicalScope.THIS);
             receiver = LSReadLocalVariableNodeGen.create(frameSlot);
         } else {
             receiver = functionReceiver;
@@ -732,9 +731,12 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         }
 
         String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
-        FrameSlot frameSlot = lexicalScope.frameDescriptor.findOrAddFrameSlot(name, argumentIndex,
-                FrameSlotKind.Illegal);
-        lexicalScope.locals.put(name, frameSlot);
+        FrameSlot frameSlot;
+        if(argumentIndex == null ) {
+            frameSlot = lexicalScope.addLocal(name);
+        } else {
+            frameSlot = lexicalScope.addArgument(argumentIndex, name);
+        }
         final LSExpressionNode result = LSWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode);
 
         if (nameNode.hasSource() && valueNode.hasSource()) {
@@ -767,12 +769,12 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         }
 
         String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
-        FrameSlot frameSlot = lexicalScope.locals.get(name);
+        FrameSlot frameSlot = lexicalScope.getLocal(name);
         final LSExpressionNode result;
         if (frameSlot != null) {
             result = LSReadLocalVariableNodeGen.create(frameSlot);
         } else {
-            frameSlot = lexicalScope.locals.get(LSLexicalScope.THIS);
+            frameSlot = lexicalScope.getLocal(LSLexicalScope.THIS);
             final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(frameSlot);
             result = LSReadPropertyNodeGen.create(thisNode, nameNode);
         }
@@ -782,7 +784,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     @Override
     public Node visitBreakStatement(LazyScriptParser.BreakStatementContext ctx) {
-        if (lexicalScope.inLoop) {
+        if (lexicalScope.isInLoop()) {
             final LSBreakNode breakNode = new LSBreakNode();
             setSourceFromContext(breakNode, ctx);
             return breakNode;
@@ -792,7 +794,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     @Override
     public Node visitContinueStatement(LazyScriptParser.ContinueStatementContext ctx) {
-        if (lexicalScope.inLoop) {
+        if (lexicalScope.isInLoop()) {
             final LSContinueNode continueNode = new LSContinueNode();
             setSourceFromContext(continueNode, ctx);
             return continueNode;
@@ -822,13 +824,13 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     public Node visitIfStatement(LazyScriptParser.IfStatementContext ctx) {
         LSExpressionNode conditionNode = (LSExpressionNode) visit(ctx.condition);
 
-        pushScope(lexicalScope.inLoop);
+        pushScope(lexicalScope.isInLoop());
         LSStatementNode thenPartNode = (LSStatementNode) visit(ctx.then);
         popScope();
 
         LSStatementNode elsePartNode = null;
         if (ctx.ELSE() != null) {
-            pushScope(lexicalScope.inLoop);
+            pushScope(lexicalScope.isInLoop());
             elsePartNode = (LSStatementNode) visit(ctx.block(1));
             popScope();
         }

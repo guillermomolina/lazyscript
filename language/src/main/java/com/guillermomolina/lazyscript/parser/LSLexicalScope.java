@@ -44,28 +44,37 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 
+import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.LSStatementNode;
+import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
+import com.oracle.truffle.api.frame.FrameSlotKind;
 
 public class LSLexicalScope {
+    private static final TruffleLogger LOG = TruffleLogger.getLogger(LazyScriptLanguage.ID, LSLexicalScope.class);
+
     public static final String THIS = "this";
     public static final String CONTEXT = "context";
     public static final String SUPER = "super";
-    
-    protected final LSLexicalScope outer;
-    protected final Map<String, FrameSlot> locals;
-    protected final boolean inLoop;
-    protected final List<LSStatementNode> statementNodes;
-    FrameDescriptor frameDescriptor;
+
+    private final LSLexicalScope outer;
+    private final List<String> arguments;
+    private final Map<String, FrameSlot> locals;
+    private final boolean inLoop;
+    private final List<LSStatementNode> argumentInitializationNodes;
+    private final FrameDescriptor frameDescriptor;
 
     LSLexicalScope(LSLexicalScope outer, boolean inLoop) {
         this.outer = outer;
         this.inLoop = inLoop;
+        this.arguments = new ArrayList<>();
         this.locals = new HashMap<>();
-        this.statementNodes = new ArrayList<>();
-        if(inLoop) {
+        this.argumentInitializationNodes = new ArrayList<>();
+        if (inLoop) {
             this.frameDescriptor = outer.frameDescriptor;
             locals.putAll(outer.locals);
         } else {
@@ -73,4 +82,42 @@ public class LSLexicalScope {
         }
     }
 
+    public LSLexicalScope getOuter() {
+        return outer;
+    }
+
+    public FrameDescriptor getFrameDescriptor() {
+        return frameDescriptor;
+    }
+
+    public void addArgumentInitializationNode(LSExpressionNode assignmentNode) {
+        argumentInitializationNodes.add(assignmentNode);
+    }
+
+    public List<LSStatementNode> getArgumentInitializationNodes() {
+        return argumentInitializationNodes;
+    }
+
+    public FrameSlot addArgument(int argumentIndex, final String name) {
+        LOG.log(Level.FINE, "Adding argument index: " + argumentIndex + " named: " + name);
+        arguments.add(name);
+        FrameSlot frameSlot = frameDescriptor.findOrAddFrameSlot(name, argumentIndex, FrameSlotKind.Illegal);
+        locals.put(name, frameSlot);
+        return frameSlot;
+    }
+
+    public FrameSlot addLocal(final String name) {
+        LOG.log(Level.FINE, "Adding local variable named: {0}", name);
+        FrameSlot frameSlot = frameDescriptor.findOrAddFrameSlot(name, null, FrameSlotKind.Illegal);
+        locals.put(name, frameSlot);
+        return frameSlot;
+    }
+
+    public FrameSlot getLocal(final String name) {
+        return locals.get(name);
+    }
+
+    public boolean isInLoop() {
+        return inLoop;
+    }
 }
