@@ -53,6 +53,7 @@ public class LSLexicalScope {
     public static final String THIS = "this";
     public static final String CONTEXT = "context";
     public static final String SUPER = "super";
+    
     protected final LSLexicalScope outer;
     protected final Map<String, FrameSlot> locals;
     protected final boolean inLoop;
