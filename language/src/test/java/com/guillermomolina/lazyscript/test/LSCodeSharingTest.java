@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2018, Guillermo Adrián Molina. All rights reserved.
+ * Copyright (c) 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -38,26 +38,47 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.nodes;
+package com.guillermomolina.lazyscript.test;
 
-import com.guillermomolina.lazyscript.LSLanguage;
-import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
-import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
-import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.RootNode;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-/**
- * The initial {@link RootNode} of {@link LSFunction functions} when they are created, i.e., when
- * they are still undefined. Executing it throws an
- * {@link LSUndefinedNameException#undefinedFunction exception}.
- */
-public class LSUndefinedFunctionRootNode extends LSRootNode {
-    public LSUndefinedFunctionRootNode(LSLanguage language, String name) {
-        super(language, null, null, null, name);
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Engine;
+import org.graalvm.polyglot.Source;
+import org.junit.Test;
+
+public class LSCodeSharingTest {
+
+    private static Source createFib() {
+        return Source.newBuilder("sl", "" +
+                        "function fib(n) {\n" +
+                        "  if (n == 1 || n == 2) {\n" +
+                        "    return 1;\n" +
+                        "  }\n" +
+                        "  return fib(n - 1) + fib(n - 2);\n" +
+                        "}\n",
+                        "fib.sl").buildLiteral();
     }
 
-    @Override
-    public Object execute(VirtualFrame frame) {
-        throw LSUndefinedNameException.undefinedFunction(null, getName());
+    @Test
+    public void testFibSharing() throws Exception {
+        Source fib = createFib();
+        try (Engine engine = Engine.create()) {
+            try (Context context = Context.newBuilder().engine(engine).build()) {
+                assertEquals(0, engine.getCachedSources().size());
+                context.eval(fib);
+                assertEquals(1, engine.getCachedSources().size());
+                assertTrue(engine.getCachedSources().contains(fib));
+            }
+            try (Context context = Context.newBuilder().engine(engine).build()) {
+                assertEquals(1, engine.getCachedSources().size());
+                assertTrue(engine.getCachedSources().contains(fib));
+                context.eval(fib);
+                assertEquals(1, engine.getCachedSources().size());
+                assertTrue(engine.getCachedSources().contains(fib));
+            }
+        }
     }
+
 }

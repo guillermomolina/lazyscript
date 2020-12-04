@@ -44,7 +44,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.NotImplementedException;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.LSRootNode;
@@ -127,10 +127,10 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     }
 
     private LSLexicalScope lexicalScope;
-    private final LazyScriptLanguage language;
+    private final LSLanguage language;
     private final Source source;
 
-    public LSParserVisitor(LazyScriptLanguage language, Source source) {
+    public LSParserVisitor(LSLanguage language, Source source) {
         this.language = language;
         this.source = source;
     }
@@ -737,15 +737,18 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         } else {
             frameSlot = lexicalScope.addArgument(argumentIndex, name);
         }
-        final LSExpressionNode result = LSWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode);
+        boolean newVariable = frameSlot == null;
+        final LSExpressionNode result = LSWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode, newVariable);
 
         if (nameNode.hasSource() && valueNode.hasSource()) {
             final int start = nameNode.getSourceCharIndex();
             final int length = valueNode.getSourceEndIndex() - start;
             result.setSourceSection(start, length);
         }
-        result.addExpressionTag();
-
+        if (argumentIndex == null) {
+            result.addExpressionTag();
+        }
+        
         return result;
     }
 

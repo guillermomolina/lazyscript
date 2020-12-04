@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2019, Guillermo Adrián Molina. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -60,10 +60,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Semaphore;
 
-import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Engine;
+import org.graalvm.polyglot.Instrument;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
+import org.junit.Test;
+
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.EventBinding;
@@ -85,20 +91,14 @@ import com.oracle.truffle.api.library.LibraryFactory;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
+import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
 import com.oracle.truffle.tck.DebuggerTester;
 
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.Engine;
-import org.graalvm.polyglot.Instrument;
-import org.graalvm.polyglot.PolyglotException;
-import org.graalvm.polyglot.Source;
-import org.graalvm.polyglot.Value;
-import org.junit.Test;
-
 /**
- * Test of LazyScript instrumentation.
+ * Test of LS instrumentation.
  */
-public class LSInstrumentTest {
+@SuppressWarnings("deprecation")
+public class LSInstrumentLegacyTest {
 
     static final InteropLibrary INTEROP = LibraryFactory.resolve(InteropLibrary.class).getUncached();
 
@@ -136,15 +136,15 @@ public class LSInstrumentTest {
             public void write(int b) throws IOException {
             }
         }).build()) {
-            Instrument envInstr = engine.getInstruments().get("testEnvironmentHandlerInstrument");
+            Instrument envInstr = engine.getInstruments().get("testEnvironmentHandlerLegacyInstrument");
             TruffleInstrument.Env env = envInstr.lookup(Environment.class).env;
             throwables = new ArrayList<>();
             env.getInstrumenter().attachExecutionEventListener(SourceSectionFilter.newBuilder().lineIn(1, source.getLineCount()).build(), new ExecutionEventListener() {
                 @Override
                 public void onEnter(EventContext context, VirtualFrame frame) {
                     Node node = context.getInstrumentedNode();
-                    Iterable<Scope> lexicalScopes = env.findLocalScopes(node, null);
-                    Iterable<Scope> dynamicScopes = env.findLocalScopes(node, frame);
+                    Iterable<com.oracle.truffle.api.Scope> lexicalScopes = env.findLocalScopes(node, null);
+                    Iterable<com.oracle.truffle.api.Scope> dynamicScopes = env.findLocalScopes(node, frame);
                     try {
                         verifyLexicalScopes(lexicalScopes, dynamicScopes, context.getInstrumentedSourceSection().getStartLine(), frame.materialize());
                     } catch (ThreadDeath t) {
@@ -173,13 +173,13 @@ public class LSInstrumentTest {
     }
 
     @CompilerDirectives.TruffleBoundary
-    private static void verifyLexicalScopes(Iterable<Scope> lexicalScopes, Iterable<Scope> dynamicScopes, int line, MaterializedFrame frame) {
+    private static void verifyLexicalScopes(Iterable<com.oracle.truffle.api.Scope> lexicalScopes, Iterable<com.oracle.truffle.api.Scope> dynamicScopes, int line, MaterializedFrame frame) {
         int depth = 0;
         switch (line) {
             case 1:
                 break;
             case 2:
-                for (Scope ls : lexicalScopes) {
+                for (com.oracle.truffle.api.Scope ls : lexicalScopes) {
                     // Test that ls.getNode() returns the current root node:
                     checkRootNode(ls, "test", frame);
                     TruffleObject arguments = (TruffleObject) ls.getArguments();
@@ -190,7 +190,7 @@ public class LSInstrumentTest {
                 }
                 assertEquals("LexicalScope depth", 1, depth);
                 depth = 0;
-                for (Scope ls : dynamicScopes) {
+                for (com.oracle.truffle.api.Scope ls : dynamicScopes) {
                     // Test that ls.getNode() returns the current root node:
                     checkRootNode(ls, "test", frame);
                     TruffleObject arguments = (TruffleObject) ls.getArguments();
@@ -205,7 +205,7 @@ public class LSInstrumentTest {
             case 7:
             case 19:
             case 20:
-                for (Scope ls : lexicalScopes) {
+                for (com.oracle.truffle.api.Scope ls : lexicalScopes) {
                     checkRootNode(ls, "test", frame);
                     TruffleObject arguments = (TruffleObject) ls.getArguments();
                     checkVars(arguments, "n", null);
@@ -215,7 +215,7 @@ public class LSInstrumentTest {
                 }
                 assertEquals("LexicalScope depth", 1, depth);
                 depth = 0;
-                for (Scope ls : dynamicScopes) {
+                for (com.oracle.truffle.api.Scope ls : dynamicScopes) {
                     checkRootNode(ls, "test", frame);
                     TruffleObject arguments = (TruffleObject) ls.getArguments();
                     checkVars(arguments, "n", "n_n");
@@ -228,7 +228,7 @@ public class LSInstrumentTest {
                 break;
             case 4:
             case 8:
-                for (Scope ls : lexicalScopes) {
+                for (com.oracle.truffle.api.Scope ls : lexicalScopes) {
                     if (depth == 0) {
                         checkBlock(ls);
                         TruffleObject variables = (TruffleObject) ls.getVariables();
@@ -245,7 +245,7 @@ public class LSInstrumentTest {
                 }
                 assertEquals("LexicalScope depth", 2, depth);
                 depth = 0;
-                for (Scope ls : dynamicScopes) {
+                for (com.oracle.truffle.api.Scope ls : dynamicScopes) {
                     if (depth == 0) {
                         checkBlock(ls);
                         TruffleObject variables = (TruffleObject) ls.getVariables();
@@ -265,7 +265,7 @@ public class LSInstrumentTest {
             case 5:
             case 9:
             case 10:
-                for (Scope ls : lexicalScopes) {
+                for (com.oracle.truffle.api.Scope ls : lexicalScopes) {
                     if (depth == 0) {
                         checkBlock(ls);
                         TruffleObject variables = (TruffleObject) ls.getVariables();
@@ -282,7 +282,7 @@ public class LSInstrumentTest {
                 }
                 assertEquals("LexicalScope depth", 2, depth);
                 depth = 0;
-                for (Scope ls : dynamicScopes) {
+                for (com.oracle.truffle.api.Scope ls : dynamicScopes) {
                     if (depth == 0) {
                         checkBlock(ls);
                         TruffleObject variables = (TruffleObject) ls.getVariables();
@@ -302,7 +302,7 @@ public class LSInstrumentTest {
                 assertEquals("DynamicScope depth", 2, depth);
                 break;
             case 11:
-                for (Scope ls : lexicalScopes) {
+                for (com.oracle.truffle.api.Scope ls : lexicalScopes) {
                     if (depth == 0) {
                         checkBlock(ls);
                         TruffleObject variables = (TruffleObject) ls.getVariables();
@@ -315,7 +315,7 @@ public class LSInstrumentTest {
                 }
                 assertEquals("LexicalScope depth", 2, depth);
                 depth = 0;
-                for (Scope ls : dynamicScopes) {
+                for (com.oracle.truffle.api.Scope ls : dynamicScopes) {
                     if (depth == 0) {
                         checkBlock(ls);
                         TruffleObject variables = (TruffleObject) ls.getVariables();
@@ -332,7 +332,7 @@ public class LSInstrumentTest {
             case 13:
             case 14:
             case 15:
-                for (Scope ls : lexicalScopes) {
+                for (com.oracle.truffle.api.Scope ls : lexicalScopes) {
                     if (depth == 0) {
                         checkBlock(ls);
                         TruffleObject variables = (TruffleObject) ls.getVariables();
@@ -352,7 +352,7 @@ public class LSInstrumentTest {
                 }
                 assertEquals("LexicalScope depth", 3, depth);
                 depth = 0;
-                for (Scope ls : dynamicScopes) {
+                for (com.oracle.truffle.api.Scope ls : dynamicScopes) {
                     if (depth == 0) {
                         checkBlock(ls);
                         TruffleObject variables = (TruffleObject) ls.getVariables();
@@ -376,7 +376,7 @@ public class LSInstrumentTest {
                 assertEquals("DynamicScope depth", 3, depth);
                 break;
             case 16:
-                for (Scope ls : lexicalScopes) {
+                for (com.oracle.truffle.api.Scope ls : lexicalScopes) {
                     if (depth == 0) {
                         checkBlock(ls);
                         TruffleObject variables = (TruffleObject) ls.getVariables();
@@ -396,7 +396,7 @@ public class LSInstrumentTest {
                 }
                 assertEquals("LexicalScope depth", 3, depth);
                 depth = 0;
-                for (Scope ls : dynamicScopes) {
+                for (com.oracle.truffle.api.Scope ls : dynamicScopes) {
                     if (depth == 0) {
                         checkBlock(ls);
                         TruffleObject variables = (TruffleObject) ls.getVariables();
@@ -418,7 +418,7 @@ public class LSInstrumentTest {
                 break;
             case 22:
             case 23:
-                for (Scope ls : lexicalScopes) {
+                for (com.oracle.truffle.api.Scope ls : lexicalScopes) {
                     checkRootNode(ls, "main", frame);
                     TruffleObject arguments = (TruffleObject) ls.getArguments();
                     checkVars(arguments);
@@ -428,7 +428,7 @@ public class LSInstrumentTest {
                 }
                 assertEquals("LexicalScope depth", 1, depth);
                 depth = 0;
-                for (Scope ls : dynamicScopes) {
+                for (com.oracle.truffle.api.Scope ls : dynamicScopes) {
                     checkRootNode(ls, "main", frame);
                     TruffleObject arguments = (TruffleObject) ls.getArguments();
                     checkVars(arguments);
@@ -444,7 +444,7 @@ public class LSInstrumentTest {
         }
     }
 
-    private static void checkRootNode(Scope ls, String name, MaterializedFrame frame) {
+    private static void checkRootNode(com.oracle.truffle.api.Scope ls, String name, MaterializedFrame frame) {
         assertEquals(name, ls.getName());
         Node node = ls.getNode();
         assertTrue(node.getClass().getName(), node instanceof RootNode);
@@ -452,7 +452,7 @@ public class LSInstrumentTest {
         assertEquals(frame.getFrameDescriptor(), ((RootNode) node).getFrameDescriptor());
     }
 
-    private static void checkBlock(Scope ls) {
+    private static void checkBlock(com.oracle.truffle.api.Scope ls) {
         assertEquals("block", ls.getName());
         // Test that ls.getNode() does not return the current root node, it ought to be a block node
         Node node = ls.getNode();
@@ -468,7 +468,7 @@ public class LSInstrumentTest {
         try {
             return INTEROP.readMember(vars, key);
         } catch (UnknownIdentifierException | UnsupportedMessageException e) {
-            throw new AssertionError(e);
+            throw CompilerDirectives.shouldNotReachHere(e);
         }
     }
 
@@ -480,7 +480,7 @@ public class LSInstrumentTest {
         try {
             return (int) INTEROP.getArraySize(INTEROP.getMembers(vars));
         } catch (UnsupportedMessageException e) {
-            throw new AssertionError(e);
+            throw CompilerDirectives.shouldNotReachHere(e);
         }
     }
 
@@ -523,7 +523,7 @@ public class LSInstrumentTest {
         assertEquals(engineOutput, toUnixString(engineOut));
 
         // Check output
-        Instrument outInstr = engine.getInstruments().get("testEnvironmentHandlerInstrument");
+        Instrument outInstr = engine.getInstruments().get("testEnvironmentHandlerLegacyInstrument");
         TruffleInstrument.Env env = outInstr.lookup(Environment.class).env;
         ByteArrayOutputStream consumedOut = new ByteArrayOutputStream();
         EventBinding<ByteArrayOutputStream> outputConsumerBinding = env.getInstrumenter().attachOutConsumer(consumedOut);
@@ -595,17 +595,17 @@ public class LSInstrumentTest {
                         "  return a;\n" +
                         "}\n";
         final Source ioWait = Source.newBuilder("ls", code, "testing").build();
-        final TestRedoIO[] redoIOPtr = new TestRedoIO[1];
+        final TestRedoIOLegacy[] redoIOPtr = new TestRedoIOLegacy[1];
         InputStream strIn = new ByteArrayInputStream("O.K.".getBytes());
         InputStream delegateInputStream = new InputStream() {
             @Override
             public int read() throws IOException {
-                synchronized (LSInstrumentTest.class) {
+                synchronized (LSInstrumentLegacyTest.class) {
                     // Block reading before we do unwind:
                     if (redoIOPtr[0].beforePop) {
                         redoIOPtr[0].inRead.release();
                         try {
-                            LSInstrumentTest.class.wait();
+                            LSInstrumentLegacyTest.class.wait();
                         } catch (InterruptedException ex) {
                             throw new RuntimeInterruptedException();
                         }
@@ -615,7 +615,7 @@ public class LSInstrumentTest {
             }
         };
         Engine engine = Engine.newBuilder().in(delegateInputStream).build();
-        TestRedoIO redoIO = engine.getInstruments().get("testRedoIO").lookup(TestRedoIO.class);
+        TestRedoIOLegacy redoIO = engine.getInstruments().get("testRedoIOLegacy").lookup(TestRedoIOLegacy.class);
         redoIOPtr[0] = redoIO;
         redoIO.inRead.drainPermits();
         Context context = Context.newBuilder().engine(engine).build();
@@ -628,8 +628,8 @@ public class LSInstrumentTest {
         private static final long serialVersionUID = -4735601164894088571L;
     }
 
-    @TruffleInstrument.Registration(id = "testRedoIO", services = TestRedoIO.class)
-    public static class TestRedoIO extends TruffleInstrument {
+    @TruffleInstrument.Registration(id = "testRedoIOLegacy", services = TestRedoIOLegacy.class)
+    public static class TestRedoIOLegacy extends TruffleInstrument {
 
         boolean beforePop = true;
         Semaphore inRead = new Semaphore(1);
@@ -652,7 +652,7 @@ public class LSInstrumentTest {
                                     inRead.acquire();
                                 } catch (InterruptedException ex) {
                                 }
-                                synchronized (LSInstrumentTest.class) {
+                                synchronized (LSInstrumentLegacyTest.class) {
                                     if (beforePop) {
                                         thread.interrupt();
                                     }
@@ -670,7 +670,7 @@ public class LSInstrumentTest {
                 public void onReturnExceptional(EventContext context, VirtualFrame frame, Throwable exception) {
                     if (exception instanceof RuntimeInterruptedException) {
                         CompilerDirectives.transferToInterpreter();
-                        synchronized (LSInstrumentTest.class) {
+                        synchronized (LSInstrumentLegacyTest.class) {
                             beforePop = false;
                         }
                         throw context.createUnwind(null);
@@ -716,7 +716,7 @@ public class LSInstrumentTest {
         assertTrue(ret.isNumber());
         assertEquals(100001L, ret.asLong());
 
-        EarlyReturnInstrument earlyReturn = context.getEngine().getInstruments().get("testEarlyReturn").lookup(EarlyReturnInstrument.class);
+        EarlyReturnLegacyInstrument earlyReturn = context.getEngine().getInstruments().get("testEarlyReturnLegacy").lookup(EarlyReturnLegacyInstrument.class);
 
         earlyReturn.fceCode = "fce(a)";
         earlyReturn.returnValue = 200000L;
@@ -771,8 +771,8 @@ public class LSInstrumentTest {
         assertEquals("Hello!", ret.asString());
     }
 
-    @TruffleInstrument.Registration(id = "testEarlyReturn", services = EarlyReturnInstrument.class)
-    public static class EarlyReturnInstrument extends TruffleInstrument {
+    @TruffleInstrument.Registration(id = "testEarlyReturnLegacy", services = EarlyReturnLegacyInstrument.class)
+    public static class EarlyReturnLegacyInstrument extends TruffleInstrument {
 
         String fceCode;      // return when this code is hit
         Object returnValue;  // return this value
@@ -825,20 +825,21 @@ public class LSInstrumentTest {
         final Source source = Source.newBuilder("ls", code, "testing").build();
         SourceSection ss = DebuggerTester.getSourceImpl(source).createSection(24, 5);
         Context context = Context.create();
-        NewReplacedInstrument replaced = context.getEngine().getInstruments().get("testNewNodeReplaced").lookup(NewReplacedInstrument.class);
+        NewReplacedInstrumentLegacy replaced = context.getEngine().getInstruments().get("testNewNodeReplacedLegacy").lookup(NewReplacedInstrumentLegacy.class);
         replaced.attachAt(ss);
 
         Value ret = context.eval(source);
         assertEquals("Replaced Value", ret.toString());
     }
 
-    @TruffleInstrument.Registration(id = "testNewNodeReplaced", services = NewReplacedInstrument.class)
-    public static final class NewReplacedInstrument extends TruffleInstrument {
+    @TruffleInstrument.Registration(id = "testNewNodeReplacedLegacy", services = NewReplacedInstrumentLegacy.class)
+    public static final class NewReplacedInstrumentLegacy extends TruffleInstrument {
 
         private Env env;
-        private final Object replacedValue = new ReplacedTruffleObject();
+        private final Object replacedValue = new ReplacedTruffleObjectLegacy();
 
         @Override
+        @SuppressWarnings("hiding")
         protected void onCreate(Env env) {
             this.env = env;
             env.registerService(this);
@@ -871,10 +872,11 @@ public class LSInstrumentTest {
         }
 
         @ExportLibrary(InteropLibrary.class)
-        static class ReplacedTruffleObject implements TruffleObject {
+        @SuppressWarnings("static-method")
+        static class ReplacedTruffleObjectLegacy implements TruffleObject {
 
             @ExportMessage
-            final Object readMember(String member) {
+            final Object readMember(@SuppressWarnings("unused") String member) {
                 return "Replaced Value";
             }
 
@@ -884,8 +886,8 @@ public class LSInstrumentTest {
             }
 
             @ExportMessage
-            final Object getMembers(boolean includeInternal) {
-                return new KeysArray(new String[]{"rp1, rp2"});
+            final Object getMembers(@SuppressWarnings("unused") boolean includeInternal) {
+                return new KeysArrayLegacy(new String[]{"rp1, rp2"});
             }
 
             @ExportMessage
@@ -896,14 +898,15 @@ public class LSInstrumentTest {
     }
 
     @ExportLibrary(InteropLibrary.class)
-    static final class KeysArray implements TruffleObject {
+    static final class KeysArrayLegacy implements TruffleObject {
 
         private final String[] keys;
 
-        KeysArray(String[] keys) {
+        KeysArrayLegacy(String[] keys) {
             this.keys = keys;
         }
 
+        @SuppressWarnings("static-method")
         @ExportMessage
         boolean hasArrayElements() {
             return true;
@@ -951,20 +954,21 @@ public class LSInstrumentTest {
                         "}\n";
         final Source source = Source.newBuilder("ls", code, "testing").build();
         Context context = Context.create();
-        IncreaseArgOnErrorInstrument incOnError = context.getEngine().getInstruments().get("testIncreaseArgumentOnError").lookup(IncreaseArgOnErrorInstrument.class);
+        IncreaseArgOnErrorLegacyInstrument incOnError = context.getEngine().getInstruments().get("testIncreaseArgumentOnErrorLegacy").lookup(IncreaseArgOnErrorLegacyInstrument.class);
         incOnError.attachOn("A bad error");
 
         Value ret = context.eval(source);
         assertEquals(10000, ret.asInt());
     }
 
-    @TruffleInstrument.Registration(id = "testIncreaseArgumentOnError", services = IncreaseArgOnErrorInstrument.class)
-    public static final class IncreaseArgOnErrorInstrument extends TruffleInstrument {
+    @TruffleInstrument.Registration(id = "testIncreaseArgumentOnErrorLegacy", services = IncreaseArgOnErrorLegacyInstrument.class)
+    public static final class IncreaseArgOnErrorLegacyInstrument extends TruffleInstrument {
 
         private Env env;
         @CompilationFinal private ThreadDeath unwind;
 
         @Override
+        @SuppressWarnings("hiding")
         protected void onCreate(Env env) {
             this.env = env;
             env.registerService(this);
@@ -1017,8 +1021,8 @@ public class LSInstrumentTest {
         }
     }
 
-    @TruffleInstrument.Registration(id = "testEnvironmentHandlerInstrument", services = Environment.class)
-    public static class EnvironmentHandlerInstrument extends TruffleInstrument {
+    @TruffleInstrument.Registration(id = "testEnvironmentHandlerLegacyInstrument", services = Environment.class)
+    public static class EnvironmentHandlerLegacyInstrument extends TruffleInstrument {
 
         @Override
         protected void onCreate(final TruffleInstrument.Env env) {

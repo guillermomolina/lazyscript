@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, 2019, Guillermo Adrián Molina. All rights reserved.
+ * Copyright (c) 2017, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -40,6 +40,8 @@
  */
 package com.guillermomolina.lazyscript.test;
 
+import static com.guillermomolina.lazyscript.test.LSExceptionTest.assertGuestFrame;
+import static com.guillermomolina.lazyscript.test.LSExceptionTest.assertHostFrame;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertFalse;
@@ -49,15 +51,18 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.PolyglotException.StackFrame;
 import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.Value;
 import org.junit.Assert;
@@ -75,11 +80,21 @@ public class LSJavaInteropExceptionTest {
             String sourceText = "function test(validator) {\n" +
                             "  return validator.validateException();\n" +
                             "}";
-            try (Context context = Context.newBuilder(LazyScriptLanguage.ID).build()) {
-                context.eval(Source.newBuilder(LazyScriptLanguage.ID, sourceText, "Test").build());
-                Value test = context.getBindings(LazyScriptLanguage.ID).getMember("test");
+            try (Context context = Context.newBuilder(LSLanguage.ID).build()) {
+                context.eval(Source.newBuilder(LSLanguage.ID, sourceText, "Test").build());
+                Value test = context.getBindings(LSLanguage.ID).getMember("test");
                 test.execute(Validator.this);
             }
+        }
+
+        @HostAccess.Export
+        @SuppressWarnings("unchecked")
+        public Object validateCallback(int index, Map<?, ?> map) throws Exception {
+            Object call = map.get(Integer.toString(index));
+            if (call == null) {
+                throw new NullPointerException("Nothing to call");
+            }
+            return ((Function<Object, Object>) call).apply(new Object[]{this, index});
         }
 
         @HostAccess.Export
@@ -98,9 +113,9 @@ public class LSJavaInteropExceptionTest {
         String sourceText = "function test(validator) {\n" +
                         "  return validator.validateException();\n" +
                         "}";
-        try (Context context = Context.newBuilder(LazyScriptLanguage.ID).build()) {
-            context.eval(Source.newBuilder(LazyScriptLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LazyScriptLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LSLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LSLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LSLanguage.ID).getMember("test");
             try {
                 test.execute(new Validator());
                 fail("expected a PolyglotException but did not throw");
@@ -117,15 +132,88 @@ public class LSJavaInteropExceptionTest {
         String sourceText = "function test(validator) {\n" +
                         "  return validator.validateNested();\n" +
                         "}";
-        try (Context context = Context.newBuilder(LazyScriptLanguage.ID).build()) {
-            context.eval(Source.newBuilder(LazyScriptLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LazyScriptLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LSLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LSLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LSLanguage.ID).getMember("test");
             try {
                 test.execute(new Validator());
                 fail("expected a PolyglotException but did not throw");
             } catch (PolyglotException ex) {
                 assertTrue("expected HostException", ex.isHostException());
                 assertThat(ex.asHostException(), instanceOf(NoSuchElementException.class));
+                assertNoJavaInteropStackFrames(ex);
+            }
+        }
+    }
+
+    @Test
+    public void testGuestHostCallbackGuestError() throws Exception {
+        String sourceText = "function doMultiCallback(validator, n) {\n" +
+                        "    map = new();\n" +
+                        "    if (n <= 0) {\n" +
+                        "        return error();\n" +
+                        "    }\n" +
+                        "    map[n] = doCall;\n" +
+                        "    validator.validateCallback(n, map);\n" +
+                        "}\n" +
+                        "function doCall(validator, x) {\n" +
+                        "    doMultiCallback(validator, x - 1);\n" +
+                        "}";
+        try (Context context = Context.newBuilder(LSLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LSLanguage.ID, sourceText, "Test").build());
+            Value doMultiCallback = context.getBindings(LSLanguage.ID).getMember("doMultiCallback");
+            int numCalbacks = 3;
+            try {
+                doMultiCallback.execute(new Validator(), numCalbacks);
+                fail("expected a PolyglotException but did not throw");
+            } catch (PolyglotException ex) {
+                Iterator<StackFrame> frames = ex.getPolyglotStackTrace().iterator();
+                assertGuestFrame(frames, "ls", "error");
+                assertGuestFrame(frames, "ls", "doMultiCallback", "Test", 91, 98);
+                for (int i = 0; i < numCalbacks; i++) {
+                    assertGuestFrame(frames, "ls", "doCall", "Test", 205, 238);
+                    assertHostFrame(frames, "com.oracle.truffle.polyglot.PolyglotFunction", "apply");
+                    assertHostFrame(frames, Validator.class.getName(), "validateCallback");
+                    assertGuestFrame(frames, "ls", "doMultiCallback", "Test", 131, 165);
+                }
+                assertHostFrame(frames, Value.class.getName(), "execute");
+                assertNoJavaInteropStackFrames(ex);
+            }
+        }
+    }
+
+    @Test
+    public void testGuestHostCallbackHostError() throws Exception {
+        String sourceText = "function doMultiCallback(validator, n) {\n" +
+                        "    map = new();\n" +
+                        "    if (n <= 0) {\n" +
+                        "        return validator.validateCallback(n, map); // will throw error\n" +
+                        "    }\n" +
+                        "    map[n] = doCall;\n" +
+                        "    validator.validateCallback(n, map);\n" +
+                        "}\n" +
+                        "function doCall(validator, x) {\n" +
+                        "    doMultiCallback(validator, x - 1);\n" +
+                        "}";
+        try (Context context = Context.newBuilder(LSLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LSLanguage.ID, sourceText, "Test").build());
+            Value doMultiCallback = context.getBindings(LSLanguage.ID).getMember("doMultiCallback");
+            int numCalbacks = 3;
+            try {
+                doMultiCallback.execute(new Validator(), numCalbacks);
+                fail("expected a PolyglotException but did not throw");
+            } catch (PolyglotException ex) {
+                Assert.assertEquals("Nothing to call", ex.getMessage());
+                Iterator<StackFrame> frames = ex.getPolyglotStackTrace().iterator();
+                assertHostFrame(frames, Validator.class.getName(), "validateCallback");
+                assertGuestFrame(frames, "ls", "doMultiCallback", "Test", 91, 125);
+                for (int i = 0; i < numCalbacks; i++) {
+                    assertGuestFrame(frames, "ls", "doCall", "Test", 252, 285);
+                    assertHostFrame(frames, "com.oracle.truffle.polyglot.PolyglotFunction", "apply");
+                    assertHostFrame(frames, Validator.class.getName(), "validateCallback");
+                    assertGuestFrame(frames, "ls", "doMultiCallback", "Test", 178, 212);
+                }
+                assertHostFrame(frames, Value.class.getName(), "execute");
                 assertNoJavaInteropStackFrames(ex);
             }
         }
@@ -146,9 +234,9 @@ public class LSJavaInteropExceptionTest {
                         "function test(validator) {\n" +
                         "  return validator." + javaMethod + "(supplier);\n" +
                         "}";
-        try (Context context = Context.newBuilder(LazyScriptLanguage.ID).build()) {
-            context.eval(Source.newBuilder(LazyScriptLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LazyScriptLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LSLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LSLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LSLanguage.ID).getMember("test");
             try {
                 test.execute(new Validator());
                 fail("expected a PolyglotException but did not throw");
@@ -176,9 +264,9 @@ public class LSJavaInteropExceptionTest {
                         "function test(validator) {\n" +
                         "  return validator." + javaMethod + "(new());\n" +
                         "}";
-        try (Context context = Context.newBuilder(LazyScriptLanguage.ID).build()) {
-            context.eval(Source.newBuilder(LazyScriptLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LazyScriptLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LSLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LSLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LSLanguage.ID).getMember("test");
             test.execute(new Validator());
         }
     }

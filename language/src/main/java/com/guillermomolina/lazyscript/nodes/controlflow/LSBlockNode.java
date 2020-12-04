@@ -40,17 +40,25 @@
  */
 package com.guillermomolina.lazyscript.nodes.controlflow;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.oracle.truffle.api.CompilerDirectives;
+import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.BlockNode;
 import com.oracle.truffle.api.nodes.BlockNode.ElementExecutor;
+
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.nodes.NodeVisitor;
 import com.guillermomolina.lazyscript.nodes.LSStatementNode;
+import com.guillermomolina.lazyscript.nodes.local.LSScopedNode;
+import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 
 /**
  * A statement node that just executes a list of other statements.
@@ -67,6 +75,17 @@ public final class LSBlockNode extends LSStatementNode implements BlockNode.Elem
      * bailout.
      */
     @Child private BlockNode<LSStatementNode> block;
+
+    /**
+     * All declared variables visible from this block (including all parent blocks). Variables
+     * declared in this block only are from zero index up to {@link #parentBlockIndex} (exclusive).
+     */
+    @CompilationFinal(dimensions = 1) private LSWriteLocalVariableNode[] writeNodesCache;
+
+    /**
+     * Index of the parent block's variables in the {@link #writeNodesCache list of variables}.
+     */
+    @CompilationFinal private int parentBlockIndex = -1;
 
     public LSBlockNode(LSStatementNode[] bodyNodes) {
         /*
@@ -100,12 +119,87 @@ public final class LSBlockNode extends LSStatementNode implements BlockNode.Elem
      * tells the framework how block element nodes should be executed. The executor allows to add a
      * custom exception handler for each element, e.g. to handle a specific
      * {@link ControlFlowException} or to pass a customizable argument, that allows implement
-     * startsWith semantics if needed. For LazyScript we don't need to pass any argument as we just have
+     * startsWith semantics if needed. For LS we don't need to pass any argument as we just have
      * plain block nodes, therefore we pass {@link BlockNode#NO_ARGUMENT}. In our case the executor
      * does not need to remember any state so we reuse a singleton instance.
      */
+    @Override
     public void executeVoid(VirtualFrame frame, LSStatementNode node, int index, int argument) {
         node.executeVoid(frame);
+    }
+
+    /**
+     * All declared local variables accessible in this block. Variables declared in parent blocks
+     * are included.
+     */
+    public LSWriteLocalVariableNode[] getDeclaredLocalVariables() {
+        LSWriteLocalVariableNode[] writeNodes = writeNodesCache;
+        if (writeNodes == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            writeNodesCache = writeNodes = findDeclaredLocalVariables();
+        }
+        return writeNodes;
+    }
+
+    public int getParentBlockIndex() {
+        return parentBlockIndex;
+    }
+
+    private LSWriteLocalVariableNode[] findDeclaredLocalVariables() {
+        if (block == null) {
+            return new LSWriteLocalVariableNode[]{};
+        }
+        // Search for those write nodes, which declare variables
+        List<LSWriteLocalVariableNode> writeNodes = new ArrayList<>(4);
+        int[] varsIndex = new int[]{0};
+        NodeUtil.forEachChild(block, new NodeVisitor() {
+            @Override
+            public boolean visit(Node node) {
+                if (node instanceof WrapperNode) {
+                    NodeUtil.forEachChild(node, this);
+                    return true;
+                }
+                if (node instanceof LSScopedNode) {
+                    LSScopedNode scopedNode = (LSScopedNode) node;
+                    scopedNode.setVisibleVariablesIndexOnEnter(varsIndex[0]);
+                }
+                // Do not enter any nested blocks.
+                if (!(node instanceof LSBlockNode)) {
+                    NodeUtil.forEachChild(node, this);
+                }
+                // Write to a variable is a declaration unless it exists already in a parent scope.
+                if (node instanceof LSWriteLocalVariableNode) {
+                    LSWriteLocalVariableNode wn = (LSWriteLocalVariableNode) node;
+                    if (wn.isDeclaration()) {
+                        writeNodes.add(wn);
+                        varsIndex[0]++;
+                    }
+                }
+                if (node instanceof LSScopedNode) {
+                    LSScopedNode scopedNode = (LSScopedNode) node;
+                    scopedNode.setVisibleVariablesIndexOnExit(varsIndex[0]);
+                }
+                return true;
+            }
+        });
+        Node parentBlock = findBlock();
+        LSWriteLocalVariableNode[] parentVariables = null;
+        if (parentBlock instanceof LSBlockNode) {
+            parentVariables = ((LSBlockNode) parentBlock).getDeclaredLocalVariables();
+        }
+        LSWriteLocalVariableNode[] variables = writeNodes.toArray(new LSWriteLocalVariableNode[writeNodes.size()]);
+        parentBlockIndex = variables.length;
+        if (parentVariables == null || parentVariables.length == 0) {
+            return variables;
+        } else {
+            int parentVariablesIndex = ((LSBlockNode) parentBlock).getParentBlockIndex();
+            int visibleVarsIndex = getVisibleVariablesIndexOnEnter();
+            int allVarsLength = variables.length + visibleVarsIndex + parentVariables.length - parentVariablesIndex;
+            LSWriteLocalVariableNode[] allVariables = Arrays.copyOf(variables, allVarsLength);
+            System.arraycopy(parentVariables, 0, allVariables, variables.length, visibleVarsIndex);
+            System.arraycopy(parentVariables, parentVariablesIndex, allVariables, variables.length + visibleVarsIndex, parentVariables.length - parentVariablesIndex);
+            return allVariables;
+        }
     }
 
 }

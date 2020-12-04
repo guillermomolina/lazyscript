@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.builtins;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.NotImplementedException;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
@@ -66,8 +66,8 @@ public abstract class LSNewObjectBuiltin extends LSBuiltinNode {
 
     @Specialization
     public Object newObject(LSNull o,
-                    @CachedLanguage LazyScriptLanguage language,
-                    @CachedContext(LazyScriptLanguage.class) ContextReference<LSContext> contextRef,
+                    @CachedLanguage LSLanguage language,
+                    @CachedContext(LSLanguage.class) ContextReference<LSContext> contextRef,
                     @Cached("contextRef.get().getAllocationReporter()") AllocationReporter reporter) {
         throw new NotImplementedException();
         //return language.createObject(reporter);

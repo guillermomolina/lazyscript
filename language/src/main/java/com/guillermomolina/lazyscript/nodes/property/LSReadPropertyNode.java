@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.nodes.property;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.util.LSToMemberNode;
 import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
@@ -97,7 +97,7 @@ public abstract class LSReadPropertyNode extends LSExpressionNode {
     protected Object readNonObject(Object receiver, Object name, @CachedLibrary("receiver") InteropLibrary objects,
             @Cached LSToMemberNode asMember) {
         try {
-            Object prototype = lookupContextReference(LazyScriptLanguage.class).get().getPrototype(receiver);
+            Object prototype = lookupContextReference(LSLanguage.class).get().getPrototype(receiver);
             if(name instanceof String && ((String)name).compareTo(LSObject.PROTOTYPE) == 0) {
                 return prototype;
             }

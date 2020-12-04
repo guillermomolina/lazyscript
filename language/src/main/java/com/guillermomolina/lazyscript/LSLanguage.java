@@ -70,24 +70,42 @@ import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 
-@TruffleLanguage.Registration(id = LazyScriptLanguage.ID, name = LazyScriptLanguage.NAME, defaultMimeType = LazyScriptLanguage.MIME_TYPE, characterMimeTypes = LazyScriptLanguage.MIME_TYPE, contextPolicy = ContextPolicy.SHARED, fileTypeDetectors = LSFileDetector.class)
+@TruffleLanguage.Registration(id = LSLanguage.ID, name = LSLanguage.NAME, defaultMimeType = LSLanguage.MIME_TYPE, characterMimeTypes = LSLanguage.MIME_TYPE, contextPolicy = ContextPolicy.SHARED, fileTypeDetectors = LSFileDetector.class)
 @ProvidedTags({ StandardTags.CallTag.class, StandardTags.StatementTag.class, StandardTags.RootTag.class,
         StandardTags.RootBodyTag.class, StandardTags.ExpressionTag.class, DebuggerTags.AlwaysHalt.class,
         StandardTags.ReadVariableTag.class, StandardTags.WriteVariableTag.class })
-public final class LazyScriptLanguage extends TruffleLanguage<LSContext> {
+public final class LSLanguage extends TruffleLanguage<LSContext> {
     public static final AtomicInteger counter = new AtomicInteger();
 
     public static final String ID = "ls";
     public static final String NAME = "LazyScript";
     public static final String MIME_TYPE = "application/x-lazyscript";
+    private static final Source BUILTIN_SOURCE = Source.newBuilder(SLLanguage.ID, "", "SL builtin").build();
 
-    public LazyScriptLanguage() {
+    private final Assumption singleContext = Truffle.getRuntime().createAssumption("Single SL context.");
+
+    private final Map<NodeFactory<? extends SLBuiltinNode>, RootCallTarget> builtinTargets = new ConcurrentHashMap<>();
+    private final Map<String, RootCallTarget> undefinedFunctions = new ConcurrentHashMap<>();
+
+    public LSLanguage() {
         counter.incrementAndGet();
     }
 
     @Override
     protected LSContext createContext(Env env) {
         return new LSContext(this, env);
+    }
+
+    public static NodeInfo lookupNodeInfo(Class<?> clazz) {
+        if (clazz == null) {
+            return null;
+        }
+        NodeInfo info = clazz.getAnnotation(NodeInfo.class);
+        if (info != null) {
+            return info;
+        } else {
+            return lookupNodeInfo(clazz.getSuperclass());
+        }
     }
 
     @Override
@@ -103,6 +121,32 @@ public final class LazyScriptLanguage extends TruffleLanguage<LSContext> {
         RootNode evalMain = new LSEvalRootNode(this, visitor.parse());
         return Truffle.getRuntime().createCallTarget(evalMain);
     }
+    /**
+     * SLLanguage specifies the {@link ContextPolicy#SHARED} in
+     * {@link Registration#contextPolicy()}. This means that a single {@link TruffleLanguage}
+     * instance can be reused for multiple language contexts. Before this happens the Truffle
+     * framework notifies the language by invoking {@link #initializeMultipleContexts()}. This
+     * allows the language to invalidate certain assumptions taken for the single context case. One
+     * assumption SL takes for single context case is located in {@link SLEvalRootNode}. There
+     * functions are only tried to be registered once in the single context case, but produce a
+     * boundary call in the multi context case, as function registration is expected to happen more
+     * than once.
+     *
+     * Value identity caches should be avoided and invalidated for the multiple contexts case as no
+     * value will be the same. Instead, in multi context case, a language should only use types,
+     * shapes and code to speculate.
+     *
+     * For a new language it is recommended to start with {@link ContextPolicy#EXCLUSIVE} and as the
+     * language gets more mature switch to {@link ContextPolicy#SHARED}.
+     */
+    @Override
+    protected void initializeMultipleContexts() {
+        singleContext.invalidate();
+    }
+
+    public boolean isSingleContext() {
+        return singleContext.isValid();
+    }
 
     @Override
     protected Object getLanguageView(LSContext context, Object value) {
@@ -115,57 +159,12 @@ public final class LazyScriptLanguage extends TruffleLanguage<LSContext> {
     }
 
     @Override
-    public Iterable<Scope> findLocalScopes(LSContext context, Node node, Frame frame) {
-        final LSScopeUtil scope = LSScopeUtil.createScope(node);
-        return new Iterable<Scope>() {
-            @Override
-            public Iterator<Scope> iterator() {
-                return new Iterator<Scope>() {
-                    private LSScopeUtil previousScope;
-                    private LSScopeUtil nextScope = scope;
-
-                    @Override
-                    public boolean hasNext() {
-                        if (nextScope == null) {
-                            nextScope = previousScope.findParent();
-                        }
-                        return nextScope != null;
-                    }
-
-                    @Override
-                    public Scope next() {
-                        if (!hasNext()) {
-                            throw new NoSuchElementException();
-                        }
-                        Object functionObject = findFunctionObject();
-                        Scope vscope = Scope.newBuilder(nextScope.getName(), nextScope.getVariables(frame))
-                                .node(nextScope.getNode()).arguments(nextScope.getArguments(frame))
-                                .rootInstance(functionObject).build();
-                        previousScope = nextScope;
-                        nextScope = null;
-                        return vscope;
-                    }
-
-                    private Object findFunctionObject() {
-                        String name = node.getRootNode().getName();
-                        try {
-                            return LSObjectUtil.getFunction(context.getTopContext(), name);
-                        } catch (UnknownIdentifierException e) {
-                            throw new NoSuchElementException();
-                        }
-                    }
-                };
-            }
-        };
-    }
-
-    @Override
-    protected Iterable<Scope> findTopScopes(LSContext context) {
-        return context.getTopScopes();
+    protected Object getScope(LSContext context) {
+        return context.getFunctionRegistry().getFunctionsObject();
     }
 
     public static LSContext getCurrentContext() {
-        return getCurrentContext(LazyScriptLanguage.class);
+        return getCurrentContext(LSLanguage.class);
     }
 
     private static final List<NodeFactory<? extends LSBuiltinNode>> EXTERNAL_BUILTINS = Collections

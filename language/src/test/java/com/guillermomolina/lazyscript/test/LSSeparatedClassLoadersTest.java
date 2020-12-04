@@ -47,7 +47,7 @@ import java.net.URLClassLoader;
 import java.security.ProtectionDomain;
 import java.util.Map;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.oracle.truffle.api.Truffle;
 
 import org.graalvm.polyglot.Engine;
@@ -75,7 +75,7 @@ public class LSSeparatedClassLoadersTest {
         URL truffleURL = Truffle.class.getProtectionDomain().getCodeSource().getLocation();
         Assume.assumeNotNull(truffleURL);
 
-        URL llURL = LazyScriptLanguage.class.getProtectionDomain().getCodeSource().getLocation();
+        URL llURL = LSLanguage.class.getProtectionDomain().getCodeSource().getLocation();
         Assume.assumeNotNull(llURL);
 
         ClassLoader parent = Engine.class.getClassLoader().getParent();

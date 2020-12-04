@@ -51,7 +51,7 @@ public final class LSFileDetector implements TruffleFile.FileTypeDetector {
     public String findMimeType(TruffleFile file) throws IOException {
         String name = file.getName();
         if (name != null && name.endsWith(".ls")) {
-            return LazyScriptLanguage.MIME_TYPE;
+            return LSLanguage.MIME_TYPE;
         }
         return null;
     }

@@ -41,15 +41,21 @@
 
 package com.guillermomolina.lazyscript.parser;
 
-import com.oracle.truffle.api.TruffleException;
-import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
+import com.oracle.truffle.api.exception.AbstractTruffleException;
+import com.oracle.truffle.api.interop.ExceptionType;
+import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.library.ExportLibrary;
+import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 
-public class LSParseError extends RuntimeException implements TruffleException {
+@ExportLibrary(InteropLibrary.class)
+public class LSParseError extends AbstractTruffleException {
 
     private static final long serialVersionUID = -8856095491491956089L;
 
@@ -76,18 +82,29 @@ public class LSParseError extends RuntimeException implements TruffleException {
                 token == null ? 1 : Math.max(token.getStopIndex() - token.getStartIndex(), 0), message);
     }
 
-    @Override
-    public SourceSection getSourceLocation() {
+    /**
+     * Note that any subclass of {@link AbstractTruffleException} must always return
+     * <code>true</code> for {@link InteropLibrary#isException(Object)}. That is why it is correct
+     * to export {@link #getExceptionType()} without implementing
+     * {@link InteropLibrary#isException(Object)}.
+     */
+    @ExportMessage
+    ExceptionType getExceptionType() {
+        return ExceptionType.PARSE_ERROR;
+    }
+
+    @ExportMessage
+    boolean hasSourceLocation() {
+        return source != null;
+    }
+
+    @ExportMessage(name = "getSourceLocation")
+    @TruffleBoundary
+    SourceSection getSourceSection() throws UnsupportedMessageException {
+        if (source == null) {
+            throw UnsupportedMessageException.create();
+        }
         return source.createSection(line, column, length);
     }
 
-    @Override
-    public Node getLocation() {
-        return null;
-    }
-
-    @Override
-    public boolean isSyntaxError() {
-        return true;
-    }
 }

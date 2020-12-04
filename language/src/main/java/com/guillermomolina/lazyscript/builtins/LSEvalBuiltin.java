@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.builtins;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -61,18 +61,20 @@ import com.oracle.truffle.api.source.Source;
 @NodeInfo(shortName = "eval")
 public abstract class LSEvalBuiltin extends LSBuiltinNode {
 
-    @Specialization(guards = {"stringsEqual(cachedId, id)", "stringsEqual(cachedCode, code)"})
+    static final int LIMIT = 2;
+
+    @Specialization(guards = {"stringsEqual(cachedId, id)", "stringsEqual(cachedCode, code)"}, limit = "LIMIT")
     public Object evalCached(String id, String code,
                     @Cached("id") String cachedId,
                     @Cached("code") String cachedCode,
-                    @CachedContext(LazyScriptLanguage.class) LSContext context,
+                    @CachedContext(LSLanguage.class) LSContext context,
                     @Cached("create(parse(id, code, context))") DirectCallNode callNode) {
         return callNode.call(new Object[]{});
     }
 
     @TruffleBoundary
     @Specialization(replaces = "evalCached")
-    public Object evalUncached(String id, String code, @CachedContext(LazyScriptLanguage.class) LSContext context) {
+    public Object evalUncached(String id, String code, @CachedContext(LSLanguage.class) LSContext context) {
         return parse(id, code, context).call();
     }
 

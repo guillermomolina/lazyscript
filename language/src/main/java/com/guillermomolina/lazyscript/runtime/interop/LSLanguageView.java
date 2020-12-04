@@ -42,7 +42,7 @@ package com.guillermomolina.lazyscript.runtime.interop;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -84,7 +84,7 @@ public final class LSLanguageView implements TruffleObject {
      */
     @ExportMessage
     Class<? extends TruffleLanguage<LSContext>> getLanguage() {
-        return LazyScriptLanguage.class;
+        return LSLanguage.class;
     }
 
     @ExportMessage
@@ -183,7 +183,7 @@ public final class LSLanguageView implements TruffleObject {
     private static boolean isPrimitiveOrFromOtherLanguage(Object value) {
         InteropLibrary interop = InteropLibrary.getFactory().getUncached(value);
         try {
-            return !interop.hasLanguage(value) || interop.getLanguage(value) != LazyScriptLanguage.class;
+            return !interop.hasLanguage(value) || interop.getLanguage(value) != LSLanguage.class;
         } catch (UnsupportedMessageException e) {
             throw shouldNotReachHere(e);
         }
@@ -201,7 +201,7 @@ public final class LSLanguageView implements TruffleObject {
         }
         InteropLibrary lib = InteropLibrary.getFactory().getUncached(value);
         try {
-            if (lib.hasLanguage(value) && lib.getLanguage(value) == LazyScriptLanguage.class) {
+            if (lib.hasLanguage(value) && lib.getLanguage(value) == LSLanguage.class) {
                 return value;
             } else {
                 return create(value);

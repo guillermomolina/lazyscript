@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.runtime.interop;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
 import com.oracle.truffle.api.CompilerAsserts;
@@ -70,7 +70,7 @@ import com.oracle.truffle.api.library.ExportMessage;
  * In order to assign types to guest language values, LazyScript values implement
  * {@link InteropLibrary#getMetaObject(Object)}. The interop contracts for primitive values cannot
  * be overriden, so in order to assign meta-objects to primitive values, the primitive values are
- * assigned using language views. See {@link LazyScriptLanguage#getLanguageView}.
+ * assigned using language views. See {@link LSLanguage#getLanguageView}.
  */
 @ExportLibrary(InteropLibrary.class)
 public final class LSMetaType implements TruffleObject {
@@ -125,7 +125,7 @@ public final class LSMetaType implements TruffleObject {
 
     @ExportMessage
     Class<? extends TruffleLanguage<LSContext>> getLanguage() {
-        return LazyScriptLanguage.class;
+        return LSLanguage.class;
     }
 
     /*

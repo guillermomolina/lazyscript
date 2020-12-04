@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.builtins;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.interop.LSLanguageView;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -66,7 +66,7 @@ public abstract class LSPrintlnBuiltin extends LSBuiltinNode {
     @TruffleBoundary
     public Object println(Object self, Object value,
                     @CachedLibrary(limit = "3") InteropLibrary interop,
-                    @CachedContext(LazyScriptLanguage.class) LSContext context) {
+                    @CachedContext(LSLanguage.class) LSContext context) {
         context.getOutput().println(interop.toDisplayString(LSLanguageView.forValue(value)));
         return value;
     }

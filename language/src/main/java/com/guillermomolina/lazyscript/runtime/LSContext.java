@@ -47,7 +47,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.Collections;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.NotImplementedException;
 import com.guillermomolina.lazyscript.builtins.LSBuiltinNode;
 import com.guillermomolina.lazyscript.builtins.LSDefineFunctionBuiltinFactory;
@@ -96,7 +96,7 @@ import com.oracle.truffle.api.source.Source;
 
 /**
  * The run-time state of LazyScript during execution. The topContext is created by the
- * {@link LazyScriptLanguage}. It is used, for example, by
+ * {@link LSLanguage}. It is used, for example, by
  * {@link LSBuiltinNode#getContext() builtin functions}.
  * <p>
  * It would be an error to have two different topContext instances during the
@@ -106,15 +106,11 @@ import com.oracle.truffle.api.source.Source;
  */
 public final class LSContext {
 
-    private static final Source BUILTIN_SOURCE = Source.newBuilder(LazyScriptLanguage.ID, "", "LazyScript builtin").build();
-
+    private final LSLanguage language;
     private final Env env;
     private final BufferedReader input;
     private final PrintWriter output;
-    private final LazyScriptLanguage language;
     @CompilationFinal private AllocationReporter allocationReporter;
-    private final Iterable<Scope> topScopes; // Cache the top scopes
-
 
     private final LSObject objectPrototype;
     private final LSObject nullPrototype;
@@ -130,7 +126,7 @@ public final class LSContext {
     private final LSObject falsePrototype;
     private final LSObject topContext;
 
-    public LSContext(LazyScriptLanguage language, TruffleLanguage.Env env) {
+    public LSContext(LSLanguage language, TruffleLanguage.Env env) {
         if (env != null) { // env could still be null
             setAllocationReporter(env);
         }
@@ -153,7 +149,6 @@ public final class LSContext {
         this.stringPrototype = createObject(objectPrototype);
         this.functionPrototype = createObject(objectPrototype);
         this.topContext = createObject(objectPrototype);
-        this.topScopes = Collections.singleton(Scope.newBuilder("global", createObject(objectPrototype)).build());
         installBuiltins();
     }
 
@@ -399,7 +394,7 @@ public final class LSContext {
     }
 
     public static LSContext getCurrent() {
-        return LazyScriptLanguage.getCurrentContext();
+        return LSLanguage.getCurrentContext();
     }
 
 }

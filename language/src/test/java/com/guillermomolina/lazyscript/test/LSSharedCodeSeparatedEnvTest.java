@@ -47,7 +47,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.oracle.truffle.api.instrumentation.EventBinding;
 import com.oracle.truffle.api.instrumentation.TruffleInstrument;
 
@@ -76,7 +76,7 @@ public class LSSharedCodeSeparatedEnvTest {
         os1 = new ByteArrayOutputStream();
         os2 = new ByteArrayOutputStream();
 
-        int instances = LazyScriptLanguage.counter.get();
+        int instances = LSLanguage.counter.get();
         // @formatter:off
         e1 = Context.newBuilder("ls").engine(engine).out(os1).allowPolyglotAccess(PolyglotAccess.ALL).build();
         e1.getPolyglotBindings().putMember("extra", 1);
@@ -84,7 +84,7 @@ public class LSSharedCodeSeparatedEnvTest {
         e2.getPolyglotBindings().putMember("extra", 2);
         e1.initialize("ls");
         e2.initialize("ls");
-        assertEquals("One LazyScript instance created", instances + 1, LazyScriptLanguage.counter.get());
+        assertEquals("One LazyScript instance created", instances + 1, LSLanguage.counter.get());
     }
 
     @After

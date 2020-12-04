@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.runtime.objects;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.LSObjectUtil;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -145,7 +145,7 @@ public class LSObject extends DynamicObject {
 
     @ExportMessage
     Class<? extends TruffleLanguage<LSContext>> getLanguage() {
-        return LazyScriptLanguage.class;
+        return LSLanguage.class;
     }
 
     @ExportMessage

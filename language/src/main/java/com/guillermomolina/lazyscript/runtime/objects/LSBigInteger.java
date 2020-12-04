@@ -42,7 +42,7 @@ package com.guillermomolina.lazyscript.runtime.objects;
 
 import java.math.BigInteger;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -214,7 +214,7 @@ public final class LSBigInteger implements TruffleObject, Comparable<LSBigIntege
 
     @ExportMessage
     Class<? extends TruffleLanguage<LSContext>> getLanguage() {
-        return LazyScriptLanguage.class;
+        return LSLanguage.class;
     }
 
     @ExportMessage

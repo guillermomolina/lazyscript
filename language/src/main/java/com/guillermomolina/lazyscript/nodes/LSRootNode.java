@@ -40,9 +40,10 @@
  */
 package com.guillermomolina.lazyscript.nodes;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.builtins.LSBuiltinNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSFunctionBodyNode;
+import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
@@ -67,7 +68,7 @@ public class LSRootNode extends RootNode {
 
     private final SourceSection sourceSection;
 
-    public LSRootNode(LazyScriptLanguage language, FrameDescriptor frameDescriptor, LSExpressionNode bodyNode, SourceSection sourceSection, String name) {
+    public LSRootNode(LSLanguage language, FrameDescriptor frameDescriptor, LSExpressionNode bodyNode, SourceSection sourceSection, String name) {
         super(language, frameDescriptor);
         this.bodyNode = bodyNode;
         this.sourceSection = sourceSection;
@@ -81,7 +82,7 @@ public class LSRootNode extends RootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        assert lookupContextReference(LazyScriptLanguage.class).get() != null;
+        assert lookupContextReference(LSLanguage.class).get() != null;
         return bodyNode.executeGeneric(frame);
     }
 
@@ -106,5 +107,45 @@ public class LSRootNode extends RootNode {
     @Override
     public String toString() {
         return "root " + name;
+    }
+
+    public final LSWriteLocalVariableNode[] getDeclaredArguments() {
+        LSWriteLocalVariableNode[] argumentNodes = argumentNodesCache;
+        if (argumentNodes == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            argumentNodesCache = argumentNodes = findArgumentNodes();
+        }
+        return argumentNodes;
+    }
+
+    private LSWriteLocalVariableNode[] findArgumentNodes() {
+        List<LSWriteLocalVariableNode> writeArgNodes = new ArrayList<>(4);
+        NodeUtil.forEachChild(this.getBodyNode(), new NodeVisitor() {
+
+            private LSWriteLocalVariableNode wn; // The current write node containing a slot
+
+            @Override
+            public boolean visit(Node node) {
+                // When there is a write node, search for LSReadArgumentNode among its children:
+                if (node instanceof InstrumentableNode.WrapperNode) {
+                    return NodeUtil.forEachChild(node, this);
+                }
+                if (node instanceof LSWriteLocalVariableNode) {
+                    wn = (LSWriteLocalVariableNode) node;
+                    boolean all = NodeUtil.forEachChild(node, this);
+                    wn = null;
+                    return all;
+                } else if (wn != null && (node instanceof LSReadArgumentNode)) {
+                    writeArgNodes.add(wn);
+                    return true;
+                } else if (wn == null && (node instanceof LSStatementNode && !(node instanceof LSBlockNode || node instanceof LSFunctionBodyNode))) {
+                    // A different LS node - we're done.
+                    return false;
+                } else {
+                    return NodeUtil.forEachChild(node, this);
+                }
+            }
+        });
+        return writeArgNodes.toArray(new LSWriteLocalVariableNode[writeArgNodes.size()]);
     }
 }

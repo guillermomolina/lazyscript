@@ -42,7 +42,7 @@ package com.guillermomolina.lazyscript.nodes;
 
 import java.math.BigInteger;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
 import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -52,7 +52,7 @@ import com.oracle.truffle.api.dsl.TypeCheck;
 import com.oracle.truffle.api.dsl.TypeSystem;
 
 /**
- * The type system of LazyScript, as explained in {@link LazyScriptLanguage}. Based on the {@link TypeSystem}
+ * The type system of LazyScript, as explained in {@link LSLanguage}. Based on the {@link TypeSystem}
  * annotation, the Truffle DLL generates the subclass {@link LSTypesGen} with type test and type
  * conversion methods for some types. In this class, we only cover types where the automatically
  * generated ones would not be sufficient.

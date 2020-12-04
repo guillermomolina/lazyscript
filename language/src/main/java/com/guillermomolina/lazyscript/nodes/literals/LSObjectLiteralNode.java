@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.nodes.literals;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
 import com.oracle.truffle.api.CompilerAsserts;
@@ -79,7 +79,7 @@ public final class LSObjectLiteralNode extends LSExpressionNode {
          */
         CompilerAsserts.compilationConstant(nameNodes.length);
 
-        Object object = lookupContextReference(LazyScriptLanguage.class).get().createObject();
+        Object object = lookupContextReference(LSLanguage.class).get().createObject();
 
         for (int i = 0; i < nameNodes.length; i++) {
             Object name = nameNodes[i].executeGeneric(frame);

@@ -40,45 +40,95 @@
  */
 package com.guillermomolina.lazyscript.nodes.literals;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
+
 /**
- * Constant literal for a LazyScript functions.
+ * Constant literal for a {@link LSFunction function} value, created when a function name occurs as
+ * a literal in LS source code. Note that function redefinition can change the {@link CallTarget
+ * call target} that is executed when calling the function, but the {@link LSFunction} for a name
+ * never changes. This is guaranteed by the {@link LSFunctionRegistry}.
  */
-@NodeInfo(shortName = "const")
+@NodeInfo(shortName = "func")
 public final class LSFunctionLiteralNode extends LSExpressionNode {
 
-    final RootCallTarget callTarget;
+    /** The name of the function. */
+    private final String functionName;
+
+    private final RootCallTarget callTarget;
 
     /**
-     * The resolved function. During parsing (in the constructor of this node), we
-     * do not have the {@link SLContext} available yet, so the lookup can only be
-     * done at {@link #executeGeneric first execution}. The {@link CompilationFinal}
-     * annotation ensures that the function can still be constant folded during
-     * compilation.
+     * The resolved function. During parsing (in the constructor of this node), we do not have the
+     * {@link LSContext} available yet, so the lookup can only be done at {@link #executeGeneric
+     * first execution}. The {@link CompilationFinal} annotation ensures that the function can still
+     * be constant folded during compilation.
      */
-    @CompilationFinal
-    private LSFunction cachedFunction;
+    @CompilationFinal private LSFunction cachedFunction;
 
-    public LSFunctionLiteralNode(final RootCallTarget callTarget) {
+    /**
+     * The stored context reference. Caching the context reference in a field like this always
+     * ensures the most efficient context lookup. The {@link LSContext} must not be stored in the
+     * AST in the multi-context case.
+     */
+    @CompilationFinal private ContextReference<LSContext> contextRef;
+
+    /**
+     * It is always safe to store the language in the AST if the language supports
+     * {@link ContextPolicy#SHARED shared}.
+     */
+    @CompilationFinal private LSLanguage language;
+
+    public LSFunctionLiteralNode(String functionName, final RootCallTarget callTarget) {
+        this.functionName = functionName;
         this.callTarget = callTarget;
     }
 
     @Override
     public LSFunction executeGeneric(VirtualFrame frame) {
-        if (cachedFunction == null) {
-            /* We are about to change a @CompilationFinal field. */
+        ContextReference<LSContext> contextReference = contextRef;
+        if (contextReference == null) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            /* First execution of the node: lookup the function in the function registry. */
-            cachedFunction = lookupContextReference(LazyScriptLanguage.class).get().createFunction("unnamed", callTarget);
+            contextReference = contextRef = lookupContextReference(LSLanguage.class);
         }
-        return cachedFunction;
+        LSLanguage l = language;
+        if (l == null) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            l = language = lookupLanguageReference(LSLanguage.class).get();
+        }
+        CompilerAsserts.partialEvaluationConstant(l);
+
+        LSFunction function;
+        if (l.isSingleContext()) {
+            function = this.cachedFunction;
+            if (function == null) {
+                /* We are about to change a @CompilationFinal field. */
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                /* First execution of the node: lookup the function in the function registry. */
+                this.cachedFunction = function = lookupContextReference(LSLanguage.class).get().createFunction(functionName, callTarget);
+            }
+        } else {
+            /*
+             * We need to rest the cached function otherwise it might cause a memory leak.
+             */
+            if (this.cachedFunction != null) {
+                CompilerDirectives.transferToInterpreterAndInvalidate();
+                this.cachedFunction = null;
+            }
+            // in the multi-context case we are not allowed to store
+            // LSFunction objects in the AST. Instead we always perform the lookup in the hash map.
+            function = lookupContextReference(LSLanguage.class).get().createFunction(functionName, callTarget);
+        }
+        return function;
     }
+
 }

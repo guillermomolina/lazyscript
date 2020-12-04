@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.nodes;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.LSObjectUtil;
 import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
@@ -66,7 +66,7 @@ public final class LSEvalRootNode extends RootNode {
     final RootCallTarget rootCallTarget;
     @Child private DirectCallNode mainCallNode;
 
-    public LSEvalRootNode(LazyScriptLanguage language, RootCallTarget rootCallTarget) {
+    public LSEvalRootNode(LSLanguage language, RootCallTarget rootCallTarget) {
         super(language);
         this.rootCallTarget = rootCallTarget;
         this.mainCallNode = rootCallTarget != null ? DirectCallNode.create(rootCallTarget) : null;
@@ -100,14 +100,14 @@ public final class LSEvalRootNode extends RootNode {
         } 
         
         final String name = "main";
-        final LSContext context = lookupContextReference(LazyScriptLanguage.class).get();
+        final LSContext context = lookupContextReference(LSLanguage.class).get();
         final LSFunction main = context.createFunction(name, rootCallTarget);
         LSObjectUtil.putProperty(context.getTopContext(), name, main);     
 
         /* Conversion of arguments to types understood by LazyScript. */
         Object[] frameArguments = frame.getArguments();
         Object[] arguments = new Object[frameArguments.length + 1];
-        arguments[0] = lookupContextReference(LazyScriptLanguage.class).get().getTopContext();
+        arguments[0] = lookupContextReference(LSLanguage.class).get().getTopContext();
         for (int i = 0; i < frameArguments.length; i++) {
             arguments[i + 1] = LSContext.fromForeignValue(frameArguments[i]);
         }

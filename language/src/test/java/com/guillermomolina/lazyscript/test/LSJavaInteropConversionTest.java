@@ -49,7 +49,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.List;
 import java.util.Map;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
@@ -110,9 +110,9 @@ public class LSJavaInteropConversionTest {
                         "  obj.b = new();\n" +
                         "  return validator.validateObject(obj, obj);\n" +
                         "}";
-        try (Context context = Context.newBuilder(LazyScriptLanguage.ID).build()) {
-            context.eval(Source.newBuilder(LazyScriptLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LazyScriptLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LSLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LSLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LSLanguage.ID).getMember("test");
             Value res = test.execute(new Validator());
             assertTrue(res.isNumber() && res.asInt() == 42);
         }
@@ -126,9 +126,9 @@ public class LSJavaInteropConversionTest {
                         "  obj.b = new();\n" +
                         "  return validator.validateMap(obj, obj);\n" +
                         "}";
-        try (Context context = Context.newBuilder(LazyScriptLanguage.ID).build()) {
-            context.eval(Source.newBuilder(LazyScriptLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LazyScriptLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LSLanguage.ID).build()) {
+            context.eval(Source.newBuilder(LSLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LSLanguage.ID).getMember("test");
             Value res = test.execute(new Validator());
             assertTrue(res.isNumber() && res.asInt() == 42);
         }
@@ -141,9 +141,9 @@ public class LSJavaInteropConversionTest {
                         "  array[1] = new();\n" +
                         "  return validator.validateList(array, array);\n" +
                         "}";
-        try (Context context = Context.newBuilder(LazyScriptLanguage.ID).allowHostAccess(HostAccess.ALL).build()) {
-            context.eval(Source.newBuilder(LazyScriptLanguage.ID, sourceText, "Test").build());
-            Value test = context.getBindings(LazyScriptLanguage.ID).getMember("test");
+        try (Context context = Context.newBuilder(LSLanguage.ID).allowHostAccess(HostAccess.ALL).build()) {
+            context.eval(Source.newBuilder(LSLanguage.ID, sourceText, "Test").build());
+            Value test = context.getBindings(LSLanguage.ID).getMember("test");
             Value res = test.execute(new Validator(), new Object[2]);
             assertTrue(res.isNumber() && res.asInt() == 42);
         }

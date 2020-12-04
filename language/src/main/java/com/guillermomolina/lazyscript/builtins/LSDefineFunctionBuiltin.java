@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.builtins;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.NotImplementedException;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -57,7 +57,7 @@ public abstract class LSDefineFunctionBuiltin extends LSBuiltinNode {
 
     @TruffleBoundary
     @Specialization
-    public String defineFunction(String code, @CachedContext(LazyScriptLanguage.class) LSContext context) {
+    public String defineFunction(String code, @CachedContext(LSLanguage.class) LSContext context) {
         throw new NotImplementedException();
         // @formatter:off
         /*Source source = Source.newBuilder(LazyScript.ID, code, "[defineFunction]").

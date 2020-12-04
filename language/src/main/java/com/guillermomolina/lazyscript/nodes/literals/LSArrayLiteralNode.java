@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.nodes.literals;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
@@ -77,6 +77,6 @@ public final class LSArrayLiteralNode extends LSExpressionNode {
             argumentValues[i] = argumentNodes[i].executeGeneric(frame);
         }
 
-        return lookupContextReference(LazyScriptLanguage.class).get().createArray(argumentValues);
+        return lookupContextReference(LSLanguage.class).get().createArray(argumentValues);
     }
 }

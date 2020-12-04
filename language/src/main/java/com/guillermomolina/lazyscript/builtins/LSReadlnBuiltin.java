@@ -43,7 +43,7 @@ package com.guillermomolina.lazyscript.builtins;
 import java.io.BufferedReader;
 import java.io.IOException;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.LSException;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -58,7 +58,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public abstract class LSReadlnBuiltin extends LSBuiltinNode {
 
     @Specialization
-    public String readln(@CachedContext(LazyScriptLanguage.class) LSContext context) {
+    public String readln(@CachedContext(LSLanguage.class) LSContext context) {
         String result = doRead(context.getInput());
         if (result == null) {
             /*

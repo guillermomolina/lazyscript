@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.LSStatementNode;
 import com.oracle.truffle.api.TruffleLogger;
@@ -55,7 +55,7 @@ import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 
 public class LSLexicalScope {
-    private static final TruffleLogger LOG = TruffleLogger.getLogger(LazyScriptLanguage.ID, LSLexicalScope.class);
+    private static final TruffleLogger LOG = TruffleLogger.getLogger(LSLanguage.ID, LSLexicalScope.class);
 
     public static final String THIS = "this";
     public static final String CONTEXT = "context";

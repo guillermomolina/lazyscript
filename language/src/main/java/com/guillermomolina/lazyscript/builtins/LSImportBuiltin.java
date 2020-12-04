@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.builtins;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.LSException;
 import com.guillermomolina.lazyscript.runtime.objects.LSNull;
@@ -61,7 +61,7 @@ public abstract class LSImportBuiltin extends LSBuiltinNode {
     @Specialization
     public Object importSymbol(String symbol,
                     @CachedLibrary(limit = "3") InteropLibrary arrays,
-                    @CachedContext(LazyScriptLanguage.class) LSContext context) {
+                    @CachedContext(LSLanguage.class) LSContext context) {
         try {
             return arrays.readMember(context.getPolyglotBindings(), symbol);
         } catch (UnsupportedMessageException | UnknownIdentifierException e) {

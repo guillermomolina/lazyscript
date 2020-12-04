@@ -44,7 +44,6 @@ import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
 import com.guillermomolina.lazyscript.runtime.interop.LSLanguageView;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleException;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.nodes.Node;
@@ -52,34 +51,23 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.source.SourceSection;
 
 /**
- * LazyScript does not need a sophisticated error checking and reporting mechanism, so all unexpected
- * conditions just abort execution. This exception class is used when we abort from within the LazyScript
+ * LS does not need a sophisticated error checking and reporting mechanism, so all unexpected
+ * conditions just abort execution. This exception class is used when we abort from within the LS
  * implementation.
  */
-public class LSException extends RuntimeException implements TruffleException {
+@ExportLibrary(InteropLibrary.class)
+public class LSException extends AbstractTruffleException {
 
     private static final long serialVersionUID = -6799734410727348507L;
     private static final InteropLibrary UNCACHED_LIB = InteropLibrary.getFactory().getUncached();
 
-    private final Node location;
-
     @TruffleBoundary
     public LSException(String message, Node location) {
-        super(message);
-        this.location = location;
-    }
-
-    @Override
-    public final Throwable fillInStackTrace() {
-        return this;
-    }
-
-    public Node getLocation() {
-        return location;
+        super(message, location);
     }
 
     /**
-     * Provides a user-readable message for run-time type errors. LazyScript is strongly typed, i.e., there
+     * Provides a user-readable message for run-time type errors. LS is strongly typed, i.e., there
      * are no automatic type conversions of values.
      */
     @TruffleBoundary
@@ -96,7 +84,7 @@ public class LSException extends RuntimeException implements TruffleException {
 
         result.append(": operation");
         if (operation != null) {
-            NodeInfo nodeInfo = LSContext.lookupNodeInfo(operation.getClass());
+            NodeInfo nodeInfo = LSLanguage.lookupNodeInfo(operation.getClass());
             if (nodeInfo != null) {
                 result.append(" \"").append(nodeInfo.shortName()).append("\"");
             }
@@ -108,7 +96,7 @@ public class LSException extends RuntimeException implements TruffleException {
         for (int i = 0; i < values.length; i++) {
             /*
              * For primitive or foreign values we request a language view so the values are printed
-             * from the perspective of lazy language and not another language. Since this is a
+             * from the perspective of simple language and not another language. Since this is a
              * rather rarely invoked exceptional method, we can just create the language view for
              * primitive values and then conveniently request the meta-object and display strings.
              * Using the language view for core builtins like the typeOf builtin might not be a good

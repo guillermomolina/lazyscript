@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2019, Guillermo Adrián Molina. All rights reserved.
+ * Copyright (c) 2012, 2020, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * The Universal Permissive License (UPL), Version 1.0
@@ -56,6 +56,16 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.function.Supplier;
+
+import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Source;
+import org.graalvm.polyglot.Value;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.oracle.truffle.api.debug.Breakpoint;
 import com.oracle.truffle.api.debug.DebugException;
@@ -71,16 +81,7 @@ import com.oracle.truffle.api.debug.SuspendedCallback;
 import com.oracle.truffle.api.debug.SuspendedEvent;
 import com.oracle.truffle.api.source.SourceSection;
 import com.oracle.truffle.tck.DebuggerTester;
-
-import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.HostAccess;
-import org.graalvm.polyglot.PolyglotException;
-import org.graalvm.polyglot.Source;
-import org.graalvm.polyglot.Value;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
 
 public class LSDebugTest {
 
@@ -88,7 +89,7 @@ public class LSDebugTest {
 
     @Before
     public void before() {
-        tester = new DebuggerTester();
+        tester = new DebuggerTester(Context.newBuilder().allowAllAccess(true));
     }
 
     @After
@@ -100,7 +101,7 @@ public class LSDebugTest {
         tester.startEval(code);
     }
 
-    private static Source llCode(String code) {
+    private static Source slCode(String code) {
         return Source.create("ls", code);
     }
 
@@ -138,19 +139,6 @@ public class LSDebugTest {
         checkDebugValues("variables", frame.getScope(), expectedFrame);
     }
 
-    protected void checkArgs(DebugStackFrame frame, String... expectedArgs) {
-        Iterable<DebugValue> arguments = null;
-        DebugScope scope = frame.getScope();
-        while (scope != null) {
-            if (scope.isFunctionScope()) {
-                arguments = scope.getArguments();
-                break;
-            }
-            scope = scope.getParent();
-        }
-        checkDebugValues("arguments", arguments, expectedArgs);
-    }
-
     private static void checkDebugValues(String msg, DebugScope scope, String... expected) {
         Map<String, DebugValue> valMap = new HashMap<>();
         DebugScope currentScope = scope;
@@ -159,14 +147,6 @@ public class LSDebugTest {
                 valMap.put(value.getName(), value);
             }
             currentScope = currentScope.getParent();
-        }
-        checkDebugValues(msg, valMap, expected);
-    }
-
-    private static void checkDebugValues(String msg, Iterable<DebugValue> values, String... expected) {
-        Map<String, DebugValue> valMap = new HashMap<>();
-        for (DebugValue value : values) {
-            valMap.put(value.getName(), value);
         }
         checkDebugValues(msg, valMap, expected);
     }
@@ -189,7 +169,7 @@ public class LSDebugTest {
          * Wrappers need to remain inserted for recursive functions to work for debugging. Like in
          * this test case when the breakpoint is in the exit condition and we want to step out.
          */
-        final Source factorial = llCode("function main() {\n" +
+        final Source factorial = slCode("function main() {\n" +
                         "  return fac(5);\n" +
                         "}\n" +
                         "function fac(n) {\n" +
@@ -206,19 +186,17 @@ public class LSDebugTest {
 
             expectSuspended((SuspendedEvent event) -> {
                 checkState(event, "fac", 6, true, "return 1", "n", "1");
-                checkArgs(event.getTopStackFrame(), "n", "1");
                 Iterator<DebugStackFrame> sfi = event.getStackFrames().iterator();
                 for (int i = 1; i <= 5; i++) {
-                    checkArgs(sfi.next(), "n", Integer.toString(i));
+                    checkStack(sfi.next(), "fac", "n", Integer.toString(i));
                 }
-                checkArgs(sfi.next()); // main
+                checkStack(sfi.next(), "main");
                 assertSame(breakpoint, event.getBreakpoints().iterator().next());
                 event.prepareStepOver(1);
             });
 
             expectSuspended((SuspendedEvent event) -> {
                 checkState(event, "fac", 8, false, "fac(n - 1)", "n", "2");
-                checkArgs(event.getTopStackFrame(), "n", "2");
                 assertEquals("1", event.getReturnValue().toDisplayString());
                 assertTrue(event.getBreakpoints().isEmpty());
                 event.prepareStepOut(1);
@@ -247,7 +225,6 @@ public class LSDebugTest {
 
             expectSuspended((SuspendedEvent event) -> {
                 checkState(event, "main", 2, false, "fac(5)");
-                checkArgs(event.getTopStackFrame());
                 assertEquals("120", event.getReturnValue().toDisplayString());
                 assertTrue(event.getBreakpoints().isEmpty());
                 event.prepareStepOut(1);
@@ -259,7 +236,7 @@ public class LSDebugTest {
 
     @Test
     public void testGuestFunctionBreakpoints() throws Throwable {
-        final Source functions = llCode("function main() {\n" +
+        final Source functions = slCode("function main() {\n" +
                         "  a = fac;\n" +
                         "  return fac(5);\n" +
                         "}\n" +
@@ -306,7 +283,7 @@ public class LSDebugTest {
 
     @Test
     public void testBuiltInFunctionBreakpoints() throws Throwable {
-        final Source functions = llCode("function main() {\n" +
+        final Source functions = slCode("function main() {\n" +
                         "  a = isNull;\n" +
                         "  b = nanoTime;\n" +
                         "  isNull(a);\n" +
@@ -366,7 +343,7 @@ public class LSDebugTest {
         /*
          * For recursive function we want to ensure that we don't step when we step over a function.
          */
-        final Source factorial = llCode("function main() {\n" +
+        final Source factorial = slCode("function main() {\n" +
                         "  return fac(5);\n" +
                         "}\n" +
                         "function fac(n) {\n" +
@@ -397,12 +374,79 @@ public class LSDebugTest {
         }
     }
 
+    public static class HostFunction implements Supplier<Object> {
+
+        private final DebuggerSession session;
+
+        public HostFunction(DebuggerSession session) {
+            this.session = session;
+        }
+
+        @Override
+        public Object get() {
+            Assert.assertTrue(session.suspendHere(null));
+            return 0;
+        }
+    }
+
+    @Test
+    public void testSuspendHereFromHost() {
+        Source testSource = slCode("function foo(hostCall) {\n" +
+                        "  hostCall();\n" +
+                        "}\n");
+        try (DebuggerSession session = startSession()) {
+
+            startEval(testSource);
+            expectDone();
+
+            HostFunction hostFunction = new HostFunction(session);
+            tester.startExecute(context -> {
+                Value foo = context.getBindings("ls").getMember("foo");
+                return foo.execute(hostFunction);
+            });
+            expectSuspended((SuspendedEvent event) -> {
+                // Suspended immediately at the host call
+                checkState(event, "foo", 2, true, "hostCall()", "hostCall", "Function").prepareContinue();
+                Assert.assertEquals("foo", event.getTopStackFrame().getName());
+            });
+            expectDone();
+        }
+    }
+
+    @Test
+    public void testStepFromSuspendHere() {
+        Source testSource = slCode("function foo(hostCall) {\n" +
+                        "  hostCall();\n" +
+                        "  x = 5;\n" +
+                        "}\n");
+        try (DebuggerSession session = startSession()) {
+
+            startEval(testSource);
+            expectDone();
+
+            HostFunction hostFunction = new HostFunction(session);
+            tester.startExecute(context -> {
+                Value foo = context.getBindings("ls").getMember("foo");
+                return foo.execute(hostFunction);
+            });
+            expectSuspended((SuspendedEvent event) -> {
+                // Suspended immediately at the host call
+                checkState(event, "foo", 2, true, "hostCall()", "hostCall", "Function").prepareStepOver(1);
+                Assert.assertEquals("foo", event.getTopStackFrame().getName());
+            });
+            expectSuspended((SuspendedEvent event) -> {
+                checkState(event, "foo", 3, true, "x = 5", "hostCall", "Function").prepareStepOver(1);
+            });
+            expectDone();
+        }
+    }
+
     @Test
     public void testDebugger() throws Throwable {
         /*
          * Test AlwaysHalt is working.
          */
-        final Source factorial = llCode("function main() {\n" +
+        final Source factorial = slCode("function main() {\n" +
                         "  return fac(5);\n" +
                         "}\n" +
                         "function fac(n) {\n" +
@@ -428,7 +472,7 @@ public class LSDebugTest {
 
     @Test
     public void testTimeboxing() throws Throwable {
-        final Source endlessLoop = llCode("function main() {\n" +
+        final Source endlessLoop = slCode("function main() {\n" +
                         "  i = 1; \n" +
                         "  while(i > 0) {\n" +
                         "    i = i + 1;\n" +
@@ -461,7 +505,7 @@ public class LSDebugTest {
 
     @Test
     public void testNull() throws Throwable {
-        final Source factorial = llCode("function main() {\n" +
+        final Source factorial = slCode("function main() {\n" +
                         "  res = doNull();\n" +
                         "  return res;\n" +
                         "}\n" +
@@ -485,7 +529,7 @@ public class LSDebugTest {
 
     @Test
     public void testDebugValue() throws Throwable {
-        final Source varsSource = llCode("function main() {\n" +
+        final Source varsSource = slCode("function main() {\n" +
                         "  a = doNull();\n" +
                         "  b = 10 == 10;\n" +
                         "  c = 10;\n" +
@@ -569,7 +613,7 @@ public class LSDebugTest {
 
     @Test
     public void testValuesScope() throws Throwable {
-        final Source varsSource = llCode("function main() {\n" +
+        final Source varsSource = slCode("function main() {\n" +
                         "  a = 1;\n" +
                         "  if (a > 0) {\n" +
                         "    b = 10;\n" +
@@ -652,7 +696,7 @@ public class LSDebugTest {
 
     @Test
     public void testMetaObjects() {
-        final Source varsSource = llCode("function main() {\n" +
+        final Source varsSource = slCode("function main() {\n" +
                         "  a = doNull();\n" +
                         "  b = 10 == 10;\n" +
                         "  c = 10;\n" +
@@ -694,7 +738,7 @@ public class LSDebugTest {
 
     @Test
     public void testSourceLocation() {
-        final Source varsSource = llCode("function main() {\n" +
+        final Source varsSource = slCode("function main() {\n" +
                         "  a = doNull();\n" +
                         "  c = 10;\n" +
                         "  d = \"str\";\n" +
@@ -734,7 +778,7 @@ public class LSDebugTest {
 
     @Test
     public void testStack() {
-        final Source stackSource = llCode("function main() {\n" +
+        final Source stackSource = slCode("function main() {\n" +
                         "  return fac(10);\n" +
                         "}\n" +
                         "function fac(n) {\n" +
@@ -781,7 +825,7 @@ public class LSDebugTest {
 
     @Test
     public void testStackInterop() {
-        final Source stackSource = llCode("function fac(n, multiply) {\n" +
+        final Source stackSource = slCode("function fac(n, multiply) {\n" +
                         "  if (n <= 1) {\n" +
                         "    debugger;\n" +
                         "    return 1;\n" +
@@ -821,14 +865,10 @@ public class LSDebugTest {
                     numInteropStacks++;
                 }
             }
-            // There were at least as many interop internal frames as frames in fac function:
-            assertTrue("numInteropStacks = " + numInteropStacks, numInteropStacks >= numStacksAt6);
-            // Some more internal frames remain
-            while (sfIt.hasNext()) {
-                dsf = sfIt.next();
-                assertNull(dsf.getSourceSection());
-                assertTrue(dsf.isInternal());
-            }
+            // There are no interop implementation details
+            assertEquals(0, numInteropStacks);
+            // No further internal frames remain
+            assertFalse(sfIt.hasNext());
             done[0] = true;
         })) {
             Assert.assertNotNull(session);
@@ -841,7 +881,7 @@ public class LSDebugTest {
 
     @Test
     public void testUnwindAndReenter() {
-        final Source source = llCode("function main() {\n" +
+        final Source source = slCode("function main() {\n" +
                         "  return fac(10);\n" +
                         "}\n" +
                         "function fac(n) {\n" +
@@ -884,7 +924,7 @@ public class LSDebugTest {
     @Test
     public void testArgumentsAndValues() throws Throwable {
         // Test that after a re-enter, arguments are kept and variables are cleared.
-        final Source source = llCode("function main() {\n" +
+        final Source source = slCode("function main() {\n" +
                         "  i = 10;\n" +
                         "  return fnc(i = i + 1, 20);\n" +
                         "}\n" +
@@ -903,27 +943,23 @@ public class LSDebugTest {
             expectSuspended((SuspendedEvent event) -> {
                 DebugStackFrame frame = event.getTopStackFrame();
                 assertEquals(6, frame.getSourceSection().getStartLine());
-                checkArgs(frame, "n", "11", "m", "20");
                 checkStack(frame, "fnc", "n", "11", "m", "20");
                 event.prepareStepOver(4);
             });
             expectSuspended((SuspendedEvent event) -> {
                 DebugStackFrame frame = event.getTopStackFrame();
                 assertEquals(10, frame.getSourceSection().getStartLine());
-                checkArgs(frame, "n", "11", "m", "20");
                 checkStack(frame, "fnc", "n", "9", "m", "10", "x", "121");
                 event.prepareUnwindFrame(frame);
             });
             expectSuspended((SuspendedEvent event) -> {
                 DebugStackFrame frame = event.getTopStackFrame();
                 assertEquals(3, frame.getSourceSection().getStartLine());
-                checkArgs(frame);
                 checkStack(frame, "main", "i", "11");
             });
             expectSuspended((SuspendedEvent event) -> {
                 DebugStackFrame frame = event.getTopStackFrame();
                 assertEquals(6, frame.getSourceSection().getStartLine());
-                checkArgs(frame, "n", "11", "m", "20");
                 checkStack(frame, "fnc", "n", "11", "m", "20");
             });
             assertEquals("121", expectDone());
@@ -1071,7 +1107,7 @@ public class LSDebugTest {
     }
 
     private void checkExpressionStepPositions(String stepPositions, boolean includeStatements, StepDepth... steps) {
-        Source source = llCode("function main() {\n" +
+        Source source = slCode("function main() {\n" +
                         "  x = 2;\n" +
                         "  while (x >= 0 && 5 >= 0) {\n" +
                         "    a = 2 * x;\n" +
@@ -1301,7 +1337,7 @@ public class LSDebugTest {
 
     @Test
     public void testExceptions() {
-        final Source source = llCode("function main() {\n" +
+        final Source source = slCode("function main() {\n" +
                         "  i = \"0\";\n" +
                         "  return invert(i);\n" +
                         "}\n" +
@@ -1320,12 +1356,16 @@ public class LSDebugTest {
                 assertTrue(exception.getMessage(), exception.getMessage().startsWith("Type error"));
                 SourceSection throwLocation = exception.getThrowLocation();
                 assertEquals(6, throwLocation.getStartLine());
-                // Repair the 'n' argument and rewind
-                event.getTopStackFrame().getScope().getArguments().iterator().next().set(event.getTopStackFrame().eval("function main() {return 2;}"));
+                // Rewind and then repair the 'n' argument.
                 event.prepareUnwindFrame(event.getTopStackFrame());
             });
             expectSuspended((SuspendedEvent event) -> {
                 assert event != null;
+                // Step into after unwind to change the arguments.
+                event.prepareStepInto(1);
+            });
+            expectSuspended((SuspendedEvent event) -> {
+                event.getTopStackFrame().getScope().getDeclaredValue("n").set(event.getTopStackFrame().eval("function main() {return 2;}"));
                 // Continue after unwind
             });
             assertEquals("5", expectDone());

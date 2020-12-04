@@ -40,6 +40,7 @@
  */
 package com.guillermomolina.lazyscript.nodes;
 
+import com.guillermomolina.lazyscript.nodes.local.LSScopedNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.GenerateWrapper;
@@ -60,7 +61,7 @@ import com.oracle.truffle.api.source.SourceSection;
  */
 @NodeInfo(language = "LazyScript", description = "The abstract base node for all LazyScript statements")
 @GenerateWrapper
-public abstract class LSStatementNode extends Node implements InstrumentableNode {
+public abstract class LSStatementNode extends LSScopedNode implements InstrumentableNode {
 
     private static final int NO_SOURCE = -1;
     private static final int UNAVAILABLE_SOURCE = -2;

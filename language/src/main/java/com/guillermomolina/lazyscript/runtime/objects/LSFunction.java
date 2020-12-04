@@ -42,7 +42,7 @@ package com.guillermomolina.lazyscript.runtime.objects;
 
 import java.util.logging.Level;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -63,7 +63,7 @@ import com.oracle.truffle.api.utilities.TriState;
 
 @ExportLibrary(InteropLibrary.class)
 public final class LSFunction extends LSObject {
-    private static final TruffleLogger LOG = TruffleLogger.getLogger(LazyScriptLanguage.ID, LSFunction.class);
+    private static final TruffleLogger LOG = TruffleLogger.getLogger(LSLanguage.ID, LSFunction.class);
 
     public static final int INLINE_CACHE_SIZE = 2;
 

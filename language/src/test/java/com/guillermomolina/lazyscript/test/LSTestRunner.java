@@ -64,7 +64,7 @@ import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import com.guillermomolina.lazyscript.LazyScriptLanguage;
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.builtins.LSBuiltinNode;
 import com.guillermomolina.lazyscript.test.LSTestRunner.TestCase;
 import com.oracle.truffle.api.dsl.NodeFactory;
@@ -300,7 +300,7 @@ public class LSTestRunner extends ParentRunner<TestCase> {
         try {
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             for (NodeFactory<? extends LSBuiltinNode> builtin : builtins) {
-                LazyScriptLanguage.installBuiltin(builtin);
+                LSLanguage.installBuiltin(builtin);
             }
 
             Context.Builder builder = Context.newBuilder().allowExperimentalOptions(true).in(new ByteArrayInputStream(testCase.testInput.getBytes("UTF-8"))).out(out);
@@ -327,7 +327,7 @@ public class LSTestRunner extends ParentRunner<TestCase> {
     private static void run(Context context, Path path, PrintWriter out) throws IOException {
         try {
             /* Parse the LazyScript source file. */
-            Source source = Source.newBuilder(LazyScriptLanguage.ID, path.toFile()).interactive(true).build();
+            Source source = Source.newBuilder(LSLanguage.ID, path.toFile()).interactive(true).build();
 
             /* Call the main entry point, without any arguments. */
             context.eval(source);
