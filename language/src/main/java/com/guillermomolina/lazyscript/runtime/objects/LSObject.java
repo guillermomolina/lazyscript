@@ -125,6 +125,11 @@ public class LSObject extends DynamicObject {
     }
 
     @TruffleBoundary
+    public Object getFunctionsObject() {
+        return this;
+    }
+
+    @TruffleBoundary
     Object getProperty(String name, @CachedLibrary("this") DynamicObjectLibrary objectLibrary)
             throws UnknownIdentifierException {
         LSObject object = this;

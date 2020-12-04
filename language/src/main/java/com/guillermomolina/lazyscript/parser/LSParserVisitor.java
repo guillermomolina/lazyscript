@@ -260,7 +260,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
         functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
         RootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, functionName);
-        LSExpressionNode function = new LSFunctionLiteralNode(Truffle.getRuntime().createCallTarget(rootNode));
+        LSExpressionNode function = new LSFunctionLiteralNode(functionName, Truffle.getRuntime().createCallTarget(rootNode));
         setSourceFromContext(function, ctx);
         function.addExpressionTag();
 
@@ -302,8 +302,9 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         final int bodyEndPos = methodBlock.getSourceEndIndex();
         SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
         functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
-        RootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, "anonymous");
-        LSExpressionNode result = new LSFunctionLiteralNode(Truffle.getRuntime().createCallTarget(rootNode));
+        final String name = "anonymous";
+        RootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, name);
+        LSExpressionNode result = new LSFunctionLiteralNode(name, Truffle.getRuntime().createCallTarget(rootNode));
         setSourceFromContext(result, ctx);
         result.addExpressionTag();
         return result;

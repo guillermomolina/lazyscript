@@ -51,14 +51,14 @@ import org.junit.Test;
 public class LSCodeSharingTest {
 
     private static Source createFib() {
-        return Source.newBuilder("sl", "" +
+        return Source.newBuilder("ls", "" +
                         "function fib(n) {\n" +
                         "  if (n == 1 || n == 2) {\n" +
                         "    return 1;\n" +
                         "  }\n" +
                         "  return fib(n - 1) + fib(n - 2);\n" +
                         "}\n",
-                        "fib.sl").buildLiteral();
+                        "fib.ls").buildLiteral();
     }
 
     @Test

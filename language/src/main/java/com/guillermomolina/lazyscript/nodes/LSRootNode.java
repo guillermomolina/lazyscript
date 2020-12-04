@@ -40,13 +40,23 @@
  */
 package com.guillermomolina.lazyscript.nodes;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.builtins.LSBuiltinNode;
+import com.guillermomolina.lazyscript.nodes.controlflow.LSBlockNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSFunctionBodyNode;
+import com.guillermomolina.lazyscript.nodes.local.LSReadArgumentNode;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
+import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.InstrumentableNode;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
+import com.oracle.truffle.api.nodes.NodeUtil;
+import com.oracle.truffle.api.nodes.NodeVisitor;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -67,6 +77,8 @@ public class LSRootNode extends RootNode {
     private boolean isCloningAllowed;
 
     private final SourceSection sourceSection;
+
+    @CompilerDirectives.CompilationFinal(dimensions = 1) private volatile LSWriteLocalVariableNode[] argumentNodesCache;
 
     public LSRootNode(LSLanguage language, FrameDescriptor frameDescriptor, LSExpressionNode bodyNode, SourceSection sourceSection, String name) {
         super(language, frameDescriptor);

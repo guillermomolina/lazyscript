@@ -45,7 +45,6 @@ import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.util.Collections;
 
 import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.NotImplementedException;
@@ -81,7 +80,6 @@ import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.RootCallTarget;
-import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.Env;
@@ -111,6 +109,11 @@ public final class LSContext {
     private final BufferedReader input;
     private final PrintWriter output;
     @CompilationFinal private AllocationReporter allocationReporter;
+
+    private static final Source BUILTIN_SOURCE = Source.newBuilder(LSLanguage.ID, "", "LS builtin").build();
+    //private final Map<NodeFactory<? extends LSBuiltinNode>, RootCallTarget> builtinTargets = new ConcurrentHashMap<>();
+    //private final Map<String, RootCallTarget> undefinedFunctions = new ConcurrentHashMap<>();
+
 
     private final LSObject objectPrototype;
     private final LSObject nullPrototype;
@@ -218,10 +221,6 @@ public final class LSContext {
      */
     public LSObject getTopContext() {
         return topContext;
-    }
-
-    public Iterable<Scope> getTopScopes() {
-        return topScopes;
     }
 
     /**

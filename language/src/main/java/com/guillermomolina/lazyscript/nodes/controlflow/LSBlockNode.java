@@ -45,20 +45,20 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.guillermomolina.lazyscript.nodes.LSStatementNode;
+import com.guillermomolina.lazyscript.nodes.local.LSScopedNode;
+import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.BlockNode;
 import com.oracle.truffle.api.nodes.BlockNode.ElementExecutor;
-
 import com.oracle.truffle.api.nodes.ControlFlowException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.NodeUtil;
 import com.oracle.truffle.api.nodes.NodeVisitor;
-import com.guillermomolina.lazyscript.nodes.LSStatementNode;
-import com.guillermomolina.lazyscript.nodes.local.LSScopedNode;
-import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 
 /**
  * A statement node that just executes a list of other statements.

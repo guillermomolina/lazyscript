@@ -42,31 +42,25 @@ package com.guillermomolina.lazyscript;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.guillermomolina.lazyscript.builtins.LSBuiltinNode;
 import com.guillermomolina.lazyscript.nodes.LSEvalRootNode;
 import com.guillermomolina.lazyscript.parser.LSParserVisitor;
 import com.guillermomolina.lazyscript.runtime.LSContext;
-import com.guillermomolina.lazyscript.runtime.LSObjectUtil;
-import com.guillermomolina.lazyscript.runtime.LSScopeUtil;
 import com.guillermomolina.lazyscript.runtime.interop.LSLanguageView;
+import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
-import com.oracle.truffle.api.Scope;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.TruffleLanguage.ContextPolicy;
 import com.oracle.truffle.api.debug.DebuggerTags;
 import com.oracle.truffle.api.dsl.NodeFactory;
-import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.instrumentation.ProvidedTags;
 import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
-import com.oracle.truffle.api.nodes.Node;
+import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 
@@ -80,12 +74,8 @@ public final class LSLanguage extends TruffleLanguage<LSContext> {
     public static final String ID = "ls";
     public static final String NAME = "LazyScript";
     public static final String MIME_TYPE = "application/x-lazyscript";
-    private static final Source BUILTIN_SOURCE = Source.newBuilder(SLLanguage.ID, "", "SL builtin").build();
 
-    private final Assumption singleContext = Truffle.getRuntime().createAssumption("Single SL context.");
-
-    private final Map<NodeFactory<? extends SLBuiltinNode>, RootCallTarget> builtinTargets = new ConcurrentHashMap<>();
-    private final Map<String, RootCallTarget> undefinedFunctions = new ConcurrentHashMap<>();
+    private final Assumption singleContext = Truffle.getRuntime().createAssumption("Single LS context.");
 
     public LSLanguage() {
         counter.incrementAndGet();
@@ -127,7 +117,7 @@ public final class LSLanguage extends TruffleLanguage<LSContext> {
      * instance can be reused for multiple language contexts. Before this happens the Truffle
      * framework notifies the language by invoking {@link #initializeMultipleContexts()}. This
      * allows the language to invalidate certain assumptions taken for the single context case. One
-     * assumption SL takes for single context case is located in {@link SLEvalRootNode}. There
+     * assumption LS takes for single context case is located in {@link SLEvalRootNode}. There
      * functions are only tried to be registered once in the single context case, but produce a
      * boundary call in the multi context case, as function registration is expected to happen more
      * than once.
@@ -160,7 +150,8 @@ public final class LSLanguage extends TruffleLanguage<LSContext> {
 
     @Override
     protected Object getScope(LSContext context) {
-        return context.getFunctionRegistry().getFunctionsObject();
+        throw new NotImplementedException();
+        //return context.getFunctionRegistry().getFunctionsObject();
     }
 
     public static LSContext getCurrentContext() {

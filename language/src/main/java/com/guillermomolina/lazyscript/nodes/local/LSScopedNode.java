@@ -40,6 +40,13 @@
  */
 package com.guillermomolina.lazyscript.nodes.local;
 
+import com.guillermomolina.lazyscript.LSLanguage;
+import com.guillermomolina.lazyscript.NotImplementedException;
+import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.LSRootNode;
+import com.guillermomolina.lazyscript.nodes.controlflow.LSBlockNode;
+import com.guillermomolina.lazyscript.runtime.LSContext;
+import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
@@ -62,13 +69,6 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.nodes.Node;
 import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.SourceSection;
-
-import com.guillermomolina.lazyscript.LSLanguage;
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
-import com.guillermomolina.lazyscript.nodes.LSRootNode;
-import com.guillermomolina.lazyscript.nodes.controlflow.LSBlockNode;
-import com.guillermomolina.lazyscript.runtime.LSContext;
-import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 
 /**
  * The LS implementation of {@link NodeLibrary} provides fast access to local variables. It's used
@@ -102,8 +102,7 @@ public abstract class LSScopedNode extends Node {
      * We do provide a scope.
      */
     @ExportMessage
-    @SuppressWarnings("static-method")
-    public boolean hasScope(@SuppressWarnings("unused") Frame frame) {
+    public boolean hasScope(Frame frame) {
         return true;
     }
 
@@ -113,7 +112,6 @@ public abstract class LSScopedNode extends Node {
      * arguments (in the RootNode, but outside of a block).
      */
     @ExportMessage
-    @SuppressWarnings("static-method")
     final Object getScope(Frame frame, boolean nodeEnter, @Shared("node") @Cached(value = "this", adopt = false) LSScopedNode cachedNode,
                     @Cached(value = "this.findBlock()", adopt = false, allowUncached = true) Node blockNode) {
         if (blockNode instanceof LSBlockNode) {
@@ -129,11 +127,12 @@ public abstract class LSScopedNode extends Node {
      */
     @ExportMessage
     @TruffleBoundary
-    final boolean hasRootInstance(@SuppressWarnings("unused") Frame frame, @CachedContext(LSLanguage.class) ContextReference<LSContext> contextRef) {
-        String functionName = getRootNode().getName();
+    final boolean hasRootInstance(Frame frame, @CachedContext(LSLanguage.class) ContextReference<LSContext> contextRef) {
+        throw new NotImplementedException();
+        /*String functionName = getRootNode().getName();
         LSContext context = contextRef.get();
         // The instance of the current RootNode is a function of the same name.
-        return context.getFunctionRegistry().getFunction(functionName) != null;
+        return context.getFunctionRegistry().getFunction(functionName) != null;*/
     }
 
     /**
@@ -142,8 +141,9 @@ public abstract class LSScopedNode extends Node {
      */
     @ExportMessage
     @TruffleBoundary
-    final Object getRootInstance(@SuppressWarnings("unused") Frame frame, @CachedContext(LSLanguage.class) ContextReference<LSContext> contextRef) throws UnsupportedMessageException {
-        String functionName = getRootNode().getName();
+    final Object getRootInstance(Frame frame, @CachedContext(LSLanguage.class) ContextReference<LSContext> contextRef) throws UnsupportedMessageException {
+        throw new NotImplementedException();
+        /*String functionName = getRootNode().getName();
         LSContext context = contextRef.get();
         // The instance of the current RootNode is a function of the same name.
         Object function = context.getFunctionRegistry().getFunction(functionName);
@@ -151,7 +151,7 @@ public abstract class LSScopedNode extends Node {
             return function;
         } else {
             throw UnsupportedMessageException.create();
-        }
+        }*/
     }
 
     /**
@@ -241,7 +241,6 @@ public abstract class LSScopedNode extends Node {
          * This is a scope object, providing arguments as members.
          */
         @ExportMessage
-        @SuppressWarnings("static-method")
         boolean isScope() {
             return true;
         }
@@ -250,13 +249,11 @@ public abstract class LSScopedNode extends Node {
          * The scope must provide an associated language.
          */
         @ExportMessage
-        @SuppressWarnings("static-method")
         boolean hasLanguage() {
             return true;
         }
 
         @ExportMessage
-        @SuppressWarnings("static-method")
         Class<? extends TruffleLanguage<?>> getLanguage() {
             return LSLanguage.class;
         }
@@ -265,7 +262,7 @@ public abstract class LSScopedNode extends Node {
          * Provide the function name as the scope's display string.
          */
         @ExportMessage
-        Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
+        Object toDisplayString(boolean allowSideEffects) {
             return root.getName();
         }
 
@@ -273,7 +270,6 @@ public abstract class LSScopedNode extends Node {
          * We provide a source section of this scope.
          */
         @ExportMessage
-        @SuppressWarnings("static-method")
         boolean hasSourceLocation() {
             return true;
         }
@@ -290,7 +286,6 @@ public abstract class LSScopedNode extends Node {
          * Scope must provide scope members.
          */
         @ExportMessage
-        @SuppressWarnings("static-method")
         boolean hasMembers() {
             return true;
         }
@@ -299,7 +294,7 @@ public abstract class LSScopedNode extends Node {
          * We return an array of argument objects as scope members.
          */
         @ExportMessage
-        Object getMembers(@SuppressWarnings("unused") boolean includeInternal) {
+        Object getMembers(boolean includeInternal) {
             LSWriteLocalVariableNode[] writeNodes = root.getDeclaredArguments();
             return new KeysArray(writeNodes, writeNodes.length, writeNodes.length);
         }
@@ -315,7 +310,6 @@ public abstract class LSScopedNode extends Node {
              * {@link #doGeneric(ArgumentsObject, String)} otherwise.
              */
             @Specialization(limit = "LIMIT", guards = {"cachedMember.equals(member)"})
-            @SuppressWarnings("unused")
             static boolean doCached(ArgumentsObject receiver, String member,
                             @Cached("member") String cachedMember,
                             // We cache the member existence for fast-path access
@@ -341,7 +335,6 @@ public abstract class LSScopedNode extends Node {
         static final class ModifiableMember {
 
             @Specialization(limit = "LIMIT", guards = {"cachedMember.equals(member)"})
-            @SuppressWarnings("unused")
             static boolean doCached(ArgumentsObject receiver, String member,
                             @Cached("member") String cachedMember,
                             // We cache the member existence for fast-path access
@@ -363,8 +356,7 @@ public abstract class LSScopedNode extends Node {
          * We can not insert new arguments.
          */
         @ExportMessage
-        @SuppressWarnings("static-method")
-        boolean isMemberInsertable(@SuppressWarnings("unused") String member) {
+        boolean isMemberInsertable(String member) {
             return false;
         }
 
@@ -379,7 +371,6 @@ public abstract class LSScopedNode extends Node {
              * {@link #doGeneric(ArgumentsObject, String)} otherwise.
              */
             @Specialization(limit = "LIMIT", guards = {"cachedMember.equals(member)"})
-            @SuppressWarnings("unused")
             static Object doCached(ArgumentsObject receiver, String member,
                             @Cached("member") String cachedMember,
                             // We cache the member's index for fast-path access
@@ -407,7 +398,7 @@ public abstract class LSScopedNode extends Node {
                 if (receiver.frame != null) {
                     return receiver.frame.getArguments()[index];
                 } else {
-                    return LSNull.SINGLETON;
+                    return LSNull.INSTANCE;
                 }
             }
         }
@@ -423,7 +414,6 @@ public abstract class LSScopedNode extends Node {
              * {@link #doGeneric(ArgumentsObject, String, Object)} otherwise.
              */
             @Specialization(limit = "LIMIT", guards = {"cachedMember.equals(member)"})
-            @SuppressWarnings("unused")
             static void doCached(ArgumentsObject receiver, String member, Object value,
                             @Cached("member") String cachedMember,
                             // We cache the member's index for fast-path access
@@ -511,7 +501,6 @@ public abstract class LSScopedNode extends Node {
          * This is a scope object, providing variables as members.
          */
         @ExportMessage
-        @SuppressWarnings("static-method")
         boolean isScope() {
             return true;
         }
@@ -520,13 +509,11 @@ public abstract class LSScopedNode extends Node {
          * The scope must provide an associated language.
          */
         @ExportMessage
-        @SuppressWarnings("static-method")
         boolean hasLanguage() {
             return true;
         }
 
         @ExportMessage
-        @SuppressWarnings("static-method")
         Class<? extends TruffleLanguage<?>> getLanguage() {
             return LSLanguage.class;
         }
@@ -535,7 +522,6 @@ public abstract class LSScopedNode extends Node {
          * Provide either "block", or the function name as the scope's display string.
          */
         @ExportMessage
-        @SuppressWarnings({"static-method", "unused"})
         Object toDisplayString(boolean allowSideEffects, @Shared("block") @Cached(value = "this.block", adopt = false) LSBlockNode cachedBlock,
                         @Shared("parentBlock") @Cached(value = "this.block.findBlock()", adopt = false, allowUncached = true) Node parentBlock) {
             // Cache the parent block for the fast-path access
@@ -550,7 +536,6 @@ public abstract class LSScopedNode extends Node {
          * There is a parent scope if we're in a block.
          */
         @ExportMessage
-        @SuppressWarnings({"static-method", "unused"})
         boolean hasScopeParent(
                         @Shared("block") @Cached(value = "this.block", adopt = false) LSBlockNode cachedBlock,
                         @Shared("parentBlock") @Cached(value = "this.block.findBlock()", adopt = false, allowUncached = true) Node parentBlock) {
@@ -562,7 +547,6 @@ public abstract class LSScopedNode extends Node {
          * The parent scope object is based on the parent block node.
          */
         @ExportMessage
-        @SuppressWarnings("unused")
         Object getScopeParent(
                         @Shared("block") @Cached(value = "this.block", adopt = false) LSBlockNode cachedBlock,
                         @Shared("parentBlock") @Cached(value = "this.block.findBlock()", adopt = false, allowUncached = true) Node parentBlock) throws UnsupportedMessageException {
@@ -577,7 +561,6 @@ public abstract class LSScopedNode extends Node {
          * We provide a source section of this scope.
          */
         @ExportMessage
-        @SuppressWarnings("static-method")
         boolean hasSourceLocation() {
             return true;
         }
@@ -602,7 +585,6 @@ public abstract class LSScopedNode extends Node {
          * Scope must provide scope members.
          */
         @ExportMessage
-        @SuppressWarnings("static-method")
         boolean hasMembers() {
             return true;
         }
@@ -618,7 +600,6 @@ public abstract class LSScopedNode extends Node {
              * {@link #doGeneric(VariablesObject, String)} otherwise.
              */
             @Specialization(limit = "LIMIT", guards = {"cachedMember.equals(member)"})
-            @SuppressWarnings("unused")
             static boolean doCached(VariablesObject receiver, String member,
                             @Cached("member") String cachedMember,
                             // We cache the member existence for fast-path access
@@ -645,7 +626,6 @@ public abstract class LSScopedNode extends Node {
         static final class ModifiableMember {
 
             @Specialization(limit = "LIMIT", guards = {"cachedMember.equals(member)"})
-            @SuppressWarnings("unused")
             static boolean doCached(VariablesObject receiver, String member,
                             @Cached("member") String cachedMember,
                             // We cache the member existence for fast-path access
@@ -667,8 +647,7 @@ public abstract class LSScopedNode extends Node {
          * We do not support insertion of new variables.
          */
         @ExportMessage
-        @SuppressWarnings("static-method")
-        boolean isMemberInsertable(@SuppressWarnings("unused") String member) {
+        boolean isMemberInsertable(String member) {
             return false;
         }
 
@@ -683,7 +662,6 @@ public abstract class LSScopedNode extends Node {
              * {@link #doGeneric(VariablesObject, String)} otherwise.
              */
             @Specialization(limit = "LIMIT", guards = {"cachedMember.equals(member)"})
-            @SuppressWarnings("unused")
             static Object doCached(VariablesObject receiver, String member,
                             @Cached("member") String cachedMember,
                             // We cache the member's frame slot for fast-path access
@@ -708,7 +686,7 @@ public abstract class LSScopedNode extends Node {
                 if (receiver.frame != null) {
                     return receiver.frame.getValue(slot);
                 } else {
-                    return LSNull.SINGLETON;
+                    return LSNull.INSTANCE;
                 }
             }
         }
@@ -724,7 +702,6 @@ public abstract class LSScopedNode extends Node {
              * Call {@link #doGeneric(VariablesObject, String, Object)} otherwise.
              */
             @Specialization(limit = "LIMIT", guards = {"cachedMember.equals(member)"})
-            @SuppressWarnings("unused")
             static void doCached(VariablesObject receiver, String member, Object value,
                             @Cached("member") String cachedMember,
                             // We cache the member's write node for fast-path access
@@ -758,8 +735,7 @@ public abstract class LSScopedNode extends Node {
          * and the indexes which determine visible variables.
          */
         @ExportMessage
-        @SuppressWarnings("static-method")
-        Object getMembers(@SuppressWarnings("unused") boolean includeInternal,
+        Object getMembers(boolean includeInternal,
                         @Cached(value = "this.block.getDeclaredLocalVariables()", adopt = false, dimensions = 1, allowUncached = true) LSWriteLocalVariableNode[] writeNodes,
                         @Cached(value = "this.getVisibleVariablesIndex()", allowUncached = true) int visibleVariablesIndex,
                         @Cached(value = "this.block.getParentBlockIndex()", allowUncached = true) int parentBlockIndex) {
@@ -839,7 +815,6 @@ public abstract class LSScopedNode extends Node {
             this.parentBlockIndex = parentBlockIndex;
         }
 
-        @SuppressWarnings("static-method")
         @ExportMessage
         boolean hasArrayElements() {
             return true;
@@ -889,7 +864,6 @@ public abstract class LSScopedNode extends Node {
         }
 
         @ExportMessage
-        @SuppressWarnings("static-method")
         boolean isString() {
             return true;
         }
