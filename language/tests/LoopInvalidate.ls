@@ -21,5 +21,5 @@ while (i < 20) {
   i = i + 1;
 }
 add("a", "b");
-println(loop(1000));  
+loop(1000).println();  
 

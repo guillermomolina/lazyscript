@@ -4,5 +4,5 @@
  */
 
 eval("ls", "function foo() { return 14 + 2; }");
-println(foo());
+foo().println();
 

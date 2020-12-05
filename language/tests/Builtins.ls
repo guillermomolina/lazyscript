@@ -4,6 +4,6 @@
  */
 
  
-println("Hello World!");  
+"Hello World!".println();  
 nanoTime();  
 

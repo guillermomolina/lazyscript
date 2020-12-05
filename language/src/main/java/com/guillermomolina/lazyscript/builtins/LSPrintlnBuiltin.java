@@ -64,11 +64,11 @@ public abstract class LSPrintlnBuiltin extends LSBuiltinNode {
 
     @Specialization
     @TruffleBoundary
-    public Object println(Object self, Object value,
+    public Object println(Object self,
                     @CachedLibrary(limit = "3") InteropLibrary interop,
                     @CachedContext(LSLanguage.class) LSContext context) {
-        context.getOutput().println(interop.toDisplayString(LSLanguageView.forValue(value)));
-        return value;
+        context.getOutput().println(interop.toDisplayString(LSLanguageView.forValue(self)));
+        return self;
     }
 
 }

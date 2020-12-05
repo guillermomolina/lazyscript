@@ -4,5 +4,5 @@
  */
 
   
-println("Hello World!");  
+"Hello World!".println();  
 

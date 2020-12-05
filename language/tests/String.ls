@@ -3,8 +3,6 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 
-function null() {
-}
 
 function foo() {
   return "bar";
@@ -14,15 +12,15 @@ function f(a, b) {
   return a + " < " + b + ": " + (a < b);
 }
 
-println("s" + null());  
-println("s" + null);  
-println("s" + foo());  
-println("s" + foo);
+("s" + null).println();  
+("s" + null).println();  
+("s" + foo()).println();  
+("s" + foo).println();
   
-println(null() + "s");  
-println(null() + "s");  
-println(foo() + "s");  
-println(foo + "s");
+(null + "s").println();  
+(null + "s").println();  
+(foo() + "s").println();  
+(foo + "s").println();
 
-println(f(2, 4));
-println(f(2, "4"));
+f(2, 4).println();
+f(2, "4").println();

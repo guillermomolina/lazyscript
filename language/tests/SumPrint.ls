@@ -18,5 +18,5 @@ while (i < 20) {
   loop(10000);
   i = i + 1;
 }
-println(loop(10000));  
+loop(10000).println();  
 

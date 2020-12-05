@@ -5,7 +5,7 @@
 
  
 function foo() {
-  println(test(40, 2));
+  test(40, 2).println();
 }
 
 defineFunction("function test(a, b) { return a + b; }");

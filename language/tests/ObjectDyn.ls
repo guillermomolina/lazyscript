@@ -5,19 +5,19 @@
 
 obj1 = new();
 obj1["x"] = 42;
-println(obj1["x"]);
+obj1["x"].println();
 
 obj2 = new();
 obj2["o"] = obj1;
-println(obj2["o"]["x"]);
+obj2["o"]["x"].println();
 obj2["o"]["y"] = "why";
-println(obj1["y"]);
+obj1["y"].println();
 
-println(mkobj()["z"]);
+mkobj()["z"].println();
 
 obj3 = new();
 obj3["fn"] = mkobj;
-println(obj3["fn"]()["z"]);
+obj3["fn"]()["z"].println();
 
 obj4 = new();
 write(obj4, "prop", 1);
@@ -34,11 +34,11 @@ while (i < 10) {
   write(obj5, "prop" + i, read(obj5, "prop" + (i - 1)) * 2);
   i = i + 1;
 }
-println(obj5.prop2);
-println(obj5.prop9);
+obj5.prop2.println();
+obj5.prop9.println();
 
 obj6 = new();
-println(obj6["x"]);
+obj6["x"].println();
 
 function mkobj() {
   newobj = new();

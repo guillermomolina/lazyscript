@@ -5,19 +5,19 @@
 
 obj1 = new();
 obj1.x = 42;
-println(obj1.x);
+obj1.x.println();
 
 obj2 = new();
 obj2.o = obj1;
-println(obj2.o.x);
+obj2.o.x.println();
 obj2.o.y = "why";
-println(obj1.y);
+obj1.y.println();
 
-println(mkobj().z);
+mkobj().z.println();
 
 obj3 = new();
 obj3.fn = mkobj;
-println(obj3.fn().z);
+obj3.fn().z.println();
 
 obj4 = new();
 write(obj4, 1);
@@ -28,7 +28,7 @@ write(obj4, "three");
 read(obj4);
 
 obj5 = new();
-println(obj5.x);
+obj5.x.println();
 
 function mkobj() {
   newobj = new();

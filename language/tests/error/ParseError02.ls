@@ -7,7 +7,7 @@ function test(n) {
   a = 1;
   if (a > 0) {
     b = 10;
-    println(b);
+    b.println();
   } else {
     b = 20;
     a = 0;
@@ -20,8 +20,8 @@ function test(n) {
       print(d);
     }
   }
-  println(b);
-  println(a);
+  b.println();
+  a.println();
 }
 function main() {
   test(\"n_n\");

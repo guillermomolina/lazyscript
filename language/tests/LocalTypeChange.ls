@@ -12,7 +12,7 @@ function recursion(n) {
     local = "abc";
   }
   
-  println(local);
+  local.println();
 }
 
 recursion(3);

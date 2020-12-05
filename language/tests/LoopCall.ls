@@ -20,4 +20,4 @@ while (i < 20) {
   loop(1000);
   i = i + 1;
 }
-println(loop(1000));  
+loop(1000).println();  

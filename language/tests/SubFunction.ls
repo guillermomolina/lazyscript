@@ -17,7 +17,7 @@ function z(d) {
     return y(d) + 1;
 }
 
-println(z(10));
+z10.println();
 
 function w(a) {
     return a + 1;
@@ -35,4 +35,4 @@ function z(d) {
     return y(d) + 1;
 }
 
-println(z(10));
+z(10).println();

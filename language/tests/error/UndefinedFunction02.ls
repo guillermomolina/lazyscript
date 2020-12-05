@@ -8,7 +8,7 @@ function invoke(f) {
 }
 
 function f1() {
-  println("f1");
+  "f1".println();
 }
 
 function main() {

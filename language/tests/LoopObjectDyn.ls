@@ -16,5 +16,5 @@ while (i < 20) {
   loop(1000, new(), "prop");
   i = i + 1;
 }
-println(loop(1000, new(), "prop"));  
+loop(1000, new(), "prop").println();  
 

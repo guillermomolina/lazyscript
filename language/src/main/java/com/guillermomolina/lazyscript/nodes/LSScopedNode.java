@@ -118,7 +118,7 @@ public abstract class LSScopedNode extends Node {
             return new ArgumentsObject(frame, (LSRootNode) blockNode);
         }
     }
-
+/*
     @ExportMessage
     final boolean hasReceiverMember(Frame frame) {
         return frame != null;
@@ -131,7 +131,7 @@ public abstract class LSScopedNode extends Node {
         }
         return ArgumentsObject.RECEIVER_MEMBER;
     }
-
+*/
     /**
      * Test if a function of that name exists. The functions are context-dependent, therefore do a
      * context lookup via {@link CachedContext}.
