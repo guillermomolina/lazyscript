@@ -102,7 +102,7 @@ public class LSException extends AbstractTruffleException {
              * from the perspective of simple language and not another language. Since this is a
              * rather rarely invoked exceptional method, we can just create the language view for
              * primitive values and then conveniently request the meta-object and display strings.
-             * Using the language view for core builtins like the typeOf builtin might not be a good
+             * Using the language view for core builtins like the type builtin might not be a good
              * idea for performance reasons.
              */
             Object value = LSLanguageView.forValue(values[i]);

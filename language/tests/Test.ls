@@ -7,3 +7,6 @@ while(b > 0) {
     c.println();
 }
 b.println();
+
+b.isNull().println();
+null.isNull().println();

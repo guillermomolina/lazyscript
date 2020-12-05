@@ -3,10 +3,10 @@
  * Licensed under the Universal Permissive License v 1.0 as shown at https://oss.oracle.com/licenses/upl.
  */
 
-typeOf(42).println();
-typeOf(42000000000000000000000000000000000000000).println();
-typeOf("42").println();
-typeOf(42 == 42).println();
-typeOf(new()).println();
-typeOf(main).println();
-typeOf(null).println();
+42.type().println();
+42000000000000000000000000000000000000000.type().println();
+"42".type().println();
+(42 == 42).type().println();
+new().type().println();
+main.type().println();
+null.type().println();

@@ -40,6 +40,7 @@
  */
 package com.guillermomolina.lazyscript.builtins;
 
+import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -51,19 +52,19 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 /**
  * Built-in function that returns the type of a guest language value.
  */
-@NodeInfo(shortName = "typeOf")
-public abstract class LSTypeOfBuiltin extends LSBuiltinNode {
+@NodeInfo(shortName = "type")
+public abstract class LSTypeBuiltin extends LSBuiltinNode {
 
     /*
-     * This returns the LazyScript type for a particular operand value.
+     * This returns the LazyScript type for a particular self value.
      */
     @Specialization(limit = "3")
     @ExplodeLoop
-    public Object doDefault(Object operand,
-                    @CachedLibrary("operand") InteropLibrary interop) {
+    public Object doDefault(Object self,
+                    @CachedLibrary("self") InteropLibrary interop) {
         for (LSMetaType type : LSMetaType.PRECEDENCE) {
-            if (type.isInstance(operand, interop)) {
-                return type;
+            if (type.isInstance(self, interop)) {
+                return lookupContextReference(LSLanguage.class).get().getPrototype(self);
             }
         }
         return LSNull.INSTANCE;

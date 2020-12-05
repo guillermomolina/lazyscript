@@ -53,7 +53,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public abstract class LSIsNullBuiltin extends LSBuiltinNode {
 
     @Specialization(limit = "3")
-    public boolean isExecutable(Object obj, @CachedLibrary("obj") InteropLibrary values) {
-        return values.isNull(obj);
+    public boolean isExecutable(Object self, @CachedLibrary("self") InteropLibrary values) {
+        return values.isNull(self);
     }
 }

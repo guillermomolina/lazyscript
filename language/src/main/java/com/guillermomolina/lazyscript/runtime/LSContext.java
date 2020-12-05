@@ -65,7 +65,7 @@ import com.guillermomolina.lazyscript.builtins.LSPrintlnBuiltinFactory;
 import com.guillermomolina.lazyscript.builtins.LSReadlnBuiltin;
 import com.guillermomolina.lazyscript.builtins.LSReadlnBuiltinFactory;
 import com.guillermomolina.lazyscript.builtins.LSStackTraceBuiltinFactory;
-import com.guillermomolina.lazyscript.builtins.LSTypeOfBuiltinFactory;
+import com.guillermomolina.lazyscript.builtins.LSTypeBuiltinFactory;
 import com.guillermomolina.lazyscript.builtins.LSWrapPrimitiveBuiltinFactory;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.LSRootNode;
@@ -269,7 +269,7 @@ public final class LSContext {
         installBuiltin(LSIsExecutableBuiltinFactory.getInstance());
         installBuiltin(LSIsNullBuiltinFactory.getInstance());
         installBuiltin(LSWrapPrimitiveBuiltinFactory.getInstance());
-        installBuiltin(LSTypeOfBuiltinFactory.getInstance());
+        installBuiltin(LSTypeBuiltinFactory.getInstance());
         installBuiltin(LSIsInstanceBuiltinFactory.getInstance());
     }
 

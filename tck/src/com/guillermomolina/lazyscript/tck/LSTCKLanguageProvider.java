@@ -118,17 +118,17 @@ public class LSTCKLanguageProvider implements LanguageProvider {
         res.add(createValueConstructor(context, "wrapPrimitive(1)", "wrapped-number", "createWrappedNumber", TypeDescriptor.INTEGER));
         res.add(createValueConstructor(context, "wrapPrimitive(\"string\")", "wrapped-string", "createWrappedString", TypeDescriptor.STRING));
 
-        res.add(createValueConstructor(context, "typeOf(1 == 2)", "boolean-metaobject",
+        res.add(createValueConstructor(context, "(1 == 2).type()", "boolean-metaobject",
                         "createBooleanMetaObject", TypeDescriptor.META_OBJECT));
-        res.add(createValueConstructor(context, "typeOf(1)", "number-metaobject",
+        res.add(createValueConstructor(context, "1.type()", "number-metaobject",
                         "createNumberMetaObject", TypeDescriptor.META_OBJECT));
-        res.add(createValueConstructor(context, "typeOf(\"str\")", "string-metaobject",
+        res.add(createValueConstructor(context, "\"str\".type()", "string-metaobject",
                         "createStringMetaObject", TypeDescriptor.META_OBJECT));
-        res.add(createValueConstructor(context, "typeOf(NULL)", "null-metaobject",
+        res.add(createValueConstructor(context, "null.type()", "null-metaobject",
                         "createNullMetaObject", TypeDescriptor.META_OBJECT));
-        res.add(createValueConstructor(context, "typeOf(new())", "object-metaobject",
+        res.add(createValueConstructor(context, "new().type()", "object-metaobject",
                         "createObjectMetaObject", TypeDescriptor.META_OBJECT));
-        res.add(createValueConstructor(context, "typeOf(createStringMetaObject)",
+        res.add(createValueConstructor(context, "createStringMetaObject.type()",
                         "function-metaobject",
                         "createFunctionMetaObject", TypeDescriptor.META_OBJECT));
 
@@ -213,7 +213,7 @@ public class LSTCKLanguageProvider implements LanguageProvider {
         res.add(createBuiltin(context, "isInstance", TypeDescriptor.BOOLEAN,
                         TypeDescriptor.META_OBJECT,
                         TypeDescriptor.ANY));
-        res.add(createBuiltin(context, "typeOf", TypeDescriptor.union(TypeDescriptor.META_OBJECT,
+        res.add(createBuiltin(context, "type", TypeDescriptor.union(TypeDescriptor.META_OBJECT,
                         TypeDescriptor.NULL), TypeDescriptor.ANY));
 
         return res;

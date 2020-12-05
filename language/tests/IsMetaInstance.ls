@@ -14,19 +14,16 @@ function printTypes(type) {
   "".println();
 }
 
-function null {
-}
-
-number = typeOf(42);
-string = typeOf("42");
-boolean = typeOf(42 == 42);
-object = typeOf(new());
-f = typeOf(null);
-null = typeOf(null);
+number = 42.type();
+string = "42".type();
+boolean = 42 == 42.type();
+object = new().type();
+f = printTypes.type();
+nullType = null.type();
 
 printTypes(number);
 printTypes(string);
 printTypes(boolean);
 printTypes(object);
 printTypes(f);
-printTypes(null);
+printTypes(nullType);

@@ -57,7 +57,6 @@ import com.oracle.truffle.api.library.ExportMessage;
 import com.oracle.truffle.api.profiles.BranchProfile;
 
 @ExportLibrary(InteropLibrary.class)
-@SuppressWarnings("static-method")
 public final class LSGlobalScope implements TruffleObject {
 
    final Map<String, Object> objects = new HashMap<>();
@@ -95,7 +94,7 @@ public final class LSGlobalScope implements TruffleObject {
 
    @ExportMessage
    @TruffleBoundary
-   Object getMembers(@SuppressWarnings("unused") boolean includeInternal) {
+   Object getMembers(boolean includeInternal) {
        return new FunctionNamesObject(objects.keySet().toArray());
    }
 
@@ -116,7 +115,7 @@ public final class LSGlobalScope implements TruffleObject {
 
    @ExportMessage
    @TruffleBoundary
-   Object toDisplayString(@SuppressWarnings("unused") boolean allowSideEffects) {
+   Object toDisplayString(boolean allowSideEffects) {
        return "global";
    }
 
