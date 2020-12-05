@@ -40,6 +40,11 @@
  */
 package com.guillermomolina.lazyscript.runtime.objects;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.LSObjectUtil;
@@ -124,9 +129,17 @@ public class LSObject extends DynamicObject {
         throw UnknownIdentifierException.create(name);
     }
 
-    @TruffleBoundary
-    public Object getFunctionsObject() {
-        return this;
+    /**
+     * Returns the sorted list of all functions, for printing purposes only.
+     */
+    public List<LSFunction> getFunctions() {
+        List<LSFunction> result = new ArrayList<>();
+        Collections.sort(result, new Comparator<LSFunction>() {
+            public int compare(LSFunction f1, LSFunction f2) {
+                return f1.toString().compareTo(f2.toString());
+            }
+        });
+        return result;
     }
 
     @TruffleBoundary
@@ -155,9 +168,7 @@ public class LSObject extends DynamicObject {
 
     @ExportMessage
     static final class IsIdenticalOrUndefined {
-        public IsIdenticalOrUndefined() {
-        }
-
+        
         @Specialization
         static TriState doLLObject(LSObject receiver, LSObject other) {
             return TriState.valueOf(receiver == other);

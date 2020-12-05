@@ -150,8 +150,7 @@ public final class LSLanguage extends TruffleLanguage<LSContext> {
 
     @Override
     protected Object getScope(LSContext context) {
-        throw new NotImplementedException();
-        //return context.getFunctionRegistry().getFunctionsObject();
+        return context.getGlobalScope();
     }
 
     public static LSContext getCurrentContext() {

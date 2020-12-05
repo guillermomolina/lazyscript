@@ -732,13 +732,9 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         }
 
         String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
-        FrameSlot frameSlot;
-        if(argumentIndex == null ) {
-            frameSlot = lexicalScope.addLocal(name);
-        } else {
-            frameSlot = lexicalScope.addArgument(argumentIndex, name);
-        }
-        boolean newVariable = frameSlot == null;
+        FrameSlot frameSlot = lexicalScope.findOrAddFrameSlot(argumentIndex, name);
+        FrameSlot existingSlot = lexicalScope.putLocal(name, frameSlot);
+        boolean newVariable = existingSlot == null;
         final LSExpressionNode result = LSWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode, newVariable);
 
         if (nameNode.hasSource() && valueNode.hasSource()) {

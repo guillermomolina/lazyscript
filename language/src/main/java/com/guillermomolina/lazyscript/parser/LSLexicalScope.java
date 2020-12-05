@@ -98,19 +98,18 @@ public class LSLexicalScope {
         return argumentInitializationNodes;
     }
 
-    public FrameSlot addArgument(int argumentIndex, final String name) {
-        LOG.log(Level.FINE, "Adding argument index: " + argumentIndex + " named: " + name);
-        arguments.add(name);
-        FrameSlot frameSlot = frameDescriptor.findOrAddFrameSlot(name, argumentIndex, FrameSlotKind.Illegal);
-        locals.put(name, frameSlot);
-        return frameSlot;
+    public FrameSlot findOrAddFrameSlot(Integer argumentIndex, final String name) {
+        if(argumentIndex == null) {
+            LOG.log(Level.FINE, "Adding local variable named: {0}", name);
+        } else {
+            LOG.log(Level.FINE, "Adding argument index: " + argumentIndex + " named: " + name);
+            arguments.add(name);    
+        }
+        return frameDescriptor.findOrAddFrameSlot(name, argumentIndex, FrameSlotKind.Illegal);
     }
 
-    public FrameSlot addLocal(final String name) {
-        LOG.log(Level.FINE, "Adding local variable named: {0}", name);
-        FrameSlot frameSlot = frameDescriptor.findOrAddFrameSlot(name, null, FrameSlotKind.Illegal);
-        locals.put(name, frameSlot);
-        return frameSlot;
+    public FrameSlot putLocal(final String name, FrameSlot frameSlot) {
+        return locals.put(name, frameSlot);
     }
 
     public FrameSlot getLocal(final String name) {

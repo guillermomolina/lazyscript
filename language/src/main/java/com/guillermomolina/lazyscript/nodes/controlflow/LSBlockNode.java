@@ -45,8 +45,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.guillermomolina.lazyscript.nodes.LSScopedNode;
 import com.guillermomolina.lazyscript.nodes.LSStatementNode;
-import com.guillermomolina.lazyscript.nodes.local.LSScopedNode;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -67,38 +67,44 @@ import com.oracle.truffle.api.nodes.NodeVisitor;
 public final class LSBlockNode extends LSStatementNode implements BlockNode.ElementExecutor<LSStatementNode> {
 
     /**
-     * The block of child nodes. Using the block node allows Truffle to split the block into
-     * multiple groups for compilation if the method is too big. This is an optional API.
-     * Alternatively, you may just use your own block node, with a
-     * {@link com.oracle.truffle.api.nodes.Node.Children @Children} field. However, this prevents
-     * Truffle from compiling big methods, so these methods might fail to compile with a compilation
-     * bailout.
+     * The block of child nodes. Using the block node allows Truffle to split the
+     * block into multiple groups for compilation if the method is too big. This is
+     * an optional API. Alternatively, you may just use your own block node, with a
+     * {@link com.oracle.truffle.api.nodes.Node.Children @Children} field. However,
+     * this prevents Truffle from compiling big methods, so these methods might fail
+     * to compile with a compilation bailout.
      */
-    @Child private BlockNode<LSStatementNode> block;
+    @Child
+    private BlockNode<LSStatementNode> block;
 
     /**
-     * All declared variables visible from this block (including all parent blocks). Variables
-     * declared in this block only are from zero index up to {@link #parentBlockIndex} (exclusive).
+     * All declared variables visible from this block (including all parent blocks).
+     * Variables declared in this block only are from zero index up to
+     * {@link #parentBlockIndex} (exclusive).
      */
-    @CompilationFinal(dimensions = 1) private LSWriteLocalVariableNode[] writeNodesCache;
+    @CompilationFinal(dimensions = 1)
+    private LSWriteLocalVariableNode[] writeNodesCache;
 
     /**
-     * Index of the parent block's variables in the {@link #writeNodesCache list of variables}.
+     * Index of the parent block's variables in the {@link #writeNodesCache list of
+     * variables}.
      */
-    @CompilationFinal private int parentBlockIndex = -1;
+    @CompilationFinal
+    private int parentBlockIndex = -1;
 
     public LSBlockNode(LSStatementNode[] bodyNodes) {
         /*
-         * Truffle block nodes cannot be empty, that is why we just set the entire block to null if
-         * there are no elements. This is good practice as it safes memory.
+         * Truffle block nodes cannot be empty, that is why we just set the entire block
+         * to null if there are no elements. This is good practice as it safes memory.
          */
         this.block = bodyNodes.length > 0 ? BlockNode.create(bodyNodes, this) : null;
     }
 
     /**
-     * Execute all block statements. The block node makes sure that {@link ExplodeLoop full
-     * unrolling} of the loop is triggered during compilation. This allows the
-     * {@link LSStatementNode#executeVoid} method of all children to be inlined.
+     * Execute all block statements. The block node makes sure that
+     * {@link ExplodeLoop full unrolling} of the loop is triggered during
+     * compilation. This allows the {@link LSStatementNode#executeVoid} method of
+     * all children to be inlined.
      */
     @Override
     public void executeVoid(VirtualFrame frame) {
@@ -115,13 +121,15 @@ public final class LSBlockNode extends LSStatementNode implements BlockNode.Elem
     }
 
     /**
-     * Truffle nodes don't have a fixed execute signature. The {@link ElementExecutor} interface
-     * tells the framework how block element nodes should be executed. The executor allows to add a
-     * custom exception handler for each element, e.g. to handle a specific
-     * {@link ControlFlowException} or to pass a customizable argument, that allows implement
-     * startsWith semantics if needed. For LS we don't need to pass any argument as we just have
-     * plain block nodes, therefore we pass {@link BlockNode#NO_ARGUMENT}. In our case the executor
-     * does not need to remember any state so we reuse a singleton instance.
+     * Truffle nodes don't have a fixed execute signature. The
+     * {@link ElementExecutor} interface tells the framework how block element nodes
+     * should be executed. The executor allows to add a custom exception handler for
+     * each element, e.g. to handle a specific {@link ControlFlowException} or to
+     * pass a customizable argument, that allows implement startsWith semantics if
+     * needed. For LS we don't need to pass any argument as we just have plain block
+     * nodes, therefore we pass {@link BlockNode#NO_ARGUMENT}. In our case the
+     * executor does not need to remember any state so we reuse a singleton
+     * instance.
      */
     @Override
     public void executeVoid(VirtualFrame frame, LSStatementNode node, int index, int argument) {
@@ -129,8 +137,8 @@ public final class LSBlockNode extends LSStatementNode implements BlockNode.Elem
     }
 
     /**
-     * All declared local variables accessible in this block. Variables declared in parent blocks
-     * are included.
+     * All declared local variables accessible in this block. Variables declared in
+     * parent blocks are included.
      */
     public LSWriteLocalVariableNode[] getDeclaredLocalVariables() {
         LSWriteLocalVariableNode[] writeNodes = writeNodesCache;
@@ -155,30 +163,7 @@ public final class LSBlockNode extends LSStatementNode implements BlockNode.Elem
         NodeUtil.forEachChild(block, new NodeVisitor() {
             @Override
             public boolean visit(Node node) {
-                if (node instanceof WrapperNode) {
-                    NodeUtil.forEachChild(node, this);
-                    return true;
-                }
-                if (node instanceof LSScopedNode) {
-                    LSScopedNode scopedNode = (LSScopedNode) node;
-                    scopedNode.setVisibleVariablesIndexOnEnter(varsIndex[0]);
-                }
-                // Do not enter any nested blocks.
-                if (!(node instanceof LSBlockNode)) {
-                    NodeUtil.forEachChild(node, this);
-                }
-                // Write to a variable is a declaration unless it exists already in a parent scope.
-                if (node instanceof LSWriteLocalVariableNode) {
-                    LSWriteLocalVariableNode wn = (LSWriteLocalVariableNode) node;
-                    if (wn.isDeclaration()) {
-                        writeNodes.add(wn);
-                        varsIndex[0]++;
-                    }
-                }
-                if (node instanceof LSScopedNode) {
-                    LSScopedNode scopedNode = (LSScopedNode) node;
-                    scopedNode.setVisibleVariablesIndexOnExit(varsIndex[0]);
-                }
+                visitNode(this, node, writeNodes, varsIndex);
                 return true;
             }
         });
@@ -199,6 +184,34 @@ public final class LSBlockNode extends LSStatementNode implements BlockNode.Elem
             System.arraycopy(parentVariables, 0, allVariables, variables.length, visibleVarsIndex);
             System.arraycopy(parentVariables, parentVariablesIndex, allVariables, variables.length + visibleVarsIndex, parentVariables.length - parentVariablesIndex);
             return allVariables;
+        }
+    }
+
+    public void visitNode(NodeVisitor visitor, Node node, List<LSWriteLocalVariableNode> writeNodes, int[] varsIndex) {
+        if (node instanceof WrapperNode) {
+            NodeUtil.forEachChild(node, visitor);
+            return;
+        }
+        if (node instanceof LSScopedNode) {
+            LSScopedNode scopedNode = (LSScopedNode) node;
+            scopedNode.setVisibleVariablesIndexOnEnter(varsIndex[0]);
+        }
+        // Do not enter any nested blocks.
+        if (!(node instanceof LSBlockNode)) {
+            NodeUtil.forEachChild(node, visitor);
+        }
+        // Write to a variable is a declaration unless it exists already in a parent
+        // scope.
+        if (node instanceof LSWriteLocalVariableNode) {
+            LSWriteLocalVariableNode wn = (LSWriteLocalVariableNode) node;
+            if (wn.isDeclaration()) {
+                writeNodes.add(wn);
+                varsIndex[0]++;
+            }
+        }
+        if (node instanceof LSScopedNode) {
+            LSScopedNode scopedNode = (LSScopedNode) node;
+            scopedNode.setVisibleVariablesIndexOnExit(varsIndex[0]);
         }
     }
 

@@ -40,7 +40,6 @@
  */
 package com.guillermomolina.lazyscript.nodes;
 
-import com.guillermomolina.lazyscript.nodes.local.LSScopedNode;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.GenerateWrapper;
@@ -147,6 +146,7 @@ public abstract class LSStatementNode extends LSScopedNode implements Instrument
         this.sourceCharIndex = UNAVAILABLE_SOURCE;
     }
 
+    @Override
     public boolean hasTag(Class<? extends Tag> tag) {
         if (tag == StandardTags.StatementTag.class) {
             return hasStatementTag;

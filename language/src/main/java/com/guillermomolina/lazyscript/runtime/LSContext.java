@@ -70,6 +70,7 @@ import com.guillermomolina.lazyscript.builtins.LSWrapPrimitiveBuiltinFactory;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.LSRootNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadArgumentNode;
+import com.guillermomolina.lazyscript.runtime.interop.LSGlobalScope;
 import com.guillermomolina.lazyscript.runtime.objects.LSArray;
 import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
 import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
@@ -114,6 +115,7 @@ public final class LSContext {
     //private final Map<NodeFactory<? extends LSBuiltinNode>, RootCallTarget> builtinTargets = new ConcurrentHashMap<>();
     //private final Map<String, RootCallTarget> undefinedFunctions = new ConcurrentHashMap<>();
 
+    private final LSGlobalScope globalScope;
 
     private final LSObject objectPrototype;
     private final LSObject nullPrototype;
@@ -138,6 +140,8 @@ public final class LSContext {
 
         this.input = new BufferedReader(new InputStreamReader(env.in()));
         this.output = new PrintWriter(env.out(), true);
+
+        this.globalScope = new LSGlobalScope();
 
         this.objectPrototype = createObject(LSNull.INSTANCE);
         this.nullPrototype = createObject(objectPrototype);
@@ -217,10 +221,17 @@ public final class LSContext {
     }
 
     /**
-     * Returns the registry of all functions that are currently defined.
+     * Returns the top context.
      */
     public LSObject getTopContext() {
         return topContext;
+    }
+
+    /**
+     * Returns the global scope.
+     */
+    public Object getGlobalScope() {
+        return globalScope;
     }
 
     /**

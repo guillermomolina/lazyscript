@@ -38,13 +38,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.nodes.local;
+package com.guillermomolina.lazyscript.nodes;
 
 import com.guillermomolina.lazyscript.LSLanguage;
-import com.guillermomolina.lazyscript.NotImplementedException;
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
-import com.guillermomolina.lazyscript.nodes.LSRootNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSBlockNode;
+import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
@@ -121,6 +119,19 @@ public abstract class LSScopedNode extends Node {
         }
     }
 
+    @ExportMessage
+    final boolean hasReceiverMember(Frame frame) {
+        return frame != null;
+    }
+
+    @ExportMessage
+    final Object getReceiverMember(Frame frame) throws UnsupportedMessageException {
+        if (frame == null) {
+            throw UnsupportedMessageException.create();
+        }
+        return ArgumentsObject.RECEIVER_MEMBER;
+    }
+
     /**
      * Test if a function of that name exists. The functions are context-dependent, therefore do a
      * context lookup via {@link CachedContext}.
@@ -128,11 +139,11 @@ public abstract class LSScopedNode extends Node {
     @ExportMessage
     @TruffleBoundary
     final boolean hasRootInstance(Frame frame, @CachedContext(LSLanguage.class) ContextReference<LSContext> contextRef) {
-        throw new NotImplementedException();
-        /*String functionName = getRootNode().getName();
+        String functionName = getRootNode().getName();
         LSContext context = contextRef.get();
         // The instance of the current RootNode is a function of the same name.
-        return context.getFunctionRegistry().getFunction(functionName) != null;*/
+        return false;
+        //return context.getFunctionRegistry().getFunction(functionName) != null;
     }
 
     /**
@@ -142,16 +153,15 @@ public abstract class LSScopedNode extends Node {
     @ExportMessage
     @TruffleBoundary
     final Object getRootInstance(Frame frame, @CachedContext(LSLanguage.class) ContextReference<LSContext> contextRef) throws UnsupportedMessageException {
-        throw new NotImplementedException();
-        /*String functionName = getRootNode().getName();
+        String functionName = getRootNode().getName();
         LSContext context = contextRef.get();
         // The instance of the current RootNode is a function of the same name.
-        Object function = context.getFunctionRegistry().getFunction(functionName);
+        Object function = null;/* = context.getTopContext().getFunction(functionName)*/;
         if (function != null) {
             return function;
         } else {
             throw UnsupportedMessageException.create();
-        }*/
+        }
     }
 
     /**
@@ -182,7 +192,9 @@ public abstract class LSScopedNode extends Node {
      */
     public final void setVisibleVariablesIndexOnEnter(int index) {
         assert visibleVariablesIndexOnEnter == -1 : "The index is set just once";
-        assert 0 <= index;
+        if(index < 0) {
+            throw new IllegalArgumentException("Invalid index: " + index);
+        }
         visibleVariablesIndexOnEnter = index;
     }
 
@@ -192,7 +204,9 @@ public abstract class LSScopedNode extends Node {
      */
     public final void setVisibleVariablesIndexOnExit(int index) {
         assert visibleVariablesIndexOnExit == -1 : "The index is set just once";
-        assert 0 <= index;
+        if(index < 0) {
+            throw new IllegalArgumentException("Invalid index: " + index);
+        }
         visibleVariablesIndexOnExit = index;
     }
 
@@ -216,7 +230,9 @@ public abstract class LSScopedNode extends Node {
         /**
          * The member caching limit.
          */
-        static int LIMIT = 3;
+        static final int LIMIT = 3;
+
+        public static final String RECEIVER_MEMBER = "this";
 
         private final Frame frame;
         protected final LSRootNode root;
@@ -254,7 +270,7 @@ public abstract class LSScopedNode extends Node {
         }
 
         @ExportMessage
-        Class<? extends TruffleLanguage<?>> getLanguage() {
+        Class<? extends TruffleLanguage<LSContext>> getLanguage() {
             return LSLanguage.class;
         }
 
@@ -334,6 +350,9 @@ public abstract class LSScopedNode extends Node {
         @ExportMessage(name = "isMemberModifiable")
         static final class ModifiableMember {
 
+            ModifiableMember() {
+            }
+
             @Specialization(limit = "LIMIT", guards = {"cachedMember.equals(member)"})
             static boolean doCached(ArgumentsObject receiver, String member,
                             @Cached("member") String cachedMember,
@@ -365,6 +384,9 @@ public abstract class LSScopedNode extends Node {
          */
         @ExportMessage(name = "readMember")
         static final class ReadMember {
+
+            ReadMember() {
+            }
 
             /**
              * If the member is cached, use the cached index and read the value at that index. Call
@@ -408,6 +430,9 @@ public abstract class LSScopedNode extends Node {
          */
         @ExportMessage(name = "writeMember")
         static final class WriteMember {
+
+            WriteMember() {
+            }
 
             /**
              * If the member is cached, use the cached index and write the value at that index. Call
@@ -473,7 +498,7 @@ public abstract class LSScopedNode extends Node {
         /**
          * The member caching limit.
          */
-        static int LIMIT = 4;
+        static final int LIMIT = 4;
 
         private final Frame frame;          // the current frame
         protected final LSScopedNode node;  // the current node
@@ -514,7 +539,7 @@ public abstract class LSScopedNode extends Node {
         }
 
         @ExportMessage
-        Class<? extends TruffleLanguage<?>> getLanguage() {
+        Class<? extends TruffleLanguage<LSContext>> getLanguage() {
             return LSLanguage.class;
         }
 
@@ -595,6 +620,9 @@ public abstract class LSScopedNode extends Node {
         @ExportMessage(name = "isMemberReadable")
         static final class ExistsMember {
 
+            ExistsMember() {
+            }
+
             /**
              * If the member is cached, provide the cached result. Call
              * {@link #doGeneric(VariablesObject, String)} otherwise.
@@ -624,6 +652,9 @@ public abstract class LSScopedNode extends Node {
          */
         @ExportMessage(name = "isMemberModifiable")
         static final class ModifiableMember {
+
+            ModifiableMember () {
+            }
 
             @Specialization(limit = "LIMIT", guards = {"cachedMember.equals(member)"})
             static boolean doCached(VariablesObject receiver, String member,
@@ -656,6 +687,9 @@ public abstract class LSScopedNode extends Node {
          */
         @ExportMessage(name = "readMember")
         static final class ReadMember {
+
+            ReadMember() {
+            }
 
             /**
              * If the member is cached, use the cached frame slot and read the value from it. Call
@@ -697,6 +731,9 @@ public abstract class LSScopedNode extends Node {
         @ExportMessage(name = "writeMember")
         static final class WriteMember {
 
+            WriteMember() {
+            }
+            
             /*
              * If the member is cached, use the cached write node and use it to write the value.
              * Call {@link #doGeneric(VariablesObject, String, Object)} otherwise.
@@ -824,7 +861,7 @@ public abstract class LSScopedNode extends Node {
         long getArraySize() {
             // We see all parent's variables (writeNodes.length - parentBlockIndex) plus the
             // variables in the inner-most scope visible by the current node (variableIndex).
-            return writeNodes.length - parentBlockIndex + variableIndex;
+            return (long)writeNodes.length - parentBlockIndex + variableIndex;
         }
 
         @ExportMessage
