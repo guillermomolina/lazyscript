@@ -52,6 +52,7 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -71,8 +72,10 @@ public final class LSFunction extends LSObject {
     private final String name;
 
     /** The current implementation of this function. */
-    private RootCallTarget callTarget;
+    private final RootCallTarget callTarget;
 
+    private MaterializedFrame enclosingFrame;
+    
     /**
      * Manages the assumption that the {@link #callTarget} is stable. We use the utility class
      * {@link CyclicAssumption}, which automatically creates a new {@link Assumption} when the old
@@ -97,6 +100,14 @@ public final class LSFunction extends LSObject {
 
     public Assumption getCallTargetStable() {
         return callTargetStable.getAssumption();
+    }
+
+    public MaterializedFrame getLexicalScope() {
+        return enclosingFrame;
+    }
+
+    public void setLexicalScope(MaterializedFrame enclosingFrame) {
+        this.enclosingFrame = enclosingFrame;
     }
 
     /**
@@ -132,6 +143,9 @@ public final class LSFunction extends LSObject {
 
     @ExportMessage
     static final class IsIdenticalOrUndefined {
+        IsIdenticalOrUndefined() {
+        }
+
         @Specialization
         static TriState doLLFunction(LSFunction receiver, LSFunction other) {
             /*
@@ -153,6 +167,7 @@ public final class LSFunction extends LSObject {
     }
 
     @ExportMessage
+    @Override
     Object toDisplayString(boolean allowSideEffects) {
         return "aFunction";
     }
@@ -172,6 +187,8 @@ public final class LSFunction extends LSObject {
     @ReportPolymorphism
     @ExportMessage
     abstract static class Execute {
+        Execute() {
+        }
 
         /**
          * Inline cached specialization of the dispatch.
