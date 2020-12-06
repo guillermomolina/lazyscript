@@ -61,8 +61,10 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * call target} that is executed when calling the function, but the {@link LSFunction} for a name
  * never changes. This is guaranteed by the {@link LSFunctionRegistry}.
  */
-@NodeInfo(shortName = "func")
+@NodeInfo(shortName = "function")
 public final class LSFunctionLiteralNode extends LSExpressionNode {
+
+    @CompilationFinal private boolean scopeSet = false;
 
     /** The name of the function. */
     private final String functionName;
@@ -130,7 +132,15 @@ public final class LSFunctionLiteralNode extends LSExpressionNode {
             // LSFunction objects in the AST. Instead we always perform the lookup in the hash map.
             function = getContext().createFunction(functionName, callTarget);
         }
+        if (!isScopeSet()) {
+            CompilerDirectives.transferToInterpreterAndInvalidate();
+            function.setLexicalScope(frame.materialize());
+            this.scopeSet = true;
+        }
         return function;
     }
 
+    protected boolean isScopeSet() {
+        return this.scopeSet;
+    }
 }
