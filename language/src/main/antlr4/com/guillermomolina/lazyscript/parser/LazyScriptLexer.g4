@@ -8,6 +8,10 @@ IF: 'if';
 RETURN: 'return';
 WHILE: 'while';
 
+NULL: 'null';
+TRUE: 'true';
+FALSE: 'false';
+
 LPAREN: '(';
 RPAREN: ')';
 LBRACK: '[';

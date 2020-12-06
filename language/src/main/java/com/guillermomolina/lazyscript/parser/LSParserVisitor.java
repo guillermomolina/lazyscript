@@ -65,9 +65,11 @@ import com.guillermomolina.lazyscript.nodes.expression.LSInvokeMethodNode;
 import com.guillermomolina.lazyscript.nodes.expression.LSParenExpressionNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSArrayLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSBigIntegerLiteralNode;
+import com.guillermomolina.lazyscript.nodes.literals.LSBooleanLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSDecimalLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSFunctionLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSIntegerLiteralNode;
+import com.guillermomolina.lazyscript.nodes.literals.LSNullLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSObjectLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSStringLiteralNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadArgumentNode;
@@ -260,7 +262,8 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
         functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
         RootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, functionName);
-        LSExpressionNode function = new LSFunctionLiteralNode(functionName, Truffle.getRuntime().createCallTarget(rootNode));
+        LSExpressionNode function = new LSFunctionLiteralNode(functionName,
+                Truffle.getRuntime().createCallTarget(rootNode));
         setSourceFromContext(function, ctx);
         function.addExpressionTag();
 
@@ -490,6 +493,10 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             if (ctx.member() == null) {
                 return createRead(assignmentName);
             }
+        } else if (ctx.nullLiteral() != null) {
+            receiver = (LSExpressionNode) visit(ctx.nullLiteral());
+        } else if (ctx.booleanLiteral() != null) {
+            receiver = (LSExpressionNode) visit(ctx.booleanLiteral());
         } else if (ctx.stringLiteral() != null) {
             receiver = (LSExpressionNode) visit(ctx.stringLiteral());
         } else if (ctx.numericLiteral() != null) {
@@ -745,7 +752,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         if (argumentIndex == null) {
             result.addExpressionTag();
         }
-        
+
         return result;
     }
 
@@ -863,6 +870,30 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         final LSStringLiteralNode result = new LSStringLiteralNode(identifier.intern());
         result.addExpressionTag();
         setSourceFromContext(result, ctx);
+        return result;
+    }
+
+    @Override
+    public Node visitNullLiteral(LazyScriptParser.NullLiteralContext ctx) {
+        final LSNullLiteralNode result = new LSNullLiteralNode();
+        setSourceFromContext(result, ctx);
+        result.addExpressionTag();
+        return result;
+    }
+
+    @Override
+    public Node visitBooleanLiteral(LazyScriptParser.BooleanLiteralContext ctx) {
+        Boolean value;
+        if (ctx.TRUE() != null) {
+            value = true;
+        } else if (ctx.FALSE() != null) {
+            value = false;
+        } else {
+            throw new LSParseError(source, ctx, "Invalid constant literal: " + ctx.getText());
+        }
+        final LSBooleanLiteralNode result = new LSBooleanLiteralNode(value);
+        setSourceFromContext(result, ctx);
+        result.addExpressionTag();
         return result;
     }
 

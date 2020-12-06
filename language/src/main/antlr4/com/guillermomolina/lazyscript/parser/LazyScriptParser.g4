@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2012, 2018, Guillermo Adrián Molina. All rights reserved. DO NOT ALTER OR
- * REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+ * Copyright (c) 2012, 2018, Guillermo Adrián Molina. All rights reserved. DO NOT ALTER OR REMOVE
+ * COPYRIGHT NOTICES OR THIS FILE HEADER.
  * 
  * The Universal Permissive License (UPL), Version 1.0
  * 
@@ -90,6 +90,8 @@ factor: singleExpression | assignment;
 singleExpression:
 	(
 		identifier
+		| nullLiteral
+		| booleanLiteral
 		| stringLiteral
 		| numericLiteral
 		| arrayLiteral
@@ -99,6 +101,10 @@ singleExpression:
 	) member?;
 
 identifier: IDENTIFIER;
+
+nullLiteral: NULL;
+
+booleanLiteral: TRUE | FALSE;
 
 stringLiteral: STRING_LITERAL;
 
