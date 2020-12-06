@@ -54,14 +54,14 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 @NodeInfo(shortName = "const")
 public final class LSBigIntegerLiteralNode extends LSExpressionNode {
 
-    private final LSBigInteger value;
+    private final BigInteger value;
 
     public LSBigIntegerLiteralNode(BigInteger value) {
-        this.value = new LSBigInteger(value);
+        this.value = value;
     }
 
     @Override
     public LSBigInteger executeGeneric(VirtualFrame frame) {
-        return value;
+        return getContext().createBigInteger(value);
     }
 }

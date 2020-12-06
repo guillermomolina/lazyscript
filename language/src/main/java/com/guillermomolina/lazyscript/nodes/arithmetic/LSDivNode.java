@@ -75,7 +75,7 @@ public abstract class LSDivNode extends LSBinaryNode {
     @Specialization
     @TruffleBoundary
     protected LSBigInteger div(LSBigInteger left, LSBigInteger right) {
-        return new LSBigInteger(left.getValue().divide(right.getValue()));
+        return getContext().createBigInteger(left.getValue().divide(right.getValue()));
     }
 
     @Fallback

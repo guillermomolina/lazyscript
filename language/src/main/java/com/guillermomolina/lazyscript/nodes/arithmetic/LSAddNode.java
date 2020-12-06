@@ -103,7 +103,7 @@ public abstract class LSAddNode extends LSBinaryNode {
     @Specialization
     @TruffleBoundary
     protected LSBigInteger add(LSBigInteger left, LSBigInteger right) {
-        return new LSBigInteger(left.getValue().add(right.getValue()));
+        return getContext().createBigInteger(left.getValue().add(right.getValue()));
     }
 
     /**

@@ -60,7 +60,7 @@ public abstract class LSMulNode extends LSBinaryNode {
 
     @Specialization
     protected LSBigInteger mul(LSBigInteger left, LSBigInteger right) {
-        return new LSBigInteger(left.getValue().multiply(right.getValue()));
+        return getContext().createBigInteger(left.getValue().multiply(right.getValue()));
     }
 
     @Specialization

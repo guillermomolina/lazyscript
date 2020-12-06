@@ -75,6 +75,10 @@ import com.oracle.truffle.api.source.SourceSection;
  */
 @ExportLibrary(value = NodeLibrary.class)
 public abstract class LSScopedNode extends Node {
+    
+    public LSContext getContext() {
+        return lookupContextReference(LSLanguage.class).get();    
+    }
 
     /**
      * Index to the the {@link LSBlockNode#getDeclaredLocalVariables() block's variables} that
@@ -118,7 +122,7 @@ public abstract class LSScopedNode extends Node {
             return new ArgumentsObject(frame, (LSRootNode) blockNode);
         }
     }
-/*
+
     @ExportMessage
     final boolean hasReceiverMember(Frame frame) {
         return frame != null;
@@ -131,7 +135,7 @@ public abstract class LSScopedNode extends Node {
         }
         return ArgumentsObject.RECEIVER_MEMBER;
     }
-*/
+
     /**
      * Test if a function of that name exists. The functions are context-dependent, therefore do a
      * context lookup via {@link CachedContext}.
