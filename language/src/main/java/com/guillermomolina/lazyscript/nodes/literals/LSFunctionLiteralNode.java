@@ -44,11 +44,13 @@ import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
+import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;
-import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.RootCallTarget;
+import com.oracle.truffle.api.TruffleLanguage.ContextPolicy;
+import com.oracle.truffle.api.TruffleLanguage.ContextReference;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
@@ -114,7 +116,7 @@ public final class LSFunctionLiteralNode extends LSExpressionNode {
                 /* We are about to change a @CompilationFinal field. */
                 CompilerDirectives.transferToInterpreterAndInvalidate();
                 /* First execution of the node: lookup the function in the function registry. */
-                this.cachedFunction = function = lookupContextReference(LSLanguage.class).get().createFunction(functionName, callTarget);
+                this.cachedFunction = function = getContext().createFunction(functionName, callTarget);
             }
         } else {
             /*
@@ -126,7 +128,7 @@ public final class LSFunctionLiteralNode extends LSExpressionNode {
             }
             // in the multi-context case we are not allowed to store
             // LSFunction objects in the AST. Instead we always perform the lookup in the hash map.
-            function = lookupContextReference(LSLanguage.class).get().createFunction(functionName, callTarget);
+            function = getContext().createFunction(functionName, callTarget);
         }
         return function;
     }

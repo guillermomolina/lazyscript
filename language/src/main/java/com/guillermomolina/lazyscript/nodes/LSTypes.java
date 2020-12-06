@@ -92,7 +92,7 @@ public abstract class LSTypes {
     @ImplicitCast
     @TruffleBoundary
     public static LSBigInteger castBigInteger(long value) {
-        return new LSBigInteger(BigInteger.valueOf(value));
+        return LSLanguage.getCurrentContext().createBigInteger(BigInteger.valueOf(value));
     }
 
     @ImplicitCast

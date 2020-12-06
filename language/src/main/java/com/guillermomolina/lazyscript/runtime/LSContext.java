@@ -45,6 +45,7 @@ import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.math.BigInteger;
 
 import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.NotImplementedException;
@@ -145,6 +146,7 @@ public final class LSContext {
 
         this.objectPrototype = createObject(LSNull.INSTANCE);
         this.nullPrototype = createObject(objectPrototype);
+        LSNull.INSTANCE.setPrototype(nullPrototype);
         this.booleanPrototype = createObject(objectPrototype);
         this.truePrototype = createObject(booleanPrototype);
         this.falsePrototype = createObject(booleanPrototype);
@@ -197,6 +199,14 @@ public final class LSContext {
         return array;
     }
 
+    public LSBigInteger createBigInteger(final BigInteger data) {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        LSBigInteger result = new LSBigInteger(data);
+        result.setPrototype(bigIntegerPrototype);
+        allocationReporter.onReturnValue(result, 0, AllocationReporter.SIZE_UNKNOWN);
+        return result;
+    }
+
     /**
      * Return the current Truffle environment.
      */
@@ -239,9 +249,6 @@ public final class LSContext {
      * lists all {@link LSBuiltinNode builtin implementation classes}.
      */
     private void installBuiltins() {
-        LSObjectUtil.putProperty(topContext, "null", LSNull.INSTANCE);
-        LSObjectUtil.putProperty(topContext, "true", true);
-        LSObjectUtil.putProperty(topContext, "false", false);
         LSObjectUtil.putProperty(topContext, "Object", objectPrototype);
         LSObjectUtil.putProperty(topContext, "Null", nullPrototype);
         LSObjectUtil.putProperty(topContext, "Boolean", booleanPrototype);

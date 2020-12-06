@@ -4,20 +4,26 @@
  */
 
 println();
-"Hello World".println();
-101.println();
 null.println();
 true.println();
 false.println();
 Object.println();
 Null.println();
 Object.prototype.println();
+101.println();
+"Hello World".println();
+{}.println();
+[].println();
+1000000000000000000000000000000000000000000.println();
+() => {}.println();
 true.prototype.prototype.prototype.prototype.println();
 "Hello World".println();
 "Hello World".prototype.println();
 
 a = 101 + 1;
 a.println();
+
+(1000000000000000000000000000000000000000000 + 1).println();
 
 a = "Hello World";
 a.println();
@@ -35,11 +41,11 @@ Object["b"].println();
 Object[Object.a] = "a";
 Object[Object.a].println();
 
-Object.d = () => { .println(); };
+Object.d = () => { println(); };
 Object.d.println();
 Object.d();
 
-a = () => { .println(); };
+a = () => { println(); };
 a.println();
 a();
 

@@ -40,7 +40,6 @@
  */
 package com.guillermomolina.lazyscript.builtins;
 
-import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -64,7 +63,7 @@ public abstract class LSTypeBuiltin extends LSBuiltinNode {
                     @CachedLibrary("self") InteropLibrary interop) {
         for (LSMetaType type : LSMetaType.PRECEDENCE) {
             if (type.isInstance(self, interop)) {
-                return lookupContextReference(LSLanguage.class).get().getPrototype(self);
+                return getContext().getPrototype(self);
             }
         }
         return LSNull.INSTANCE;

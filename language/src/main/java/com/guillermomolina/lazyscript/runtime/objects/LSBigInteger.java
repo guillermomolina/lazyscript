@@ -42,19 +42,15 @@ package com.guillermomolina.lazyscript.runtime.objects;
 
 import java.math.BigInteger;
 
-import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
-import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
-import com.oracle.truffle.api.TruffleLanguage;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.TruffleObject;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
 
 @ExportLibrary(InteropLibrary.class)
-public final class LSBigInteger implements TruffleObject, Comparable<LSBigInteger> {
+public final class LSBigInteger extends LSObject implements Comparable<LSBigInteger> {
 
     private static final long LONG_MAX_SAFE_DOUBLE = 9007199254740991L; // 2 ** 53 - 1
     private static final int INT_MAX_SAFE_FLOAT = 16777215; // 2 ** 24 - 1
@@ -208,16 +204,6 @@ public final class LSBigInteger implements TruffleObject, Comparable<LSBigIntege
     }
 
     @ExportMessage
-    boolean hasLanguage() {
-        return true;
-    }
-
-    @ExportMessage
-    Class<? extends TruffleLanguage<LSContext>> getLanguage() {
-        return LSLanguage.class;
-    }
-
-    @ExportMessage
     boolean hasMetaObject() {
         return true;
     }
@@ -229,6 +215,7 @@ public final class LSBigInteger implements TruffleObject, Comparable<LSBigIntege
 
     @ExportMessage
     @TruffleBoundary
+    @Override
     Object toDisplayString(boolean allowSideEffects) {
         return value.toString();
     }

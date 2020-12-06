@@ -80,15 +80,15 @@ public final class LSMetaType implements TruffleObject {
      * nicely match those of the types in InteropLibrary. This might not be the case and more
      * additional checks need to be performed (similar to number checking for LSBigInteger).
      */
-    public static final LSMetaType NULL = new LSMetaType("Null", InteropLibrary::isNull);
-    public static final LSMetaType INTEGER = new LSMetaType("Integer", InteropLibrary::fitsInLong);
-    public static final LSMetaType DECIMAL = new LSMetaType("Decimal", InteropLibrary::fitsInDouble);
-    public static final LSMetaType BIGINTEGER = new LSMetaType("BigInteger", (l, v) -> v instanceof LSBigInteger);
-    public static final LSMetaType STRING = new LSMetaType("String", InteropLibrary::isString);
-    public static final LSMetaType BOOLEAN = new LSMetaType("Boolean", InteropLibrary::isBoolean);
-    public static final LSMetaType FUNCTION = new LSMetaType("Function", InteropLibrary::isExecutable);
-    public static final LSMetaType ARRAY = new LSMetaType("Array", InteropLibrary::hasArrayElements);
-    public static final LSMetaType OBJECT = new LSMetaType("Object", InteropLibrary::hasMembers);
+    public static final LSMetaType NULL = new LSMetaType("NULL", InteropLibrary::isNull);
+    public static final LSMetaType INTEGER = new LSMetaType("INTEGER", InteropLibrary::fitsInLong);
+    public static final LSMetaType DECIMAL = new LSMetaType("DECIMAL", InteropLibrary::fitsInDouble);
+    public static final LSMetaType BIGINTEGER = new LSMetaType("BIGINTEGER", (l, v) -> v instanceof LSBigInteger);
+    public static final LSMetaType STRING = new LSMetaType("STRING", InteropLibrary::isString);
+    public static final LSMetaType BOOLEAN = new LSMetaType("BOOLEAN", InteropLibrary::isBoolean);
+    public static final LSMetaType FUNCTION = new LSMetaType("FUNCTION", InteropLibrary::isExecutable);
+    public static final LSMetaType ARRAY = new LSMetaType("ARRAY", InteropLibrary::hasArrayElements);
+    public static final LSMetaType OBJECT = new LSMetaType("OBJECT", InteropLibrary::hasMembers);
 
     /*
      * This array is used when all types need to be checked in a certain order. While most interop

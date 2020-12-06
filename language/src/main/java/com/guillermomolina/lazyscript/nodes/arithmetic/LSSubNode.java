@@ -67,7 +67,7 @@ public abstract class LSSubNode extends LSBinaryNode {
     @Specialization
     @TruffleBoundary
     protected LSBigInteger sub(LSBigInteger left, LSBigInteger right) {
-        return new LSBigInteger(left.getValue().subtract(right.getValue()));
+        return getContext().createBigInteger(left.getValue().subtract(right.getValue()));
     }
 
     @Fallback

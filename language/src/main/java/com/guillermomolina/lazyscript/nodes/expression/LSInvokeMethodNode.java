@@ -40,7 +40,6 @@
  */
 package com.guillermomolina.lazyscript.nodes.expression;
 
-import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
 import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
@@ -100,7 +99,7 @@ public final class LSInvokeMethodNode extends LSExpressionNode {
         String methodName = (String) methodNameNode.executeGeneric(frame);
 
         try {
-            Object function = lookupContextReference(LSLanguage.class).get().getFunction(argumentValues[0], methodName);
+            Object function = getContext().getFunction(argumentValues[0], methodName);
             return library.execute(function, argumentValues);
         } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException
                 | UnknownIdentifierException e) {
