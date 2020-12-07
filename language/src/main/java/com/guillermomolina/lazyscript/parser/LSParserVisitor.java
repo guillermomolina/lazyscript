@@ -214,7 +214,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     }
 
     private LSExpressionNode createArgumentInitialization(String name) {
-        final FrameSlot frameSlot = lexicalScope.addArgument(name);
+        final FrameSlot frameSlot = lexicalScope.addParameter(name);
         int index = (int) frameSlot.getInfo();
         LSReadArgumentNode readArgNode = new LSReadArgumentNode(index);
         LSExpressionNode nameNode = new LSStringLiteralNode(name);

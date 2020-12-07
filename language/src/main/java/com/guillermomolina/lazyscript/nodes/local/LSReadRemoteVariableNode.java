@@ -42,71 +42,76 @@ package com.guillermomolina.lazyscript.nodes.local;
 
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.interop.NodeObjectDescriptor;
-import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
+import com.oracle.truffle.api.frame.Frame;
 import com.oracle.truffle.api.frame.FrameSlot;
-import com.oracle.truffle.api.frame.FrameUtil;
+import com.oracle.truffle.api.frame.FrameSlotTypeException;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
 import com.oracle.truffle.api.instrumentation.Tag;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
 
 /**
- * Node to read a local variable from a function's {@link VirtualFrame frame}. The Truffle frame API
- * allows to store primitive values of all Java primitive types, and Object values. This means that
- * all LazyScript types that are objects are handled by the {@link #readObject} method.
- * <p>
- * We use the primitive type only when the same primitive type is uses for all writes. If the local
- * variable is type-polymorphic, then the value is always stored as an Object, i.e., primitive
- * values are boxed. Even a mixture of {@code long} and {@code boolean} writes leads to both being
- * stored boxed.
+ * Node to read a remote variable from a function's {@link VirtualFrame frame}.
  */
 @NodeField(name = "slot", type = FrameSlot.class)
-public abstract class LSReadLocalVariableNode extends LSExpressionNode {
+@NodeField(name = "depth", type = int.class)
+public abstract class LSReadRemoteVariableNode extends LSExpressionNode {
+
+    protected abstract FrameSlot getSlot();
+    public abstract int getDepth();
 
     /**
-     * Returns the descriptor of the accessed local variable. The implementation of this method is
-     * created by the Truffle DLL based on the {@link NodeField} annotation on the class.
+     * Functional interface to get right type out of {@link VirtualFrame}.
      */
-    protected abstract FrameSlot getSlot();
-
-    @Specialization(guards = "frame.isLong(getSlot())")
-    protected long readLong(VirtualFrame frame) {
-        /*
-         * When the FrameSlotKind is Long, we know that only primitive long values have ever been
-         * written to the local variable. So we do not need to check that the frame really contains
-         * a primitive long value.
-         */
-        return FrameUtil.getLongSafe(frame, getSlot());
+    public interface FrameGet<T> {
+        T get(Frame frame, FrameSlot slot) throws FrameSlotTypeException;
     }
 
-    @Specialization(guards = "frame.isDouble(getSlot())")
-    protected double readDouble(VirtualFrame frame) {
-        return FrameUtil.getDoubleSafe(frame, getSlot());
-    }
+    @ExplodeLoop
+    public <T> T readUpStack(FrameGet<T> getter, Frame frame)
+            throws FrameSlotTypeException {
 
-    @Specialization(guards = "frame.isBoolean(getSlot())")
-    protected boolean readBoolean(VirtualFrame frame) {
-        return FrameUtil.getBooleanSafe(frame, getSlot());
-    }
-
-    @Specialization(replaces = {"readLong", "readDouble", "readBoolean"})
-    protected Object readObject(VirtualFrame frame) {
-        if (!frame.isObject(getSlot())) {
-            /*
-             * The FrameSlotKind has been set to Object, so from now on all writes to the local
-             * variable will be Object writes. However, now we are in a frame that still has an old
-             * non-Object value. This is a slow-path operation: we read the non-Object value, and
-             * write it immediately as an Object value so that we do not hit this path again
-             * multiple times for the same variable of the same frame.
-             */
-            CompilerDirectives.transferToInterpreter();
-            Object result = frame.getValue(getSlot());
-            frame.setObject(getSlot(), result);
-            return result;
+        Frame lookupFrame = frame;
+        for (int i = 0; i < this.getDepth(); i++) {
+            lookupFrame = (Frame)lookupFrame.getArguments()[0];
         }
+        return getter.get(lookupFrame, this.getSlot());
+    }
 
-        return FrameUtil.getObjectSafe(frame, getSlot());
+    @Specialization(rewriteOn = FrameSlotTypeException.class)
+    protected long readLong(VirtualFrame virtualFrame)
+            throws FrameSlotTypeException {
+        return this.readUpStack(Frame::getLong, virtualFrame);
+    }
+
+    @Specialization(rewriteOn = FrameSlotTypeException.class)
+    protected double readDouble(VirtualFrame virtualFrame)
+            throws FrameSlotTypeException {
+        return this.readUpStack(Frame::getDouble, virtualFrame);
+    }
+
+    @Specialization(rewriteOn = FrameSlotTypeException.class)
+    protected boolean readBoolean(VirtualFrame virtualFrame)
+            throws FrameSlotTypeException {
+        return this.readUpStack(Frame::getBoolean, virtualFrame);
+    }
+
+    @Specialization(rewriteOn = FrameSlotTypeException.class)
+    protected Object readObject(VirtualFrame virtualFrame)
+            throws FrameSlotTypeException {
+        return this.readUpStack(Frame::getObject, virtualFrame);
+    }
+
+    @Specialization(replaces = { "readLong", "readDouble", "readBoolean", "readObject" })
+    protected Object read(VirtualFrame virtualFrame) {
+        try {
+            return this.readUpStack(Frame::getValue, virtualFrame);
+        } catch (FrameSlotTypeException e) {
+            // FrameSlotTypeException not thrown
+        }
+        return null;
     }
 
     @Override
@@ -118,5 +123,4 @@ public abstract class LSReadLocalVariableNode extends LSExpressionNode {
     public Object getNodeObject() {
         return NodeObjectDescriptor.readVariable(getSlot().getIdentifier().toString());
     }
-
 }

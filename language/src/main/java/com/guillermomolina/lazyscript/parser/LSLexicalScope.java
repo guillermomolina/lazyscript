@@ -40,9 +40,7 @@
  */
 package com.guillermomolina.lazyscript.parser;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 
@@ -56,11 +54,10 @@ public class LSLexicalScope {
     private static final TruffleLogger LOG = TruffleLogger.getLogger(LSLanguage.ID, LSLexicalScope.class);
 
     public static final String THIS = "this";
-    public static final String CONTEXT = "context";
     public static final String SUPER = "super";
 
     private final LSLexicalScope outer;
-    private final List<String> arguments;
+    private int parameterCount;
     private final Map<String, FrameSlot> locals;
     private final boolean inLoop;
     private final FrameDescriptor frameDescriptor;
@@ -68,7 +65,7 @@ public class LSLexicalScope {
     LSLexicalScope(LSLexicalScope outer, boolean inLoop) {
         this.outer = outer;
         this.inLoop = inLoop;
-        this.arguments = new ArrayList<>();
+        this.parameterCount = 0;
         this.locals = new HashMap<>();
         if (inLoop) {
             this.frameDescriptor = outer.frameDescriptor;
@@ -90,26 +87,26 @@ public class LSLexicalScope {
         return locals.containsKey(name);
     }
 
-    public FrameSlot addArgument(final String name) {
-        int argumentIndex = arguments.size();
-        if(argumentIndex == 0 && !name.equals(THIS)) {
-            throw new UnsupportedOperationException("First argument must always be this");
+    public FrameSlot addParameter(final String name) {
+        if(parameterCount == 0 && !name.equals(THIS)) {
+            throw new UnsupportedOperationException("First parameter must always be \"this\"");
         }
-        LOG.log(Level.FINE, "Adding argument index: " + argumentIndex + " named: " + name);
-        arguments.add(name);    
-        FrameSlot frameSlot = frameDescriptor.findOrAddFrameSlot(name, argumentIndex, FrameSlotKind.Illegal);
+        LOG.log(Level.FINE, "Adding parameter index: " + parameterCount + " named: " + name);
+        FrameSlot frameSlot = frameDescriptor.findOrAddFrameSlot(name, parameterCount, FrameSlotKind.Illegal);
         FrameSlot existingSlot = locals.put(name, frameSlot);
         if(existingSlot != null) {
-            throw new UnsupportedOperationException("Argument already defined");
+            throw new UnsupportedOperationException("Parameter already defined");
         }
+        parameterCount++;
         return frameSlot;
     }
 
     public FrameSlot findOrAddVariable(final String name) {
-        FrameSlot frameSlot = frameDescriptor.findOrAddFrameSlot(name, null, FrameSlotKind.Illegal);
-        FrameSlot existingSlot = locals.put(name, frameSlot);
-        if(existingSlot == null) {
+        FrameSlot frameSlot = locals.get(name);
+        if(frameSlot == null) {
             LOG.log(Level.FINE, "Adding local variable named: {0}", name);
+            frameSlot = frameDescriptor.findOrAddFrameSlot(name, null, FrameSlotKind.Illegal);
+            locals.put(name, frameSlot);    
         }
         return frameSlot;
     }
