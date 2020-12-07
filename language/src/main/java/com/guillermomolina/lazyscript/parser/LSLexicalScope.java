@@ -47,8 +47,6 @@ import java.util.Map;
 import java.util.logging.Level;
 
 import com.guillermomolina.lazyscript.LSLanguage;
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
-import com.guillermomolina.lazyscript.nodes.LSStatementNode;
 import com.oracle.truffle.api.TruffleLogger;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
@@ -65,7 +63,6 @@ public class LSLexicalScope {
     private final List<String> arguments;
     private final Map<String, FrameSlot> locals;
     private final boolean inLoop;
-    private final List<LSStatementNode> argumentInitializationNodes;
     private final FrameDescriptor frameDescriptor;
 
     LSLexicalScope(LSLexicalScope outer, boolean inLoop) {
@@ -73,7 +70,6 @@ public class LSLexicalScope {
         this.inLoop = inLoop;
         this.arguments = new ArrayList<>();
         this.locals = new HashMap<>();
-        this.argumentInitializationNodes = new ArrayList<>();
         if (inLoop) {
             this.frameDescriptor = outer.frameDescriptor;
             locals.putAll(outer.locals);
@@ -90,26 +86,32 @@ public class LSLexicalScope {
         return frameDescriptor;
     }
 
-    public void addArgumentInitializationNode(LSExpressionNode assignmentNode) {
-        argumentInitializationNodes.add(assignmentNode);
+    public boolean hasVariable(final String name) {
+        return locals.containsKey(name);
     }
 
-    public List<LSStatementNode> getArgumentInitializationNodes() {
-        return argumentInitializationNodes;
-    }
-
-    public FrameSlot findOrAddFrameSlot(Integer argumentIndex, final String name) {
-        if(argumentIndex == null) {
-            LOG.log(Level.FINE, "Adding local variable named: {0}", name);
-        } else {
-            LOG.log(Level.FINE, "Adding argument index: " + argumentIndex + " named: " + name);
-            arguments.add(name);    
+    public FrameSlot addArgument(final String name) {
+        int argumentIndex = arguments.size();
+        if(argumentIndex == 0 && !name.equals(THIS)) {
+            throw new UnsupportedOperationException("First argument must always be this");
         }
-        return frameDescriptor.findOrAddFrameSlot(name, argumentIndex, FrameSlotKind.Illegal);
+        LOG.log(Level.FINE, "Adding argument index: " + argumentIndex + " named: " + name);
+        arguments.add(name);    
+        FrameSlot frameSlot = frameDescriptor.findOrAddFrameSlot(name, argumentIndex, FrameSlotKind.Illegal);
+        FrameSlot existingSlot = locals.put(name, frameSlot);
+        if(existingSlot != null) {
+            throw new UnsupportedOperationException("Argument already defined");
+        }
+        return frameSlot;
     }
 
-    public FrameSlot putLocal(final String name, FrameSlot frameSlot) {
-        return locals.put(name, frameSlot);
+    public FrameSlot findOrAddVariable(final String name) {
+        FrameSlot frameSlot = frameDescriptor.findOrAddFrameSlot(name, null, FrameSlotKind.Illegal);
+        FrameSlot existingSlot = locals.put(name, frameSlot);
+        if(existingSlot == null) {
+            LOG.log(Level.FINE, "Adding local variable named: {0}", name);
+        }
+        return frameSlot;
     }
 
     public FrameSlot getLocal(final String name) {

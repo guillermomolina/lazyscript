@@ -173,6 +173,15 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         node.setSourceSection(start, stop - start + 1);
     }
 
+    private void setSourceFromNode(LSStatementNode targetNode, LSStatementNode sourceNode) {
+        assert targetNode != null;
+        assert sourceNode != null;
+        if (!sourceNode.hasSource()) {
+            throw new UnsupportedOperationException("sourceNode does not have source");
+        }
+        targetNode.setSourceSection(sourceNode.getSourceCharIndex(), sourceNode.getSourceLength());
+    }
+
     public void pushScope(boolean inLoop) {
         lexicalScope = new LSLexicalScope(lexicalScope, inLoop);
     }
@@ -184,84 +193,38 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     @Override
     public Node visitModule(LazyScriptParser.ModuleContext ctx) {
         assert lexicalScope == null;
-
-        /* State while parsing a function. */
         pushScope(false);
 
-        final LSReadArgumentNode readArg0 = new LSReadArgumentNode(0);
-        final LSExpressionNode stringLiteral = new LSStringLiteralNode(LSLexicalScope.THIS);
-        LSExpressionNode assignment = createAssignment(stringLiteral, readArg0, 0);
-        lexicalScope.addArgumentInitializationNode(assignment);
+        final List<LSStatementNode> argumentInitializationNodes = new ArrayList<>();
+        argumentInitializationNodes.add(createArgumentInitialization(LSLexicalScope.THIS));
 
-        List<LSStatementNode> bodyNodes = lexicalScope.getArgumentInitializationNodes();
-
-        for (LazyScriptParser.StatementContext statement : ctx.statement()) {
-            bodyNodes.add((LSStatementNode) visit(statement));
-        }
+        final LSStatementNode blockNode = createBlock(argumentInitializationNodes, ctx.statement());
+        setSourceFromContext(blockNode, ctx);
 
         FrameDescriptor frameDescriptor = lexicalScope.getFrameDescriptor();
         popScope();
-        assert lexicalScope == null;
-
-        if (containsNull(bodyNodes)) {
-            return null;
-        }
-
-        List<LSStatementNode> flattenedNodes = new ArrayList<>(bodyNodes.size());
-        flattenBlocks(bodyNodes, flattenedNodes);
-        for (LSStatementNode statement : flattenedNodes) {
-            if (statement.hasSource() && !isHaltInCondition(statement)) {
-                statement.addStatementTag();
-            }
-        }
-        LSStatementNode methodBlock = new LSBlockNode(
-                flattenedNodes.toArray(new LSStatementNode[flattenedNodes.size()]));
-
-        setSourceFromContext(methodBlock, ctx);
         assert lexicalScope == null : "Wrong scoping of blocks in parser";
 
-        final LSFunctionBodyNode functionBodyNode = new LSFunctionBodyNode(methodBlock);
-        final int functionStartPos = methodBlock.getSourceCharIndex();
-        final int bodyEndPos = methodBlock.getSourceEndIndex();
-        SourceSection moduleSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
-        functionBodyNode.setSourceSection(moduleSrc.getCharIndex(), moduleSrc.getCharLength());
-        return new LSRootNode(language, frameDescriptor, functionBodyNode, moduleSrc, "main");
+        final LSFunctionBodyNode functionBodyNode = new LSFunctionBodyNode(blockNode);
+        final int functionStartPos = blockNode.getSourceCharIndex();
+        final int bodyEndPos = blockNode.getSourceEndIndex();
+        SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
+        functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
+        return new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, "main");
+    }
+
+    private LSExpressionNode createArgumentInitialization(String name) {
+        final FrameSlot frameSlot = lexicalScope.addArgument(name);
+        int index = (int) frameSlot.getInfo();
+        LSReadArgumentNode readArgNode = new LSReadArgumentNode(index);
+        LSExpressionNode nameNode = new LSStringLiteralNode(name);
+        return LSWriteLocalVariableNodeGen.create(readArgNode, frameSlot, nameNode, true);
     }
 
     @Override
     public Node visitFunctionStatement(LazyScriptParser.FunctionStatementContext ctx) {
-        pushScope(false);
-
-        LSReadArgumentNode readArg = new LSReadArgumentNode(0);
-        LSExpressionNode stringLiteral = new LSStringLiteralNode(LSLexicalScope.THIS);
-        LSExpressionNode assignment = createAssignment(stringLiteral, readArg, 0);
-        lexicalScope.addArgumentInitializationNode(assignment);
-        int parameterCount = 1;
-        if (ctx.functionParameters() != null) {
-            for (IdentifierContext identifierCtx : ctx.functionParameters().identifier()) {
-                readArg = new LSReadArgumentNode(parameterCount);
-                stringLiteral = (LSExpressionNode) visit(identifierCtx);
-                assignment = createAssignment(stringLiteral, readArg, parameterCount);
-                lexicalScope.addArgumentInitializationNode(assignment);
-                parameterCount++;
-            }
-        }
-
-        final LSStatementNode methodBlock = (LSStatementNode) visit(ctx.block());
-        if (methodBlock == null) {
-            throw new NotImplementedException();
-        }
-
-        FrameDescriptor frameDescriptor = lexicalScope.getFrameDescriptor();
-        popScope();
-
         final String functionName = ctx.identifier().getText();
-        final LSFunctionBodyNode functionBodyNode = new LSFunctionBodyNode(methodBlock);
-        final int functionStartPos = methodBlock.getSourceCharIndex();
-        final int bodyEndPos = methodBlock.getSourceEndIndex();
-        SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
-        functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
-        RootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, functionName);
+        LSRootNode rootNode = createRootNode(functionName, ctx.functionParameters(), ctx.block());
         LSExpressionNode function = new LSFunctionLiteralNode(functionName,
                 Truffle.getRuntime().createCallTarget(rootNode));
         setSourceFromContext(function, ctx);
@@ -275,89 +238,94 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     @Override
     public Node visitFunctionExpression(LazyScriptParser.FunctionExpressionContext ctx) {
-        pushScope(false);
-
-        LSReadArgumentNode readArg = new LSReadArgumentNode(0);
-        LSExpressionNode stringLiteral = new LSStringLiteralNode(LSLexicalScope.THIS);
-        LSExpressionNode assignment = createAssignment(stringLiteral, readArg, 0);
-        lexicalScope.addArgumentInitializationNode(assignment);
-        int parameterCount = 1;
-        if (ctx.functionParameters() != null) {
-            for (IdentifierContext identifierCtx : ctx.functionParameters().identifier()) {
-                readArg = new LSReadArgumentNode(parameterCount);
-                stringLiteral = (LSExpressionNode) visit(identifierCtx);
-                assignment = createAssignment(stringLiteral, readArg, parameterCount);
-                lexicalScope.addArgumentInitializationNode(assignment);
-                parameterCount++;
-            }
-        }
-
-        final LSStatementNode methodBlock = (LSStatementNode) visit(ctx.block());
-        if (methodBlock == null) {
-            throw new NotImplementedException();
-        }
-
-        FrameDescriptor frameDescriptor = lexicalScope.getFrameDescriptor();
-        popScope();
-
-        final LSFunctionBodyNode functionBodyNode = new LSFunctionBodyNode(methodBlock);
-        final int functionStartPos = methodBlock.getSourceCharIndex();
-        final int bodyEndPos = methodBlock.getSourceEndIndex();
-        SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
-        functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
         final String name = "anonymous";
-        RootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, name);
+        LSRootNode rootNode = createRootNode(name, ctx.functionParameters(), ctx.block());
         LSExpressionNode result = new LSFunctionLiteralNode(name, Truffle.getRuntime().createCallTarget(rootNode));
         setSourceFromContext(result, ctx);
         result.addExpressionTag();
         return result;
     }
 
+    private LSRootNode createRootNode(final String functionName,
+            LazyScriptParser.FunctionParametersContext functionParametersCtx, LazyScriptParser.BlockContext blockCtx) {
+        pushScope(false);
+
+        final List<LSStatementNode> argumentInitializationNodes = new ArrayList<>();
+        argumentInitializationNodes.add(createArgumentInitialization(LSLexicalScope.THIS));
+
+        if (functionParametersCtx != null) {
+            for (IdentifierContext identifierCtx : functionParametersCtx.identifier()) {
+                argumentInitializationNodes.add(createArgumentInitialization(identifierCtx.getText()));
+            }
+        }
+
+        final LSStatementNode blockNode = createBlock(argumentInitializationNodes, blockCtx.statement());
+        setSourceFromContext(blockNode, blockCtx);
+
+        FrameDescriptor frameDescriptor = lexicalScope.getFrameDescriptor();
+        popScope();
+
+        final LSFunctionBodyNode functionBodyNode = new LSFunctionBodyNode(blockNode);
+        final int functionStartPos = blockNode.getSourceCharIndex();
+        final int bodyEndPos = blockNode.getSourceEndIndex();
+        SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
+        functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
+        return new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, functionName);
+    }
+
     @Override
     public Node visitBlock(LazyScriptParser.BlockContext ctx) {
-        List<LSStatementNode> bodyNodes = lexicalScope.getArgumentInitializationNodes();
+        LSBlockNode result = createBlock(new ArrayList<>(), ctx.statement());
+        setSourceFromContext(result, ctx);
+        return result;
+    }
 
-        for (LazyScriptParser.StatementContext statement : ctx.statement()) {
-            bodyNodes.add((LSStatementNode) visit(statement));
+    private LSBlockNode createBlock(List<LSStatementNode> initializationNodeList,
+            List<LazyScriptParser.StatementContext> statementCtxList) {
+        List<LSStatementNode> bodyNodeList = initializationNodeList;
+
+        for (LazyScriptParser.StatementContext statementCtx : statementCtxList) {
+            bodyNodeList.add((LSStatementNode) visit(statementCtx));
         }
 
-        if (containsNull(bodyNodes)) {
-            return null;
+        if (containsNull(bodyNodeList)) {
+            throw new NotImplementedException();
         }
 
-        List<LSStatementNode> flattenedNodes = new ArrayList<>(bodyNodes.size());
-        flattenBlocks(bodyNodes, flattenedNodes);
-        for (LSStatementNode statement : flattenedNodes) {
+        List<LSStatementNode> flattenedNodeList = new ArrayList<>(bodyNodeList.size());
+        flattenBlocks(bodyNodeList, flattenedNodeList);
+        for (LSStatementNode statement : flattenedNodeList) {
             if (statement.hasSource() && !isHaltInCondition(statement)) {
                 statement.addStatementTag();
             }
         }
-        LSBlockNode blockNode = new LSBlockNode(flattenedNodes.toArray(new LSStatementNode[flattenedNodes.size()]));
-        setSourceFromContext(blockNode, ctx);
-        return blockNode;
+        return new LSBlockNode(flattenedNodeList.toArray(new LSStatementNode[flattenedNodeList.size()]));
     }
 
     private static boolean isHaltInCondition(LSStatementNode statement) {
         return (statement instanceof LSIfNode) || (statement instanceof LSWhileNode);
     }
 
-    private void flattenBlocks(Iterable<? extends LSStatementNode> bodyNodes, List<LSStatementNode> flattenedNodes) {
-        for (LSStatementNode n : bodyNodes) {
+    private void flattenBlocks(Iterable<? extends LSStatementNode> bodyNodeList,
+            List<LSStatementNode> flattenedNodeList) {
+        for (LSStatementNode n : bodyNodeList) {
             if (n instanceof LSBlockNode) {
-                flattenBlocks(((LSBlockNode) n).getStatements(), flattenedNodes);
+                flattenBlocks(((LSBlockNode) n).getStatements(), flattenedNodeList);
             } else {
-                flattenedNodes.add(n);
+                flattenedNodeList.add(n);
             }
         }
     }
 
     @Override
     public Node visitStatement(LazyScriptParser.StatementContext ctx) {
+        return visitChildren(ctx);
+    }
+
+    @Override
+    public Node visitControlFlowStatement(LazyScriptParser.ControlFlowStatementContext ctx) {
         // Tricky: avoid calling visit on ctx.SEMI()
-        if (ctx.getChild(0) != null && ctx.getChild(0) != ctx.SEMI()) {
-            return visit(ctx.getChild(0));
-        }
-        throw new LSParseError(source, ctx, "Malformed statement");
+        return visit(ctx.getChild(0));
     }
 
     @Override
@@ -719,39 +687,22 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
      *         valueNode is null.
      */
     public LSExpressionNode createAssignment(LSExpressionNode nameNode, LSExpressionNode valueNode) {
-        return createAssignment(nameNode, valueNode, null);
-    }
-
-    /**
-     * Returns an {@link LSWriteLocalVariableNode} for the given parameters.
-     *
-     * @param nameNode      The name of the variable being assigned
-     * @param valueNode     The value to be assigned
-     * @param argumentIndex null or index of the argument the assignment is
-     *                      assigning
-     * @return An LSExpressionNode for the given parameters. null if nameNode or
-     *         valueNode is null.
-     */
-    public LSExpressionNode createAssignment(LSExpressionNode nameNode, LSExpressionNode valueNode,
-            Integer argumentIndex) {
         if (nameNode == null || valueNode == null) {
-            return null;
+            throw new UnsupportedOperationException("nameNode and valueNode must not be null");
         }
 
         String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
-        FrameSlot frameSlot = lexicalScope.findOrAddFrameSlot(argumentIndex, name);
-        FrameSlot existingSlot = lexicalScope.putLocal(name, frameSlot);
-        boolean newVariable = existingSlot == null;
+        boolean newVariable = !lexicalScope.hasVariable(name);
+        FrameSlot frameSlot = lexicalScope.findOrAddVariable(name);
         final LSExpressionNode result = LSWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode, newVariable);
 
-        if (nameNode.hasSource() && valueNode.hasSource()) {
-            final int start = nameNode.getSourceCharIndex();
-            final int length = valueNode.getSourceEndIndex() - start;
-            result.setSourceSection(start, length);
+        if (!nameNode.hasSource() || !valueNode.hasSource()) {
+            throw new UnsupportedOperationException("nameNode and valueNode must have source defined");
         }
-        if (argumentIndex == null) {
-            result.addExpressionTag();
-        }
+        final int start = nameNode.getSourceCharIndex();
+        final int length = valueNode.getSourceEndIndex() - start;
+        result.setSourceSection(start, length);
+        result.addExpressionTag();
 
         return result;
     }
@@ -785,6 +736,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(frameSlot);
             result = LSReadPropertyNodeGen.create(thisNode, nameNode);
         }
+        setSourceFromNode(result, nameNode);
         result.addExpressionTag();
         return result;
     }
@@ -832,7 +784,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         LSExpressionNode conditionNode = (LSExpressionNode) visit(ctx.condition);
 
         pushScope(lexicalScope.isInLoop());
-        LSStatementNode thenPartNode = (LSStatementNode) visit(ctx.then);
+        LSStatementNode thenPartNode = (LSStatementNode) visit(ctx.block(0));
         popScope();
 
         LSStatementNode elsePartNode = null;
@@ -947,6 +899,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
         final LSArrayLiteralNode result = new LSArrayLiteralNode(
                 elementNodes.toArray(new LSExpressionNode[elementNodes.size()]));
+        setSourceFromContext(result, ctx);
         result.addExpressionTag();
         return result;
     }
@@ -965,6 +918,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         final LSObjectLiteralNode result = new LSObjectLiteralNode(
                 nameNodes.toArray(new LSExpressionNode[nameNodes.size()]),
                 valueNodes.toArray(new LSExpressionNode[valueNodes.size()]));
+        setSourceFromContext(result, ctx);
         result.addExpressionTag();
         return result;
     }

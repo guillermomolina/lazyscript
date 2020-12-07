@@ -324,6 +324,9 @@ public abstract class LSScopedNode extends Node {
          */
         @ExportMessage(name = "isMemberReadable")
         static final class ExistsMember {
+            
+            ExistsMember() {
+            }
 
             /**
              * If the member is cached, provide the cached result. Call

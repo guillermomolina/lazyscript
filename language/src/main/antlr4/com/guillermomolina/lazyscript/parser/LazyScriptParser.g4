@@ -46,10 +46,15 @@ statement:
 	functionStatement
 	| whileStatement
 	| ifStatement
-	| breakStatement SEMI
-	| continueStatement SEMI
-	| expression SEMI
-	| returnStatement SEMI;
+	| controlFlowStatement;
+
+controlFlowStatement:
+	(
+		breakStatement
+		| continueStatement
+		| expression
+		| returnStatement
+	) SEMI;
 
 functionStatement:
 	FUNCTION identifier LPAREN functionParameters? RPAREN block;
@@ -62,9 +67,7 @@ breakStatement: BREAK;
 continueStatement: CONTINUE;
 
 ifStatement:
-	IF LPAREN condition = expression RPAREN then = block (
-		ELSE block
-	)?;
+	IF LPAREN condition = expression RPAREN block (ELSE block)?;
 
 returnStatement: RETURN expression?;
 
