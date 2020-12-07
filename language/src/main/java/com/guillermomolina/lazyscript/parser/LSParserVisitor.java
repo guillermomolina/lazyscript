@@ -75,6 +75,7 @@ import com.guillermomolina.lazyscript.nodes.literals.LSStringLiteralNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadArgumentNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadLocalVariableNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadLocalVariableNodeGen;
+import com.guillermomolina.lazyscript.nodes.local.LSReadRemoteVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSEqualNodeGen;
@@ -106,6 +107,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.Pair;
 
 /**
  * Helper class used by the LazyScript {@link Parser} to create nodes. The code
@@ -517,7 +519,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             LSExpressionNode functionReceiver, LSExpressionNode functionName) {
         LSExpressionNode receiver;
         if (functionReceiver == null) {
-            FrameSlot frameSlot = lexicalScope.getLocal(LSLexicalScope.THIS);
+            FrameSlot frameSlot = lexicalScope.getThisVariable();
             receiver = LSReadLocalVariableNodeGen.create(frameSlot);
         } else {
             receiver = functionReceiver;
@@ -692,7 +694,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         }
 
         String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
-        boolean newVariable = !lexicalScope.hasVariable(name);
+        boolean newVariable = !lexicalScope.hasLocalVariable(name);
         FrameSlot frameSlot = lexicalScope.findOrAddVariable(name);
         final LSExpressionNode result = LSWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode, newVariable);
 
@@ -727,12 +729,18 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         }
 
         String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
-        FrameSlot frameSlot = lexicalScope.getLocal(name);
+        Pair<Integer, FrameSlot> variable = lexicalScope.getVariable(name);
+        int scopeDepth = variable.a;
+        FrameSlot frameSlot = variable.b;
         final LSExpressionNode result;
         if (frameSlot != null) {
-            result = LSReadLocalVariableNodeGen.create(frameSlot);
+            if(scopeDepth == 0) {
+                result = LSReadLocalVariableNodeGen.create(frameSlot);
+            } else {
+                result = LSReadRemoteVariableNodeGen.create(frameSlot, scopeDepth);
+            }
         } else {
-            frameSlot = lexicalScope.getLocal(LSLexicalScope.THIS);
+            frameSlot = lexicalScope.getThisVariable();
             final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(frameSlot);
             result = LSReadPropertyNodeGen.create(thisNode, nameNode);
         }

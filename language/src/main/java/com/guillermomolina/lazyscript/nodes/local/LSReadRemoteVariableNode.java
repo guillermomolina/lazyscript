@@ -60,6 +60,7 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 public abstract class LSReadRemoteVariableNode extends LSExpressionNode {
 
     protected abstract FrameSlot getSlot();
+
     public abstract int getDepth();
 
     /**

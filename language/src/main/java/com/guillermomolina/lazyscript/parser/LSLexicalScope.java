@@ -40,8 +40,6 @@
  */
 package com.guillermomolina.lazyscript.parser;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Level;
 
 import com.guillermomolina.lazyscript.LSLanguage;
@@ -50,26 +48,26 @@ import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.frame.FrameSlotKind;
 
+import org.antlr.v4.runtime.misc.Pair;
+
 public class LSLexicalScope {
     private static final TruffleLogger LOG = TruffleLogger.getLogger(LSLanguage.ID, LSLexicalScope.class);
 
     public static final String THIS = "this";
-    public static final String SUPER = "super";
+
+    public static final int LEVEL_UNDEFINED = -1;
 
     private final LSLexicalScope outer;
-    private int parameterCount;
-    private final Map<String, FrameSlot> locals;
-    private final boolean inLoop;
     private final FrameDescriptor frameDescriptor;
+    private int parameterCount;
+    private final boolean inLoop;
 
     LSLexicalScope(LSLexicalScope outer, boolean inLoop) {
         this.outer = outer;
         this.inLoop = inLoop;
         this.parameterCount = 0;
-        this.locals = new HashMap<>();
         if (inLoop) {
             this.frameDescriptor = outer.frameDescriptor;
-            locals.putAll(outer.locals);
         } else {
             this.frameDescriptor = new FrameDescriptor();
         }
@@ -83,36 +81,51 @@ public class LSLexicalScope {
         return frameDescriptor;
     }
 
-    public boolean hasVariable(final String name) {
-        return locals.containsKey(name);
-    }
-
     public FrameSlot addParameter(final String name) {
-        if(parameterCount == 0 && !name.equals(THIS)) {
+        if (parameterCount == 0 && !name.equals(THIS)) {
             throw new UnsupportedOperationException("First parameter must always be \"this\"");
         }
-        LOG.log(Level.FINE, "Adding parameter index: " + parameterCount + " named: " + name);
-        FrameSlot frameSlot = frameDescriptor.findOrAddFrameSlot(name, parameterCount, FrameSlotKind.Illegal);
-        FrameSlot existingSlot = locals.put(name, frameSlot);
-        if(existingSlot != null) {
-            throw new UnsupportedOperationException("Parameter already defined");
+        if (hasLocalVariable(name)) {
+            throw new UnsupportedOperationException("Parameter named: " + name + " already defined");
         }
-        parameterCount++;
-        return frameSlot;
+        LOG.log(Level.FINE, "Adding parameter index: " + parameterCount + " named: " + name);
+        return frameDescriptor.addFrameSlot(name, parameterCount++, FrameSlotKind.Illegal);
+    }
+
+    private FrameSlot getLocalVariable(final String name) {
+        return frameDescriptor.findFrameSlot(name);
+    }
+
+    public FrameSlot getThisVariable() {
+        return getLocalVariable(THIS);
+    }
+
+    public boolean hasLocalVariable(final String name) {
+        return getLocalVariable(name) != null;
     }
 
     public FrameSlot findOrAddVariable(final String name) {
-        FrameSlot frameSlot = locals.get(name);
-        if(frameSlot == null) {
+        FrameSlot frameSlot = getLocalVariable(name);
+        if (frameSlot == null) {
             LOG.log(Level.FINE, "Adding local variable named: {0}", name);
-            frameSlot = frameDescriptor.findOrAddFrameSlot(name, null, FrameSlotKind.Illegal);
-            locals.put(name, frameSlot);    
+            frameSlot = frameDescriptor.addFrameSlot(name, FrameSlotKind.Illegal);
         }
         return frameSlot;
     }
 
-    public FrameSlot getLocal(final String name) {
-        return locals.get(name);
+    public Pair<Integer, FrameSlot> getVariable(String name) {
+        int depth = 0;
+        LSLexicalScope current = this;
+        FrameSlot frameSlot = current.frameDescriptor.findFrameSlot(name);
+        while (frameSlot == null) {
+            depth++;
+            current = current.outer;
+            if (current == null) {
+                return new Pair<>(LEVEL_UNDEFINED, null);
+            }
+            frameSlot = current.frameDescriptor.findFrameSlot(name);
+        }
+        return new Pair<>(depth, frameSlot);
     }
 
     public boolean isInLoop() {
