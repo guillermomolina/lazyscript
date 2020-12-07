@@ -106,8 +106,9 @@ public final class LSEvalRootNode extends RootNode {
 
         /* Conversion of arguments to types understood by LazyScript. */
         Object[] frameArguments = frame.getArguments();
-        Object[] arguments = new Object[frameArguments.length + 1];
-        arguments[0] = lookupContextReference(LSLanguage.class).get().getTopContext();
+        Object[] arguments = new Object[frameArguments.length + 2];
+        arguments[0] = frame;
+        arguments[1] = lookupContextReference(LSLanguage.class).get().getTopContext();
         for (int i = 0; i < frameArguments.length; i++) {
             arguments[i + 1] = LSContext.fromForeignValue(frameArguments[i]);
         }

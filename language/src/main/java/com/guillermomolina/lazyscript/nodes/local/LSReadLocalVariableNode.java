@@ -40,6 +40,8 @@
  */
 package com.guillermomolina.lazyscript.nodes.local;
 
+import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.interop.NodeObjectDescriptor;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
@@ -48,8 +50,6 @@ import com.oracle.truffle.api.frame.FrameUtil;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.instrumentation.StandardTags.ReadVariableTag;
 import com.oracle.truffle.api.instrumentation.Tag;
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
-import com.guillermomolina.lazyscript.nodes.interop.NodeObjectDescriptor;
 
 /**
  * Node to read a local variable from a function's {@link VirtualFrame frame}. The Truffle frame API
@@ -113,4 +113,5 @@ public abstract class LSReadLocalVariableNode extends LSExpressionNode {
     public Object getNodeObject() {
         return NodeObjectDescriptor.readVariable(getSlot().getIdentifier().toString());
     }
+
 }
