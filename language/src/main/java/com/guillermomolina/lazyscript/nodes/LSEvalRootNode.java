@@ -43,10 +43,14 @@ package com.guillermomolina.lazyscript.nodes;
 import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.LSObjectUtil;
+import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
 import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
-import com.guillermomolina.lazyscript.runtime.objects.LSNull;
+import com.guillermomolina.lazyscript.runtime.objects.LSObject;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnsupportedMessageException;
+import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.RootNode;
 
 /**
@@ -95,24 +99,26 @@ public final class LSEvalRootNode extends RootNode {
 
     @Override
     public Object execute(VirtualFrame frame) {
-        if (mainCallNode == null) {
-            /* The source code did not have a "main" function, so nothing to execute. */
-            return LSNull.INSTANCE;
-        }
-
-        final String name = "main";
         final LSContext context = lookupContextReference(LSLanguage.class).get();
-        final LSFunction mainFunction = context.createFunction(name, rootCallTarget);
-        LSObjectUtil.putProperty(context.getTopContext(), name, mainFunction);
+        LSObject lobby = context.getLobby();
 
-        /* Conversion of arguments to types understood by LazyScript. */
         Object[] frameArguments = frame.getArguments();
-        Object[] arguments = new Object[frameArguments.length + 2];
-        arguments[0] = mainFunction;
-        arguments[1] = lookupContextReference(LSLanguage.class).get().getTopContext();
+        Object[] argumentValues = new Object[frameArguments.length + 2];
+        argumentValues[1] = lobby;
         for (int i = 0; i < frameArguments.length; i++) {
-            arguments[i + 1] = LSContext.fromForeignValue(frameArguments[i]);
+            argumentValues[i + 1] = LSContext.fromForeignValue(frameArguments[i]);
         }
-        return mainCallNode.call(arguments);
+
+        try {
+            Object function = functionNode.executeGeneric(frame);
+            LSObjectUtil.putProperty(lobby, "main", function);
+            ((LSFunction)function).setEnclosingFrame(frame.materialize());
+            argumentValues[0] = function;
+            return library.execute(function, argumentValues);
+        } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
+            /* Execute was not successful. */
+            throw LSUndefinedNameException.undefinedFunction(this, "main");
+        }
+
     }
 }

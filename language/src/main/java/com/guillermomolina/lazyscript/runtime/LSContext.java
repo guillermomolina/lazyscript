@@ -130,7 +130,7 @@ public final class LSContext {
     private final LSObject decimalPrototype;
     private final LSObject truePrototype;
     private final LSObject falsePrototype;
-    private final LSObject topContext;
+    private final LSObject lobby;
 
     public LSContext(LSLanguage language, TruffleLanguage.Env env) {
         if (env != null) { // env could still be null
@@ -157,7 +157,7 @@ public final class LSContext {
         this.arrayPrototype = createObject(objectPrototype);
         this.stringPrototype = createObject(objectPrototype);
         this.functionPrototype = createObject(objectPrototype);
-        this.topContext = createObject(objectPrototype);
+        this.lobby = createObject(objectPrototype);
         installBuiltins();
     }
 
@@ -233,8 +233,8 @@ public final class LSContext {
     /**
      * Returns the top context.
      */
-    public LSObject getTopContext() {
-        return topContext;
+    public LSObject getLobby() {
+        return lobby;
     }
 
     /**
