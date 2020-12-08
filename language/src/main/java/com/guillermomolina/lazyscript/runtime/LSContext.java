@@ -249,18 +249,18 @@ public final class LSContext {
      * lists all {@link LSBuiltinNode builtin implementation classes}.
      */
     private void installBuiltins() {
-        LSObjectUtil.putProperty(topContext, "Object", objectPrototype);
-        LSObjectUtil.putProperty(topContext, "Null", nullPrototype);
-        LSObjectUtil.putProperty(topContext, "Boolean", booleanPrototype);
-        LSObjectUtil.putProperty(topContext, "True", truePrototype);
-        LSObjectUtil.putProperty(topContext, "False", falsePrototype);
-        LSObjectUtil.putProperty(topContext, "Number", numberPrototype);
-        LSObjectUtil.putProperty(topContext, "Integer", integerPrototype);
-        LSObjectUtil.putProperty(topContext, "BigInteger", bigIntegerPrototype);
-        LSObjectUtil.putProperty(topContext, "Decimal", decimalPrototype);
-        LSObjectUtil.putProperty(topContext, "String", stringPrototype);
-        LSObjectUtil.putProperty(topContext, "Array", arrayPrototype);
-        LSObjectUtil.putProperty(topContext, "Number", numberPrototype);
+        LSObjectUtil.putProperty(objectPrototype, "Object", objectPrototype);
+        LSObjectUtil.putProperty(objectPrototype, "Null", nullPrototype);
+        LSObjectUtil.putProperty(objectPrototype, "Boolean", booleanPrototype);
+        LSObjectUtil.putProperty(objectPrototype, "True", truePrototype);
+        LSObjectUtil.putProperty(objectPrototype, "False", falsePrototype);
+        LSObjectUtil.putProperty(objectPrototype, "Number", numberPrototype);
+        LSObjectUtil.putProperty(objectPrototype, "Integer", integerPrototype);
+        LSObjectUtil.putProperty(objectPrototype, "BigInteger", bigIntegerPrototype);
+        LSObjectUtil.putProperty(objectPrototype, "Decimal", decimalPrototype);
+        LSObjectUtil.putProperty(objectPrototype, "String", stringPrototype);
+        LSObjectUtil.putProperty(objectPrototype, "Array", arrayPrototype);
+        LSObjectUtil.putProperty(objectPrototype, "Number", numberPrototype);
 
         installBuiltin(LSReadlnBuiltinFactory.getInstance());
         installBuiltin(LSPrintlnBuiltinFactory.getInstance());

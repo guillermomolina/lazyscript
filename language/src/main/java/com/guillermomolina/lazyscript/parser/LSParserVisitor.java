@@ -96,7 +96,6 @@ import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.FrameDescriptor;
 import com.oracle.truffle.api.frame.FrameSlot;
 import com.oracle.truffle.api.nodes.Node;
-import com.oracle.truffle.api.nodes.RootNode;
 import com.oracle.truffle.api.source.Source;
 import com.oracle.truffle.api.source.SourceSection;
 
@@ -140,7 +139,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         this.source = source;
     }
 
-    public RootCallTarget parse() {
+    public LSStatementNode parse() {
         LazyScriptLexer lexer = new LazyScriptLexer(CharStreams.fromString(source.getCharacters().toString()));
         LazyScriptParser parser = new LazyScriptParser(new CommonTokenStream(lexer));
         lexer.removeErrorListeners();
@@ -148,8 +147,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         BailoutErrorListener listener = new BailoutErrorListener(source);
         lexer.addErrorListener(listener);
         parser.addErrorListener(listener);
-        RootNode rootNode = (RootNode) visit(parser.module());
-        return Truffle.getRuntime().createCallTarget(rootNode);
+        return (LSStatementNode) visit(parser.module());
     }
 
     /**
@@ -213,7 +211,15 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         final int bodyEndPos = blockNode.getSourceEndIndex();
         SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
         functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
-        return new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, "main");
+ 
+        final String name = "main";
+        LSRootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, name);
+        RootCallTarget mainCallTarget =  Truffle.getRuntime().createCallTarget(rootNode);
+        LSExpressionNode result = new LSFunctionLiteralNode(name, mainCallTarget);
+        setSourceFromContext(result, ctx);
+        result.addExpressionTag();
+        return result;
+
     }
 
     private LSExpressionNode createArgumentInitialization(String name) {

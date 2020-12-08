@@ -45,31 +45,32 @@ import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.LSObjectUtil;
 import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
 import com.guillermomolina.lazyscript.runtime.objects.LSNull;
-import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.frame.VirtualFrame;
-import com.oracle.truffle.api.nodes.DirectCallNode;
+import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.nodes.RootNode;
 
 /**
  * This class performs two additional tasks:
  *
  * <ul>
- * <li>Lazily registration of functions on first execution. This fulfills the semantics of
- * "evaluating" source code in LazyScript.</li>
- * <li>Conversion of arguments to types understood by LazyScript. The LazyScript source code can be evaluated from a
- * different language, i.e., the caller can be a node from a different language that uses types not
- * understood by LazyScript.</li>
+ * <li>Lazily registration of functions on first execution. This fulfills the
+ * semantics of "evaluating" source code in LazyScript.</li>
+ * <li>Conversion of arguments to types understood by LazyScript. The LazyScript
+ * source code can be evaluated from a different language, i.e., the caller can
+ * be a node from a different language that uses types not understood by
+ * LazyScript.</li>
  * </ul>
  */
 public final class LSEvalRootNode extends RootNode {
+    @Child
+    private LSExpressionNode functionNode;
+    @Child
+    private InteropLibrary library;
 
-    final RootCallTarget rootCallTarget;
-    @Child private DirectCallNode mainCallNode;
-
-    public LSEvalRootNode(LSLanguage language, RootCallTarget rootCallTarget) {
+    public LSEvalRootNode(LSLanguage language, LSExpressionNode functionNode) {
         super(language);
-        this.rootCallTarget = rootCallTarget;
-        this.mainCallNode = rootCallTarget != null ? DirectCallNode.create(rootCallTarget) : null;
+        this.functionNode = functionNode;
+        this.library = InteropLibrary.getFactory().createDispatched(3);
     }
 
     @Override
@@ -97,17 +98,17 @@ public final class LSEvalRootNode extends RootNode {
         if (mainCallNode == null) {
             /* The source code did not have a "main" function, so nothing to execute. */
             return LSNull.INSTANCE;
-        } 
-        
+        }
+
         final String name = "main";
         final LSContext context = lookupContextReference(LSLanguage.class).get();
-        final LSFunction main = context.createFunction(name, rootCallTarget);
-        LSObjectUtil.putProperty(context.getTopContext(), name, main);     
+        final LSFunction mainFunction = context.createFunction(name, rootCallTarget);
+        LSObjectUtil.putProperty(context.getTopContext(), name, mainFunction);
 
         /* Conversion of arguments to types understood by LazyScript. */
         Object[] frameArguments = frame.getArguments();
         Object[] arguments = new Object[frameArguments.length + 2];
-        arguments[0] = frame;
+        arguments[0] = mainFunction;
         arguments[1] = lookupContextReference(LSLanguage.class).get().getTopContext();
         for (int i = 0; i < frameArguments.length; i++) {
             arguments[i + 1] = LSContext.fromForeignValue(frameArguments[i]);
