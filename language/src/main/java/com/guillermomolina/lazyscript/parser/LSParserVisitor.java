@@ -169,7 +169,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         if (node == null) {
             throw new LSParseError(source, ctx, "Node is null");
         }
-        int start = ctx.stop.getStartIndex();
+        int start = ctx.start.getStartIndex();
         int stop = ctx.stop.getStopIndex();
         node.setSourceSection(start, stop - start + 1);
     }
@@ -216,7 +216,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         LSRootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, name);
         RootCallTarget mainCallTarget =  Truffle.getRuntime().createCallTarget(rootNode);
         LSExpressionNode result = new LSFunctionLiteralNode(name, mainCallTarget);
-        setSourceFromContext(result, ctx);
+        //setSourceFromContext(result, ctx);
         result.addExpressionTag();
         return result;
 
@@ -286,14 +286,18 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     @Override
     public Node visitBlock(LazyScriptParser.BlockContext ctx) {
-        LSBlockNode result = createBlock(new ArrayList<>(), ctx.statement());
+        LSBlockNode result = createBlock(null, ctx.statement());
         setSourceFromContext(result, ctx);
         return result;
     }
 
     private LSBlockNode createBlock(List<LSStatementNode> initializationNodeList,
             List<LazyScriptParser.StatementContext> statementCtxList) {
-        List<LSStatementNode> bodyNodeList = initializationNodeList;
+        List<LSStatementNode> bodyNodeList = new ArrayList<>();
+        
+        if(initializationNodeList != null) {
+            bodyNodeList.addAll(initializationNodeList);
+        }
 
         for (LazyScriptParser.StatementContext statementCtx : statementCtxList) {
             bodyNodeList.add((LSStatementNode) visit(statementCtx));
