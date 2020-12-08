@@ -35,13 +35,13 @@
         },
         {
             "type": "java",
-            "name": "Debug (Launch) Test.ls",
+            "name": "Debug (Launch) SumObject.ls",
             "request": "launch",
             "mainClass": "com.guillermomolina.lazyscript.launcher.LSMain",
             "projectName": "launcher",
             "args": [
                 "--log.ls.level=FINEST",
-                "${workspaceFolder}/language/tests/Test.ls"
+                "${workspaceFolder}/language/tests/SumObject.ls"
             ],
             "vmArgs": [
                 "-Dtruffle.class.path.append=./language/target/lazyscript.jar"
@@ -85,14 +85,14 @@
         },
         {
             "type": "java",
-            "name": "Debug (Launch and Wait) Test.ls",
+            "name": "Debug (Launch and Wait) SumObject.ls",
             "request": "launch",
             "mainClass": "com.guillermomolina.lazyscript.launcher.LSMain",
             "projectName": "launcher",
             "args": [
                 "--inspect",
                 "--log.ls.level=FINEST",
-                "${workspaceFolder}/language/tests/Test.ls"
+                "${workspaceFolder}/language/tests/SumObject.ls"
             ],
             "vmArgs": [
                 "-Dtruffle.class.path.append=./language/target/lazyscript.jar"
@@ -131,9 +131,9 @@
             ]
         },
         {
-            "name": "Debug Test.ls + Attach",
+            "name": "Debug SumObject.ls + Attach",
             "configurations": [
-                "Debug (Launch and Wait) Test.ls",
+                "Debug (Launch and Wait) SumObject.ls",
                 "GraalVM Attach"
             ]
         }

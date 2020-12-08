@@ -40,6 +40,7 @@
  */
 package com.guillermomolina.lazyscript.runtime.objects;
 
+import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -107,4 +108,15 @@ public final class LSNull extends LSObject {
     Object toDisplayString(boolean allowSideEffects) {
         return "null";
     }
+
+    @ExportMessage
+    boolean hasMetaObject() {
+        return true;
+    }
+
+    @ExportMessage
+    Object getMetaObject() {
+        return LSMetaType.NULL;
+    }
+
 }

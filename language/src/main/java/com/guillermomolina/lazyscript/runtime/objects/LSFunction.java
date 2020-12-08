@@ -43,6 +43,7 @@ package com.guillermomolina.lazyscript.runtime.objects;
 import java.util.logging.Level;
 
 import com.guillermomolina.lazyscript.LSLanguage;
+import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.oracle.truffle.api.Assumption;
 import com.oracle.truffle.api.CallTarget;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
@@ -256,6 +257,16 @@ public final class LSFunction extends LSObject {
              */
             return callNode.call(function.getCallTarget(), arguments);
         }
+    }
+
+    @ExportMessage
+    boolean hasMetaObject() {
+        return true;
+    }
+
+    @ExportMessage
+    Object getMetaObject() {
+        return LSMetaType.FUNCTION;
     }
 
 }

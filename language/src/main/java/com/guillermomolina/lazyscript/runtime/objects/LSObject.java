@@ -50,6 +50,7 @@ import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.LSObjectUtil;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.TruffleLanguage;
+import com.oracle.truffle.api.dsl.CachedLanguage;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.interop.InteropLibrary;
@@ -67,21 +68,23 @@ import com.oracle.truffle.api.utilities.TriState;
 /**
  * Represents an LazyScript object.
  *
- * This class defines operations that can be performed on LazyScript Objects. While we
- * could define all these operations as individual AST nodes, we opted to define
- * those operations by using {@link com.oracle.truffle.api.library.Library a
- * Truffle library}, or more concretely the {@link InteropLibrary}. This has
- * several advantages, but the primary one is that it allows LazyScript objects to be
- * used in the interoperability message protocol, i.e. It allows other languages
- * and tools to operate on LazyScript objects without necessarily knowing they are
+ * This class defines operations that can be performed on LazyScript Objects.
+ * While we could define all these operations as individual AST nodes, we opted
+ * to define those operations by using
+ * {@link com.oracle.truffle.api.library.Library a Truffle library}, or more
+ * concretely the {@link InteropLibrary}. This has several advantages, but the
+ * primary one is that it allows LazyScript objects to be used in the
+ * interoperability message protocol, i.e. It allows other languages and tools
+ * to operate on LazyScript objects without necessarily knowing they are
  * LazyScript objects.
  *
- * LazyScript Objects are essentially instances of {@link DynamicObject} (objects
- * whose members can be dynamically added and removed). We also annotate the
- * class with {@link ExportLibrary} with value {@link InteropLibrary
- * InteropLibrary.class}. This essentially ensures that the build system and
- * runtime know that this class specifies the interop messages (i.e. operations)
- * that LazyScript can do on {@link LSObject} instances.
+ * LazyScript Objects are essentially instances of {@link DynamicObject}
+ * (objects whose members can be dynamically added and removed). We also
+ * annotate the class with {@link ExportLibrary} with value
+ * {@link InteropLibrary InteropLibrary.class}. This essentially ensures that
+ * the build system and runtime know that this class specifies the interop
+ * messages (i.e. operations) that LazyScript can do on {@link LSObject}
+ * instances.
  *
  * @see ExportLibrary
  * @see ExportMessage
@@ -92,7 +95,7 @@ public class LSObject extends DynamicObject {
     protected static final int CACHE_LIMIT = 3;
     public static final String PROTOTYPE = "prototype";
     public static final Shape SHAPE = Shape.newBuilder().layout(LSObject.class)
-            .addConstantProperty(LSObject.PROTOTYPE, null, 0).build();;
+            .addConstantProperty(LSObject.PROTOTYPE, null, 0).build();
 
     public LSObject() {
         super(SHAPE);
@@ -168,7 +171,10 @@ public class LSObject extends DynamicObject {
 
     @ExportMessage
     static final class IsIdenticalOrUndefined {
-        
+
+        IsIdenticalOrUndefined() {
+        }
+
         @Specialization
         static TriState doLLObject(LSObject receiver, LSObject other) {
             return TriState.valueOf(receiver == other);
@@ -293,5 +299,17 @@ public class LSObject extends DynamicObject {
     @ExportMessage
     void writeMember(String name, Object value, @CachedLibrary("this") DynamicObjectLibrary objectLibrary) {
         objectLibrary.put(this, name, value);
+    }
+
+    @ExportMessage
+    public final boolean isInstantiable() {
+        // Me but not my subclasses
+        return getClass().equals(LSObject.class);
+    }
+
+    @ExportMessage
+    public final Object instantiate(Object[] args, @CachedLanguage LSLanguage language) {
+        // TODO: Redo this method
+        return language.getCurrentContext().createObject();
     }
 }

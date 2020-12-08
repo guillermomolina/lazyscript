@@ -42,6 +42,7 @@ package com.guillermomolina.lazyscript.runtime.objects;
 
 import java.util.List;
 
+import com.guillermomolina.lazyscript.runtime.interop.LSMetaType;
 import com.oracle.truffle.api.CompilerDirectives.TruffleBoundary;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.interop.InvalidArrayIndexException;
@@ -115,4 +116,15 @@ public class LSArray extends LSObject {
         }
         array[(int) index] = value;
     }
+
+    @ExportMessage
+    boolean hasMetaObject() {
+        return true;
+    }
+
+    @ExportMessage
+    Object getMetaObject() {
+        return LSMetaType.ARRAY;
+    }
+
 }
