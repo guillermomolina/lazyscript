@@ -91,14 +91,14 @@ public final class LSInvokeFunctionNode extends LSExpressionNode {
         CompilerAsserts.compilationConstant(argumentNodes.length);
 
         Object[] argumentValues = new Object[argumentNodes.length + 1];
-        argumentValues[0] = frame.materialize();
         for (int i = 0; i < argumentNodes.length; i++) {
             argumentValues[i + 1] = argumentNodes[i].executeGeneric(frame);
         }
 
-        Object function = functionNode.executeGeneric(frame);
-
         try {
+            Object function = functionNode.executeGeneric(frame);
+            ((LSFunction)function).setEnclosingFrame(frame.materialize());
+            argumentValues[0] = function;
             return library.execute(function, argumentValues);
         } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
             /* Execute was not successful. */

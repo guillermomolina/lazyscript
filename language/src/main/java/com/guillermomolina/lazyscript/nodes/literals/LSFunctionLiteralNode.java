@@ -134,7 +134,7 @@ public final class LSFunctionLiteralNode extends LSExpressionNode {
         }
         if (!isScopeSet()) {
             CompilerDirectives.transferToInterpreterAndInvalidate();
-            function.setLexicalScope(frame.materialize());
+            //function.setEnclosingFrame(frame.materialize());
             this.scopeSet = true;
         }
         return function;

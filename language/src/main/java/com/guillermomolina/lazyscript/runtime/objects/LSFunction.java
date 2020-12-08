@@ -103,11 +103,11 @@ public final class LSFunction extends LSObject {
         return callTargetStable.getAssumption();
     }
 
-    public MaterializedFrame getLexicalScope() {
+    public MaterializedFrame getEnclosingFrame() {
         return enclosingFrame;
     }
 
-    public void setLexicalScope(MaterializedFrame enclosingFrame) {
+    public void setEnclosingFrame(MaterializedFrame enclosingFrame) {
         this.enclosingFrame = enclosingFrame;
     }
 

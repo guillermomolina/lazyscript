@@ -56,8 +56,8 @@ import com.oracle.truffle.api.nodes.ExplodeLoop;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
- * The node for function invocation in LazyScript. Since LazyScript has first class
- * functions, the {@link LSFunction target function} can be computed by an
+ * The node for function invocation in LazyScript. Since LazyScript has first
+ * class functions, the {@link LSFunction target function} can be computed by an
  * arbitrary expression. This node is responsible for evaluating this
  * expression, as well as evaluating the {@link #argumentNodes arguments}. The
  * actual invocation is delegated to a {@link InteropLibrary} instance.
@@ -92,7 +92,6 @@ public final class LSInvokeMethodNode extends LSExpressionNode {
         CompilerAsserts.compilationConstant(argumentNodes.length);
 
         Object[] argumentValues = new Object[argumentNodes.length + 1];
-        argumentValues[0] = frame.materialize();
         for (int i = 0; i < argumentNodes.length; i++) {
             argumentValues[i + 1] = argumentNodes[i].executeGeneric(frame);
         }
@@ -101,6 +100,8 @@ public final class LSInvokeMethodNode extends LSExpressionNode {
 
         try {
             Object function = getContext().getFunction(argumentValues[1], methodName);
+            ((LSFunction) function).setEnclosingFrame(frame.materialize());
+            argumentValues[0] = function;
             return library.execute(function, argumentValues);
         } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException
                 | UnknownIdentifierException e) {

@@ -44,6 +44,7 @@
                 "${workspaceFolder}/language/tests/SumObject.ls"
             ],
             "vmArgs": [
+                "-ea",
                 "-Dtruffle.class.path.append=./language/target/lazyscript.jar"
             ],
             "stepFilters": {
@@ -95,6 +96,7 @@
                 "${workspaceFolder}/language/tests/SumObject.ls"
             ],
             "vmArgs": [
+                "-ea",
                 "-Dtruffle.class.path.append=./language/target/lazyscript.jar"
             ],
             "stepFilters": {

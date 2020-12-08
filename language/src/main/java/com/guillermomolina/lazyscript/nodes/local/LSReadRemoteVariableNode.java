@@ -42,6 +42,7 @@ package com.guillermomolina.lazyscript.nodes.local;
 
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.interop.NodeObjectDescriptor;
+import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
 import com.oracle.truffle.api.dsl.NodeField;
 import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.frame.Frame;
@@ -76,7 +77,8 @@ public abstract class LSReadRemoteVariableNode extends LSExpressionNode {
 
         Frame lookupFrame = frame;
         for (int i = 0; i < this.getDepth(); i++) {
-            lookupFrame = (Frame)lookupFrame.getArguments()[0];
+            LSFunction function = (LSFunction)lookupFrame.getArguments()[0];
+            lookupFrame = function.getEnclosingFrame();
         }
         return getter.get(lookupFrame, this.getSlot());
     }
