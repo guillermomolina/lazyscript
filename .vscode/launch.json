@@ -35,16 +35,15 @@
         },
         {
             "type": "java",
-            "name": "Debug (Launch) Fibonacci.ls",
+            "name": "Debug (Launch) Test.ls",
             "request": "launch",
             "mainClass": "com.guillermomolina.lazyscript.launcher.LSMain",
             "projectName": "launcher",
             "args": [
                 "--log.ls.level=FINEST",
-                "${workspaceFolder}/language/tests/Fibonacci.ls"
+                "${workspaceFolder}/language/tests/Test.ls"
             ],
             "vmArgs": [
-                "-ea",
                 "-Dtruffle.class.path.append=./language/target/lazyscript.jar"
             ],
             "stepFilters": {
@@ -86,17 +85,16 @@
         },
         {
             "type": "java",
-            "name": "Debug (Launch and Wait) Fibonacci.ls",
+            "name": "Debug (Launch and Wait) Test.ls",
             "request": "launch",
             "mainClass": "com.guillermomolina.lazyscript.launcher.LSMain",
             "projectName": "launcher",
             "args": [
                 "--inspect",
                 "--log.ls.level=FINEST",
-                "${workspaceFolder}/language/tests/Fibonacci.ls"
+                "${workspaceFolder}/language/tests/Test.ls"
             ],
             "vmArgs": [
-                "-ea",
                 "-Dtruffle.class.path.append=./language/target/lazyscript.jar"
             ],
             "stepFilters": {
@@ -133,9 +131,9 @@
             ]
         },
         {
-            "name": "Debug Fibonacci.ls + Attach",
+            "name": "Debug Test.ls + Attach",
             "configurations": [
-                "Debug (Launch and Wait) Fibonacci.ls",
+                "Debug (Launch and Wait) Test.ls",
                 "GraalVM Attach"
             ]
         }

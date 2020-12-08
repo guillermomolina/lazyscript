@@ -78,6 +78,7 @@ import com.guillermomolina.lazyscript.nodes.local.LSReadLocalVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.local.LSReadRemoteVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNodeGen;
+import com.guillermomolina.lazyscript.nodes.local.LSWriteRemoteVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSEqualNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSLessOrEqualNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSLessThanNodeGen;
@@ -694,10 +695,21 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         }
 
         String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
-        boolean newVariable = !lexicalScope.hasLocalVariable(name);
-        FrameSlot frameSlot = lexicalScope.findOrAddVariable(name);
-        final LSExpressionNode result = LSWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode, newVariable);
-
+        Pair<Integer, FrameSlot> variable = lexicalScope.getVariable(name);
+        int scopeDepth = variable.a;
+        FrameSlot frameSlot = variable.b;
+        final LSExpressionNode result;
+        boolean newVariable = false;
+        if(frameSlot == null) {
+            frameSlot = lexicalScope.addVariable(name);
+            newVariable = true;
+            scopeDepth = 0;
+        }
+        if(scopeDepth == 0) {
+            result = LSWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode, newVariable);
+        } else {
+            result = LSWriteRemoteVariableNodeGen.create(valueNode, frameSlot, nameNode, scopeDepth);
+        }
         if (!nameNode.hasSource() || !valueNode.hasSource()) {
             throw new UnsupportedOperationException("nameNode and valueNode must have source defined");
         }

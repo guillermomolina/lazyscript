@@ -113,6 +113,16 @@ public class LSLexicalScope {
         return frameSlot;
     }
 
+    public FrameSlot addVariable(final String name) {
+        FrameSlot frameSlot = getLocalVariable(name);
+        if (frameSlot != null) {
+            throw new UnsupportedOperationException("Variable named: " + name + " already defined");
+        }
+        LOG.log(Level.FINE, "Adding local variable named: {0}", name);
+        frameSlot = frameDescriptor.addFrameSlot(name, FrameSlotKind.Illegal);
+        return frameSlot;
+    }
+
     public Pair<Integer, FrameSlot> getVariable(String name) {
         int depth = 0;
         LSLexicalScope current = this;

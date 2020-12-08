@@ -76,54 +76,47 @@ public abstract class LSWriteRemoteVariableNode extends LSExpressionNode {
 
     public abstract int getDepth();
 
-    /**
-     * Functional interface to get right type out of {@link VirtualFrame}.
-     */
     public interface FrameSet<T> {
-        T set(Frame frame, FrameSlot slot, T value) throws FrameSlotTypeException;
+        void set(Frame frame, FrameSlot slot, T value);
     }
 
     @ExplodeLoop
-    public <T> T writeUpStack(FrameSet<T> setter, Frame frame, T value)
+    public <T> T writeUpStack(FrameSlotKind slotKind, FrameSet<T> setter, Frame frame, T value)
             throws FrameSlotTypeException {
 
         Frame lookupFrame = frame;
         for (int i = 0; i < this.getDepth(); i++) {
             lookupFrame = (Frame)lookupFrame.getArguments()[0];
         }
-        return setter.set(lookupFrame, this.getSlot(), value);
+
+        final FrameSlot slot = this.getSlot();
+        final FrameSlotKind kind = lookupFrame.getFrameDescriptor().getFrameSlotKind(slot);
+        if(kind != slotKind && kind != FrameSlotKind.Illegal) {
+            throw new FrameSlotTypeException();
+        }
+        
+        frame.getFrameDescriptor().setFrameSlotKind(slot, slotKind);
+
+        setter.set(lookupFrame, slot, value);
+        return value;
     }
 
     @Specialization(rewriteOn = FrameSlotTypeException.class)
     protected long writeLong(VirtualFrame virtualFrame, long value)
             throws FrameSlotTypeException {
-        return this.writeUpStack(Frame::setLong, virtualFrame, value);
+        return this.writeUpStack(FrameSlotKind.Long, Frame::setLong, virtualFrame, value);
     }
 
-    protected long writeLong2(VirtualFrame frame, long value) {
-        /* Initialize type on first write of the local variable. No-op if kind is already Long. */
-        frame.getFrameDescriptor().setFrameSlotKind(getSlot(), FrameSlotKind.Long);
-
-        frame.setLong(getSlot(), value);
-        return value;
+    @Specialization(rewriteOn = FrameSlotTypeException.class)
+    protected Double writeDouble(VirtualFrame virtualFrame, Double value)
+            throws FrameSlotTypeException {
+        return this.writeUpStack(FrameSlotKind.Double, Frame::setDouble, virtualFrame, value);
     }
 
-    @Specialization(guards = "isDoubleOrIllegal(frame)")
-    protected double writeDouble(VirtualFrame frame, double value) {
-        /* Initialize type on first write of the local variable. No-op if kind is already Double. */
-        frame.getFrameDescriptor().setFrameSlotKind(getSlot(), FrameSlotKind.Double);
-
-        frame.setDouble(getSlot(), value);
-        return value;
-    }
-
-    @Specialization(guards = "isBooleanOrIllegal(frame)")
-    protected boolean writeBoolean(VirtualFrame frame, boolean value) {
-        /* Initialize type on first write of the local variable. No-op if kind is already Boolean. */
-        frame.getFrameDescriptor().setFrameSlotKind(getSlot(), FrameSlotKind.Boolean);
-
-        frame.setBoolean(getSlot(), value);
-        return value;
+    @Specialization(rewriteOn = FrameSlotTypeException.class)
+    protected Boolean writeBoolean(VirtualFrame virtualFrame, Boolean value)
+            throws FrameSlotTypeException {
+        return this.writeUpStack(FrameSlotKind.Boolean, Frame::setBoolean, virtualFrame, value);
     }
 
     /**
