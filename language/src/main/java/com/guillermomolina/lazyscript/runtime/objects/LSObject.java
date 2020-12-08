@@ -66,7 +66,7 @@ import com.oracle.truffle.api.object.Shape;
 import com.oracle.truffle.api.utilities.TriState;
 
 /**
- * Represents an LazyScript object.
+ * Represents a LazyScript object.
  *
  * This class defines operations that can be performed on LazyScript Objects.
  * While we could define all these operations as individual AST nodes, we opted

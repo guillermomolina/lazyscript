@@ -49,8 +49,9 @@ import com.oracle.truffle.api.dsl.Specialization;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
- * Builtin function to define (or redefine) functions. The provided source code is parsed the same
- * way as the initial source of the script, so the same syntax applies.
+ * Builtin function to define (or redefine) functions. The provided source code
+ * is parsed the same way as the initial source of the script, so the same
+ * syntax applies.
  */
 @NodeInfo(shortName = "defineFunction")
 public abstract class LSDefineFunctionBuiltin extends LSBuiltinNode {

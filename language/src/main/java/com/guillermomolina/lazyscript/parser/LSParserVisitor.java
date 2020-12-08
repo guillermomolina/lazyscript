@@ -211,12 +211,12 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         final int bodyEndPos = blockNode.getSourceEndIndex();
         SourceSection functionSrc = source.createSection(functionStartPos, bodyEndPos - functionStartPos);
         functionBodyNode.setSourceSection(functionSrc.getCharIndex(), functionSrc.getCharLength());
- 
+
         final String name = "main";
         LSRootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, name);
-        RootCallTarget mainCallTarget =  Truffle.getRuntime().createCallTarget(rootNode);
+        RootCallTarget mainCallTarget = Truffle.getRuntime().createCallTarget(rootNode);
         LSExpressionNode result = new LSFunctionLiteralNode(name, mainCallTarget);
-        //setSourceFromContext(result, ctx);
+        // setSourceFromContext(result, ctx);
         result.addExpressionTag();
         return result;
 
@@ -240,9 +240,15 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         functionNode.addExpressionTag();
 
         final LSExpressionNode nameNode = (LSExpressionNode) visit(ctx.identifier());
+        // This is the code to add the function as a variable
+        LSExpressionNode result = createAssignment(nameNode, functionNode);
+        /* @formatter:off
+        // This is the code to add the function as a property 
+         
         final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(lexicalScope.getThisVariable());
-        final LSExpressionNode result = LSWritePropertyNodeGen.create(thisNode, nameNode, functionNode);
+        final LSExpressionNode result = LSWritePropertyNodeGen.create(thisNode, nameNode, functionNode); 
         setSourceFromContext(result, ctx);
+            @formatter:on */
         result.addStatementTag();
         return result;
     }
@@ -294,8 +300,8 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     private LSBlockNode createBlock(List<LSStatementNode> initializationNodeList,
             List<LazyScriptParser.StatementContext> statementCtxList) {
         List<LSStatementNode> bodyNodeList = new ArrayList<>();
-        
-        if(initializationNodeList != null) {
+
+        if (initializationNodeList != null) {
             bodyNodeList.addAll(initializationNodeList);
         }
 
@@ -712,12 +718,12 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         FrameSlot frameSlot = variable.b;
         final LSExpressionNode result;
         boolean newVariable = false;
-        if(frameSlot == null) {
+        if (frameSlot == null) {
             frameSlot = lexicalScope.addVariable(name);
             newVariable = true;
             scopeDepth = 0;
         }
-        if(scopeDepth == 0) {
+        if (scopeDepth == 0) {
             result = LSWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode, newVariable);
         } else {
             result = LSWriteRemoteVariableNodeGen.create(valueNode, frameSlot, nameNode, scopeDepth);
@@ -758,7 +764,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         FrameSlot frameSlot = variable.b;
         final LSExpressionNode result;
         if (frameSlot != null) {
-            if(scopeDepth == 0) {
+            if (scopeDepth == 0) {
                 result = LSReadLocalVariableNodeGen.create(frameSlot);
             } else {
                 result = LSReadRemoteVariableNodeGen.create(frameSlot, scopeDepth);
