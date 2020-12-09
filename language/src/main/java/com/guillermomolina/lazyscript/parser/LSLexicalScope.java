@@ -54,6 +54,7 @@ public class LSLexicalScope {
     private static final TruffleLogger LOG = TruffleLogger.getLogger(LSLanguage.ID, LSLexicalScope.class);
 
     public static final String THIS = "this";
+    public static final String PARENT_SCOPE = "parentScope";
 
     public static final int LEVEL_UNDEFINED = -1;
 
@@ -113,8 +114,8 @@ public class LSLexicalScope {
     }
 
     public FrameSlot addParameter(final String name) {
-        if (parameterCount != 0 && name.equals(THIS)) {
-            throw new UnsupportedOperationException("\"this\" must always be the first parameter");
+        if (parameterCount != 0 && (name.equals(THIS)||name.equals(PARENT_SCOPE))) {
+            throw new UnsupportedOperationException("The first parameter should be \"this\" or \"parentScope\"");
         }
         if (hasLocalVariable(name)) {
             throw new UnsupportedOperationException("Parameter named: " + name + " already defined");
@@ -129,6 +130,10 @@ public class LSLexicalScope {
         FrameSlot frameSlot = current.frameDescriptor.findFrameSlot(name);
         while (frameSlot == null) {
             depth++;
+            // For now, detecting MethodScope this way
+            if(current.hasLocalVariable(THIS)) {
+                return new Pair<>(LEVEL_UNDEFINED, null);
+            }
             current = current.outer;
             if (current == null) {
                 return new Pair<>(LEVEL_UNDEFINED, null);

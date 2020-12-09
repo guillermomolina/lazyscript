@@ -65,6 +65,7 @@ import com.guillermomolina.lazyscript.nodes.expression.LSInvokeMethodNode;
 import com.guillermomolina.lazyscript.nodes.expression.LSParenExpressionNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSArrayLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSBigIntegerLiteralNode;
+import com.guillermomolina.lazyscript.nodes.literals.LSBlockLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSBooleanLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSDecimalLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSFunctionLiteralNode;
@@ -229,49 +230,49 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitMethodDeclarationStatement(LazyScriptParser.MethodDeclarationStatementContext ctx) {
+    public Node visitFunctionDeclarationStatement(LazyScriptParser.FunctionDeclarationStatementContext ctx) {
         final String functionName = ctx.identifier().getText();
-        LSRootNode rootNode = createRootNode(true, functionName, ctx.parameterList(), ctx.block());
+        LSRootNode rootNode = createRootNode(functionName, LSLexicalScope.THIS, ctx.parameterList(),
+                ctx.block());
         LSExpressionNode functionNode = new LSFunctionLiteralNode(functionName,
                 Truffle.getRuntime().createCallTarget(rootNode));
         setSourceFromContext(functionNode, ctx);
         functionNode.addExpressionTag();
 
         final LSExpressionNode nameNode = (LSExpressionNode) visit(ctx.identifier());
-        /* 
-        @formatter:off
+
         // This is the code to add the function as a variable
         LSExpressionNode result = createWriteVariable(nameNode, functionNode);
+        /* 
+        @formatter:off
+        // This is the code to add the function as a property
+        final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(lexicalScope.getThisVariable());
+        final LSExpressionNode result = LSWritePropertyNodeGen.create(thisNode, nameNode, functionNode);
+        setSourceFromContext(result, ctx);
         @formatter:on 
         */
 
-        // This is the code to add the function as a property 
-         
-        final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(lexicalScope.getThisVariable());
-        final LSExpressionNode result = LSWritePropertyNodeGen.create(thisNode, nameNode, functionNode); 
-        setSourceFromContext(result, ctx);
         result.addStatementTag();
         return result;
     }
 
     @Override
-    public Node visitFunctionExpression(LazyScriptParser.FunctionExpressionContext ctx) {
-        final String name = "block";
-        LSRootNode rootNode = createRootNode(false, name, ctx.parameterList(), ctx.block());
-        LSExpressionNode result = new LSFunctionLiteralNode(name, Truffle.getRuntime().createCallTarget(rootNode));
+    public Node visitBlockLiteral(LazyScriptParser.BlockLiteralContext ctx) {
+        final String name = "anonymous";
+        LSRootNode rootNode = createRootNode(name, LSLexicalScope.PARENT_SCOPE, ctx.parameterList(), ctx.block());
+        LSFunctionLiteralNode functionNode = new LSFunctionLiteralNode(name, Truffle.getRuntime().createCallTarget(rootNode));
+        LSExpressionNode result = new LSBlockLiteralNode(functionNode);
         setSourceFromContext(result, ctx);
         result.addExpressionTag();
         return result;
     }
 
-    private LSRootNode createRootNode(boolean isMethod, final String functionName, LazyScriptParser.ParameterListContext parameterListCtx,
-            LazyScriptParser.BlockContext blockCtx) {
+    private LSRootNode createRootNode(final String functionName, final String parameter0Name,
+            LazyScriptParser.ParameterListContext parameterListCtx, LazyScriptParser.BlockContext blockCtx) {
         pushScope(false);
 
         final List<LSStatementNode> argumentInitializationNodes = new ArrayList<>();
-        if(isMethod) {
-            argumentInitializationNodes.add(createArgumentInitialization(LSLexicalScope.THIS));
-        }
+        argumentInitializationNodes.add(createArgumentInitialization(parameter0Name));
 
         if (parameterListCtx != null) {
             for (IdentifierContext identifierCtx : parameterListCtx.identifier()) {
@@ -497,8 +498,8 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             receiver = (LSExpressionNode) visit(ctx.arrayLiteral());
         } else if (ctx.objectLiteral() != null) {
             receiver = (LSExpressionNode) visit(ctx.objectLiteral());
-        } else if (ctx.functionExpression() != null) {
-            receiver = (LSExpressionNode) visit(ctx.functionExpression());
+        } else if (ctx.blockLiteral() != null) {
+            receiver = (LSExpressionNode) visit(ctx.blockLiteral());
         } else if (ctx.parenExpression() != null) {
             receiver = createParenExpression(ctx.parenExpression());
         } else {

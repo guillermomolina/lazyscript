@@ -74,6 +74,7 @@ import com.guillermomolina.lazyscript.nodes.local.LSReadArgumentNode;
 import com.guillermomolina.lazyscript.runtime.interop.LSGlobalScope;
 import com.guillermomolina.lazyscript.runtime.objects.LSArray;
 import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
+import com.guillermomolina.lazyscript.runtime.objects.LSBlock;
 import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
 import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 import com.guillermomolina.lazyscript.runtime.objects.LSObject;
@@ -122,6 +123,7 @@ public final class LSContext {
     private final LSObject nullPrototype;
     private final LSObject booleanPrototype;
     private final LSObject functionPrototype;
+    private final LSObject blockPrototype;
     private final LSObject stringPrototype;
     private final LSObject arrayPrototype;
     private final LSObject numberPrototype;
@@ -157,6 +159,7 @@ public final class LSContext {
         this.arrayPrototype = createObject(objectPrototype);
         this.stringPrototype = createObject(objectPrototype);
         this.functionPrototype = createObject(objectPrototype);
+        this.blockPrototype = createObject(objectPrototype);
         this.lobby = createObject(objectPrototype);
         installBuiltins();
     }
@@ -189,6 +192,15 @@ public final class LSContext {
         function.setPrototype(functionPrototype);
         allocationReporter.onReturnValue(function, 0, AllocationReporter.SIZE_UNKNOWN);
         return function;
+    }
+
+    public LSBlock createBlock(Object function) {
+        allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
+        LSBlock block = new LSBlock();
+        block.setPrototype(blockPrototype);
+        LSObjectUtil.putProperty(block, "function", function);
+        allocationReporter.onReturnValue(block, 0, AllocationReporter.SIZE_UNKNOWN);
+        return block;
     }
 
     public LSArray createArray(final Object[] data) {

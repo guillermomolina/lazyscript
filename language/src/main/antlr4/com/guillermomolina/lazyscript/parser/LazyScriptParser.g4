@@ -43,7 +43,7 @@ module: statement* EOF;
 block: LCURLY (statement)* RCURLY;
 
 statement:
-	methodDeclarationStatement
+	functionDeclarationStatement
 	| whileStatement
 	| ifStatement
 	| controlFlowStatement;
@@ -59,7 +59,7 @@ controlFlowStatement:
 
 variableDeclarationStatement: LET identifier (ASSIGN expression)?;
 
-methodDeclarationStatement:
+functionDeclarationStatement:
 	FUNCTION identifier LPAREN parameterList? RPAREN block;
 
 whileStatement:
@@ -102,7 +102,7 @@ singleExpression:
 		| numericLiteral
 		| arrayLiteral
 		| objectLiteral
-		| functionExpression
+		| blockLiteral
 		| parenExpression
 	) memberList?;
 
@@ -123,7 +123,7 @@ numericLiteral:
 
 parenExpression: LPAREN expression RPAREN;
 
-functionExpression:
+blockLiteral:
 	LPAREN parameterList? RPAREN ARROW block;
 
 parameterList: identifier ( COMMA identifier)*;
