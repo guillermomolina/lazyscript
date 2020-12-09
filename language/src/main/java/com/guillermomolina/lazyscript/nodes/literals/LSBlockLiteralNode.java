@@ -48,7 +48,7 @@ import com.oracle.truffle.api.nodes.NodeInfo;
 public final class LSBlockLiteralNode extends LSExpressionNode {
 
     @Child
-    private final LSFunctionLiteralNode functionLiteralNode;
+    private LSFunctionLiteralNode functionLiteralNode;
 
     public LSBlockLiteralNode(final LSFunctionLiteralNode functionLiteralNode) {
         this.functionLiteralNode = functionLiteralNode;

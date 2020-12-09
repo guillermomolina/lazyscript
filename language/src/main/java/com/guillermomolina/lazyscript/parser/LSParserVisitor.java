@@ -241,16 +241,17 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
         final LSExpressionNode nameNode = (LSExpressionNode) visit(ctx.identifier());
 
-        // This is the code to add the function as a variable
-        LSExpressionNode result = createWriteVariable(nameNode, functionNode);
         /* 
         @formatter:off
+        // This is the code to add the function as a variable
+        LSExpressionNode result = createWriteVariable(nameNode, functionNode);
+        @formatter:on 
+        */
+
         // This is the code to add the function as a property
         final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(lexicalScope.getThisVariable());
         final LSExpressionNode result = LSWritePropertyNodeGen.create(thisNode, nameNode, functionNode);
         setSourceFromContext(result, ctx);
-        @formatter:on 
-        */
 
         result.addStatementTag();
         return result;

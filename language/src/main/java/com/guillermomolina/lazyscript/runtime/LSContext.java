@@ -198,7 +198,7 @@ public final class LSContext {
         allocationReporter.onEnter(null, 0, AllocationReporter.SIZE_UNKNOWN);
         LSBlock block = new LSBlock();
         block.setPrototype(blockPrototype);
-        LSObjectUtil.putProperty(block, "function", function);
+        LSObjectUtil.putProperty(block, "invoke", function);
         allocationReporter.onReturnValue(block, 0, AllocationReporter.SIZE_UNKNOWN);
         return block;
     }
