@@ -5,6 +5,7 @@ CONTINUE: 'continue';
 ELSE: 'else';
 FUNCTION: 'function';
 IF: 'if';
+LET: 'let';
 RETURN: 'return';
 WHILE: 'while';
 

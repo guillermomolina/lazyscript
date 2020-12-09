@@ -81,17 +81,6 @@ public class LSLexicalScope {
         return frameDescriptor;
     }
 
-    public FrameSlot addParameter(final String name) {
-        if (parameterCount == 0 && !name.equals(THIS)) {
-            throw new UnsupportedOperationException("First parameter must always be \"this\"");
-        }
-        if (hasLocalVariable(name)) {
-            throw new UnsupportedOperationException("Parameter named: " + name + " already defined");
-        }
-        LOG.log(Level.FINE, "Adding parameter index: " + parameterCount + " named: " + name);
-        return frameDescriptor.addFrameSlot(name, parameterCount++, FrameSlotKind.Illegal);
-    }
-
     private FrameSlot getLocalVariable(final String name) {
         return frameDescriptor.findFrameSlot(name);
     }
@@ -121,6 +110,17 @@ public class LSLexicalScope {
         LOG.log(Level.FINE, "Adding local variable named: {0}", name);
         frameSlot = frameDescriptor.addFrameSlot(name, FrameSlotKind.Illegal);
         return frameSlot;
+    }
+
+    public FrameSlot addParameter(final String name) {
+        if (parameterCount != 0 && name.equals(THIS)) {
+            throw new UnsupportedOperationException("\"this\" must always be the first parameter");
+        }
+        if (hasLocalVariable(name)) {
+            throw new UnsupportedOperationException("Parameter named: " + name + " already defined");
+        }
+        LOG.log(Level.FINE, "Adding parameter index: " + parameterCount + " named: " + name);
+        return frameDescriptor.addFrameSlot(name, parameterCount++, FrameSlotKind.Illegal);
     }
 
     public Pair<Integer, FrameSlot> getVariable(String name) {

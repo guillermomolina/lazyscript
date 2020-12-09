@@ -90,14 +90,13 @@ public final class LSInvokeFunctionNode extends LSExpressionNode {
          */
         CompilerAsserts.compilationConstant(argumentNodes.length);
 
-        Object[] argumentValues = new Object[argumentNodes.length + 1];
+        Object[] argumentValues = new Object[argumentNodes.length];
         for (int i = 0; i < argumentNodes.length; i++) {
-            argumentValues[i + 1] = argumentNodes[i].executeGeneric(frame);
+            argumentValues[i] = argumentNodes[i].executeGeneric(frame);
         }
 
         Object function = functionNode.executeGeneric(frame);
         ((LSFunction) function).setEnclosingFrame(frame.materialize());
-        argumentValues[0] = function;
 
         try {
             return library.execute(function, argumentValues);

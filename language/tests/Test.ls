@@ -4,11 +4,12 @@ x.println();
 
 function f1(a) {
     println();
-    function f2(a) {
-        x = x + a;
+    function f2(b) {
+        println();
+        x = x + b;
     }
     f2(a);
 }
 
-f1(2);
+f1(10);
 x.println();
