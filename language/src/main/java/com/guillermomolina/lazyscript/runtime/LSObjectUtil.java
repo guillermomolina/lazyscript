@@ -1,5 +1,6 @@
 package com.guillermomolina.lazyscript.runtime;
 
+import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
 import com.guillermomolina.lazyscript.runtime.objects.LSObject;
 import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.object.DynamicObject;
@@ -9,9 +10,9 @@ public final class LSObjectUtil {
     private LSObjectUtil() {
     }
 
-    public static Object getFunction(LSObject object, String name) throws UnknownIdentifierException {
+    public static LSFunction getFunction(LSObject object, String name) throws UnknownIdentifierException {
         DynamicObjectLibrary objectLibrary = DynamicObjectLibrary.getUncached();
-        return object.getFunction(name, objectLibrary);
+        return (LSFunction)object.getFunction(name, objectLibrary);
     }
 
     public static void putProperty(DynamicObject obj, Object key, Object value) {

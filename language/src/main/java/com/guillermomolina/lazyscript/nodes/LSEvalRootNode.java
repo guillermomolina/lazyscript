@@ -103,17 +103,17 @@ public final class LSEvalRootNode extends RootNode {
         LSObject lobby = context.getLobby();
 
         Object[] frameArguments = frame.getArguments();
-        Object[] argumentValues = new Object[frameArguments.length + 2];
-        argumentValues[1] = lobby;
+        Object[] argumentValues = new Object[frameArguments.length + 1];
+        argumentValues[0] = lobby;
         for (int i = 0; i < frameArguments.length; i++) {
             argumentValues[i + 1] = LSContext.fromForeignValue(frameArguments[i]);
         }
 
+        LSFunction function = (LSFunction)functionNode.executeGeneric(frame);
+        LSObjectUtil.putProperty(lobby, "main", function);
+        function.setEnclosingFrame(frame.materialize());
+
         try {
-            Object function = functionNode.executeGeneric(frame);
-            LSObjectUtil.putProperty(lobby, "main", function);
-            ((LSFunction)function).setEnclosingFrame(frame.materialize());
-            argumentValues[0] = function;
             return library.execute(function, argumentValues);
         } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
             /* Execute was not successful. */

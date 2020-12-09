@@ -41,6 +41,7 @@
 package com.guillermomolina.lazyscript.nodes;
 
 import com.guillermomolina.lazyscript.LSLanguage;
+import com.guillermomolina.lazyscript.NotImplementedException;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSBlockNode;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 import com.guillermomolina.lazyscript.runtime.LSContext;
@@ -143,11 +144,11 @@ public abstract class LSScopedNode extends Node {
     @ExportMessage
     @TruffleBoundary
     final boolean hasRootInstance(Frame frame, @CachedContext(LSLanguage.class) ContextReference<LSContext> contextRef) {
-        String functionName = getRootNode().getName();
+        throw new NotImplementedException();
+        /*String functionName = getRootNode().getName();
         LSContext context = contextRef.get();
         // The instance of the current RootNode is a function of the same name.
-        return false;
-        //return context.getFunctionRegistry().getFunction(functionName) != null;
+        return context.getFunctionRegistry().getFunction(functionName) != null;*/
     }
 
     /**
@@ -157,15 +158,16 @@ public abstract class LSScopedNode extends Node {
     @ExportMessage
     @TruffleBoundary
     final Object getRootInstance(Frame frame, @CachedContext(LSLanguage.class) ContextReference<LSContext> contextRef) throws UnsupportedMessageException {
-        String functionName = getRootNode().getName();
+        throw new NotImplementedException();
+        /*String functionName = getRootNode().getName();
         LSContext context = contextRef.get();
         // The instance of the current RootNode is a function of the same name.
-        Object function = null;/* = context.getTopContext().getFunction(functionName)*/;
+        Object function = context.getTopContext().getFunction(functionName);
         if (function != null) {
             return function;
         } else {
             throw UnsupportedMessageException.create();
-        }
+        }*/
     }
 
     /**

@@ -78,6 +78,7 @@ public abstract class LSReadRemoteVariableNode extends LSExpressionNode {
         Frame lookupFrame = frame;
         for (int i = 0; i < this.getDepth(); i++) {
             LSFunction function = (LSFunction)lookupFrame.getArguments()[0];
+            assert function instanceof LSFunction;
             lookupFrame = function.getEnclosingFrame();
         }
         return getter.get(lookupFrame, this.getSlot());

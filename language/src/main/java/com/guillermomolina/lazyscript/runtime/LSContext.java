@@ -352,7 +352,7 @@ public final class LSContext {
         }
     }
 
-    public Object getFunction(Object obj, String name) throws UnknownIdentifierException {
+    public LSFunction getFunction(Object obj, String name) throws UnknownIdentifierException {
         LSObject object;
         if(obj instanceof LSObject) {
             object = (LSObject)obj;

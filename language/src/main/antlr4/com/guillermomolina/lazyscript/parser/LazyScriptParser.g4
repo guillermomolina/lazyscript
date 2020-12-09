@@ -57,7 +57,7 @@ controlFlowStatement:
 	) SEMI;
 
 functionStatement:
-	FUNCTION identifier LPAREN functionParameters? RPAREN block;
+	FUNCTION identifier LPAREN parameterList? RPAREN block;
 
 whileStatement:
 	WHILE LPAREN condition = expression RPAREN block;
@@ -88,7 +88,7 @@ term: factor ( factorOperator factor)*;
 
 factorOperator: MUL | DIV;
 
-factor: singleExpression | assignment;
+factor: singleExpression | assignment | call;
 
 singleExpression:
 	(
@@ -101,7 +101,7 @@ singleExpression:
 		| objectLiteral
 		| parenExpression
 		| functionExpression
-	) member?;
+	) memberList?;
 
 identifier: IDENTIFIER;
 
@@ -121,22 +121,17 @@ numericLiteral:
 parenExpression: LPAREN expression RPAREN;
 
 functionExpression:
-	LPAREN functionParameters? RPAREN ARROW block;
+	LPAREN parameterList? RPAREN ARROW block;
 
-functionParameters: identifier ( COMMA identifier)*;
+parameterList: identifier ( COMMA identifier)*;
 
-member:
-	(
-		LPAREN parameterList? RPAREN
-		| DOT identifier
-		| LBRACK expression RBRACK
-	) member?;
+memberList: ( DOT identifier | LBRACK expression RBRACK) memberList?;
 
-assignment: (identifier | singleExpression assignableMember) ASSIGN expression;
+call: (identifier | singleExpression memberList) LPAREN argumentList? RPAREN;
 
-assignableMember: DOT identifier | LBRACK expression RBRACK;
+assignment: (identifier | singleExpression memberList) ASSIGN expression;
 
-parameterList: expression (COMMA expression)*;
+argumentList: expression (COMMA expression)*;
 
 arrayLiteral: (LBRACK elementList RBRACK);
 

@@ -76,7 +76,6 @@ import com.guillermomolina.lazyscript.nodes.local.LSReadArgumentNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadLocalVariableNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadLocalVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.local.LSReadRemoteVariableNodeGen;
-import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteRemoteVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSEqualNodeGen;
@@ -216,7 +215,6 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         LSRootNode rootNode = new LSRootNode(language, frameDescriptor, functionBodyNode, functionSrc, name);
         RootCallTarget mainCallTarget = Truffle.getRuntime().createCallTarget(rootNode);
         LSExpressionNode result = new LSFunctionLiteralNode(name, mainCallTarget);
-        // setSourceFromContext(result, ctx);
         result.addExpressionTag();
         return result;
 
@@ -233,7 +231,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     @Override
     public Node visitFunctionStatement(LazyScriptParser.FunctionStatementContext ctx) {
         final String functionName = ctx.identifier().getText();
-        LSRootNode rootNode = createRootNode(functionName, ctx.functionParameters(), ctx.block());
+        LSRootNode rootNode = createRootNode(functionName, ctx.argumentList(), ctx.block());
         LSExpressionNode functionNode = new LSFunctionLiteralNode(functionName,
                 Truffle.getRuntime().createCallTarget(rootNode));
         setSourceFromContext(functionNode, ctx);
@@ -241,7 +239,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
         final LSExpressionNode nameNode = (LSExpressionNode) visit(ctx.identifier());
         // This is the code to add the function as a variable
-        LSExpressionNode result = createAssignment(nameNode, functionNode);
+        LSExpressionNode result = createWriteVariable(nameNode, functionNode);
         /* @formatter:off
         // This is the code to add the function as a property 
          
@@ -256,7 +254,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     @Override
     public Node visitFunctionExpression(LazyScriptParser.FunctionExpressionContext ctx) {
         final String name = "anonymous";
-        LSRootNode rootNode = createRootNode(name, ctx.functionParameters(), ctx.block());
+        LSRootNode rootNode = createRootNode(name, ctx.argumentList(), ctx.block());
         LSExpressionNode result = new LSFunctionLiteralNode(name, Truffle.getRuntime().createCallTarget(rootNode));
         setSourceFromContext(result, ctx);
         result.addExpressionTag();
@@ -264,14 +262,14 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     }
 
     private LSRootNode createRootNode(final String functionName,
-            LazyScriptParser.FunctionParametersContext functionParametersCtx, LazyScriptParser.BlockContext blockCtx) {
+            LazyScriptParser.ParameterListContext parameterListCtx, LazyScriptParser.BlockContext blockCtx) {
         pushScope(false);
 
         final List<LSStatementNode> argumentInitializationNodes = new ArrayList<>();
         argumentInitializationNodes.add(createArgumentInitialization(LSLexicalScope.THIS));
 
-        if (functionParametersCtx != null) {
-            for (IdentifierContext identifierCtx : functionParametersCtx.identifier()) {
+        if (parameterListCtx != null) {
+            for (IdentifierContext identifierCtx : parameterListCtx.identifier()) {
                 argumentInitializationNodes.add(createArgumentInitialization(identifierCtx.getText()));
             }
         }
@@ -479,7 +477,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         LSExpressionNode assignmentName = null;
         if (ctx.identifier() != null) {
             assignmentName = (LSExpressionNode) visit(ctx.identifier());
-            if (ctx.member() == null) {
+            if (ctx.memberList() == null) {
                 return createRead(assignmentName);
             }
         } else if (ctx.nullLiteral() != null) {
@@ -501,17 +499,14 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         } else {
             throw new LSParseError(source, ctx, "Invalid expression: " + ctx.getText());
         }
-        if (ctx.member() == null) {
+        if (ctx.memberList() == null) {
             return receiver;
         }
-        return createMember(ctx.member(), receiver, null, assignmentName);
+        return createMember(ctx.memberList(), receiver, null, assignmentName);
     }
 
-    public LSExpressionNode createMember(LazyScriptParser.MemberContext ctx, LSExpressionNode receiver,
+    public LSExpressionNode createMember(LazyScriptParser.MemberListContext ctx, LSExpressionNode receiver,
             LSExpressionNode assignmentReceiver, LSExpressionNode assignmentName) {
-        if (ctx.LPAREN() != null) {
-            return createCallMember(ctx, receiver, assignmentReceiver, assignmentName);
-        }
         if (ctx.DOT() != null) {
             return createDotMember(ctx, receiver, assignmentName);
         }
@@ -534,62 +529,98 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         return result;
     }
 
-    public LSExpressionNode createCallMember(LazyScriptParser.MemberContext ctx, LSExpressionNode r,
-            LSExpressionNode functionReceiver, LSExpressionNode functionName) {
-        LSExpressionNode receiver;
-        if (functionReceiver == null) {
-            FrameSlot frameSlot = lexicalScope.getThisVariable();
-            receiver = LSReadLocalVariableNodeGen.create(frameSlot);
-        } else {
-            receiver = functionReceiver;
+    @Override
+    public Node visitCall(LazyScriptParser.CallContext ctx) {
+        if (ctx.identifier() != null) {
+            LSExpressionNode functionNameNode = (LSExpressionNode) visit(ctx.identifier());
+            return createCall(ctx, null, functionNameNode);
         }
-        List<LSExpressionNode> parameters = new ArrayList<>();
-        parameters.add(receiver);
-        if (ctx.parameterList() != null) {
-            for (LazyScriptParser.ExpressionContext expression : ctx.parameterList().expression()) {
-                parameters.add((LSExpressionNode) visit(expression));
+        if (ctx.singleExpression() != null) {
+            LSExpressionNode receiverNode = (LSExpressionNode) visit(ctx.singleExpression());
+            if (ctx.memberList().identifier() != null) {
+                LSExpressionNode functionNameNode = (LSExpressionNode) visit(ctx.memberList().identifier());
+                return createCall(ctx, receiverNode, functionNameNode);
+            } // ctx.assignableMember().expression() != null
+            LSExpressionNode functionNameNode = (LSExpressionNode) visit(ctx.memberList().expression());
+            return createCall(ctx, receiverNode, functionNameNode);
+        }
+        throw new LSParseError(source, ctx, "Invalid assignment: " + ctx.getText());
+    }
+
+    public LSExpressionNode createCall(LazyScriptParser.CallContext ctx,
+            LSExpressionNode receiverNode, LSExpressionNode functionNameNode) {
+        if (functionNameNode == null) {
+            throw new LSParseError(source, ctx, "invalid function target");
+        }
+        List<LSExpressionNode> argumentNodeList = new ArrayList<>();
+        if (ctx.argumentList() != null) {
+            for (LazyScriptParser.ExpressionContext expression : ctx.argumentList().expression()) {
+                argumentNodeList.add((LSExpressionNode) visit(expression));
             }
         }
         LSExpressionNode result;
-        if (r == null) {
-            LSExpressionNode functionNode = createRead(functionName);
-            result = createCallFunction(ctx, functionNode, parameters);
+        if (receiverNode == null) {
+            result = createCallVariable(functionNameNode, argumentNodeList);
         } else {
-            // LSExpressionNode functionNode = createReadProperty(ctx, r, functionName);
-            // result = createCallFunction(ctx, r, parameters);
-            result = createCallMethod(ctx, functionName, parameters);
+            argumentNodeList.add(0, receiverNode);
+            result = new LSInvokeMethodNode(functionNameNode,
+            argumentNodeList.toArray(new LSExpressionNode[argumentNodeList.size()]));
         }
-        if (ctx.member() != null) {
-            return createMember(ctx.member(), result, receiver, null);
-        }
-        return result;
-    }
-
-    /**
-     * Returns an {@link LSInvokeMethodNode} for the given parameters.
-     *
-     * @param functionName   The function being called
-     * @param parameterNodes The parameters of the function call
-     * @return An LSInvokeMethodNode for the given parameters. null if functionNode
-     *         or any of the parameterNodes are null.
-     */
-    public LSExpressionNode createCallMethod(LazyScriptParser.MemberContext ctx, LSExpressionNode functionNameNode,
-            List<LSExpressionNode> parameterNodes) {
-        if (functionNameNode == null || containsNull(parameterNodes)) {
-            throw new LSParseError(source, ctx, "One of functionNameNode or parametersNode is null");
-        }
-
-        final LSExpressionNode result = new LSInvokeMethodNode(functionNameNode,
-                parameterNodes.toArray(new LSExpressionNode[parameterNodes.size()]));
-
-        setSourceFromContext(result, ctx);
         result.addExpressionTag();
+        setSourceFromContext(result, ctx);
         return result;
     }
 
-    public LSExpressionNode createCallFunction(LazyScriptParser.MemberContext ctx, LSExpressionNode functionNode,
+
+    public LSExpressionNode createCallVariable(LSExpressionNode nameNode, List<LSExpressionNode> argumentNodeList) {
+        if (nameNode == null || argumentNodeList == null) {
+            throw new UnsupportedOperationException("nameNode and valueNode must not be null");
+        }
+
+        String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
+        Pair<Integer, FrameSlot> variable = lexicalScope.getVariable(name);
+        int scopeDepth = variable.a;
+        FrameSlot frameSlot = variable.b;
+        final LSExpressionNode result;
+        if (frameSlot == null) {
+            argumentNodeList.add(0, receiverNode);
+            result = new LSInvokeMethodNode(functionNameNode,
+            argumentNodeList.toArray(new LSExpressionNode[argumentNodeList.size()]));
+        } else {
+            argumentNodeList.add(0, )
+            if (scopeDepth == 0) {
+                result = LSWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode, newVariable);
+            } else {
+                result = LSWriteRemoteVariableNodeGen.create(valueNode, frameSlot, nameNode, scopeDepth);
+            }    
+        }
+        if (!nameNode.hasSource() || !valueNode.hasSource()) {
+            throw new UnsupportedOperationException("nameNode and valueNode must have source defined");
+        }
+        final int start = nameNode.getSourceCharIndex();
+        final int length = valueNode.getSourceEndIndex() - start;
+        result.setSourceSection(start, length);
+        result.addExpressionTag();
+
+        return result;
+    }
+
+    public LSExpressionNode createCallFunction(LazyScriptParser.MemberListContext ctx, LSExpressionNode functionNode,
             List<LSExpressionNode> parameterNodes) {
-        if (functionNode == null || containsNull(parameterNodes)) {
+                if (receiverNode == null || nameNode == null || valueNode == null) {
+                    throw new LSParseError(source, ctx, "One of receiverNode, nameNode or valueNode is null");
+                }
+        
+                final LSExpressionNode result = LSWritePropertyNodeGen.create(receiverNode, nameNode, valueNode);
+        
+                setSourceFromContext(result, ctx);
+                result.addExpressionTag();
+        
+                return result;
+
+                if (functionNameNode == null || containsNull(parameterNodes)) {
+ 
+                    if (functionNode == null || containsNull(parameterNodes)) {
             throw new LSParseError(source, ctx, "One of functionNode or parametersNode is null");
         }
 
@@ -601,24 +632,24 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         return result;
     }
 
-    public LSExpressionNode createDotMember(LazyScriptParser.MemberContext ctx, LSExpressionNode r,
+    public LSExpressionNode createDotMember(LazyScriptParser.MemberListContext ctx, LSExpressionNode r,
             LSExpressionNode assignmentName) {
         LSExpressionNode receiver = r == null ? createRead(assignmentName) : r;
         LSExpressionNode nestedAssignmentName = (LSExpressionNode) visit(ctx.identifier());
         LSExpressionNode result = createReadProperty(ctx, receiver, nestedAssignmentName);
-        if (ctx.member() != null) {
-            return createMember(ctx.member(), result, receiver, nestedAssignmentName);
+        if (ctx.memberList() != null) {
+            return createMember(ctx.memberList(), result, receiver, nestedAssignmentName);
         }
         return result;
     }
 
-    public LSExpressionNode createArrayMember(LazyScriptParser.MemberContext ctx, LSExpressionNode r,
+    public LSExpressionNode createArrayMember(LazyScriptParser.MemberListContext ctx, LSExpressionNode r,
             LSExpressionNode assignmentName) {
         LSExpressionNode receiver = r == null ? createRead(assignmentName) : r;
         LSExpressionNode nestedAssignmentName = (LSExpressionNode) visit(ctx.expression());
         LSExpressionNode result = createReadProperty(ctx, receiver, nestedAssignmentName);
-        if (ctx.member() != null) {
-            return createMember(ctx.member(), result, receiver, nestedAssignmentName);
+        if (ctx.memberList() != null) {
+            return createMember(ctx.memberList(), result, receiver, nestedAssignmentName);
         }
         return result;
     }
@@ -631,7 +662,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
      * @return An LSExpressionNode for the given parameters. null if receiverNode or
      *         nameNode is null.
      */
-    public LSExpressionNode createReadProperty(LazyScriptParser.MemberContext ctx, LSExpressionNode receiverNode,
+    public LSExpressionNode createReadProperty(LazyScriptParser.MemberListContext ctx, LSExpressionNode receiverNode,
             LSExpressionNode nameNode) {
         if (receiverNode == null || nameNode == null) {
             throw new LSParseError(source, ctx, "One of receiverNode or nameNode is null");
@@ -648,66 +679,36 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     public Node visitAssignment(LazyScriptParser.AssignmentContext ctx) {
         if (ctx.identifier() != null) {
             LSExpressionNode assignmentName = (LSExpressionNode) visit(ctx.identifier());
-            return createAssignmentMember(ctx, null, assignmentName);
+            return createAssignment(ctx, null, assignmentName);
         }
         if (ctx.singleExpression() != null) {
             LSExpressionNode receiver = (LSExpressionNode) visit(ctx.singleExpression());
-            if (ctx.assignableMember().identifier() != null) {
-                LSExpressionNode assignmentName = (LSExpressionNode) visit(ctx.assignableMember().identifier());
-                return createAssignmentMember(ctx, receiver, assignmentName);
+            if (ctx.memberList().identifier() != null) {
+                LSExpressionNode assignmentName = (LSExpressionNode) visit(ctx.memberList().identifier());
+                return createAssignment(ctx, receiver, assignmentName);
             } // ctx.assignableMember().expression() != null
-            LSExpressionNode assignmentName = (LSExpressionNode) visit(ctx.assignableMember().expression());
-            return createAssignmentMember(ctx, receiver, assignmentName);
+            LSExpressionNode assignmentName = (LSExpressionNode) visit(ctx.memberList().expression());
+            return createAssignment(ctx, receiver, assignmentName);
         }
         throw new LSParseError(source, ctx, "Invalid assignment: " + ctx.getText());
     }
 
-    public LSExpressionNode createAssignmentMember(LazyScriptParser.AssignmentContext ctx,
+    public LSExpressionNode createAssignment(LazyScriptParser.AssignmentContext ctx,
             LSExpressionNode assignmentReceiver, LSExpressionNode assignmentName) {
         if (assignmentName == null) {
             throw new LSParseError(source, ctx.expression(), "invalid assignment target");
         }
         LSExpressionNode result = (LSExpressionNode) visit(ctx.expression());
         if (assignmentReceiver == null) {
-            result = createAssignment(assignmentName, result);
+            result = createWriteVariable(assignmentName, result);
         } else {
             result = createWriteProperty(ctx, assignmentReceiver, assignmentName, result);
         }
         return result;
     }
 
-    /**
-     * Returns an {@link LSWritePropertyNode} for the given parameters.
-     *
-     * @param receiverNode The receiver object of the property assignment
-     * @param nameNode     The name of the property being assigned
-     * @param valueNode    The value to be assigned
-     * @return An LSExpressionNode for the given parameters. null if receiverNode,
-     *         nameNode or valueNode is null.
-     */
-    public LSExpressionNode createWriteProperty(LazyScriptParser.AssignmentContext ctx, LSExpressionNode receiverNode,
-            LSExpressionNode nameNode, LSExpressionNode valueNode) {
-        if (receiverNode == null || nameNode == null || valueNode == null) {
-            throw new LSParseError(source, ctx, "One of receiverNode, nameNode or valueNode is null");
-        }
 
-        final LSExpressionNode result = LSWritePropertyNodeGen.create(receiverNode, nameNode, valueNode);
-
-        setSourceFromContext(result, ctx);
-        result.addExpressionTag();
-
-        return result;
-    }
-
-    /**
-     * Returns an {@link LSWriteLocalVariableNode} for the given parameters.
-     *
-     * @param nameNode  The name of the variable being assigned
-     * @param valueNode The value to be assigned
-     * @return An LSExpressionNode for the given parameters. null if nameNode or
-     *         valueNode is null.
-     */
-    public LSExpressionNode createAssignment(LSExpressionNode nameNode, LSExpressionNode valueNode) {
+    public LSExpressionNode createWriteVariable(LSExpressionNode nameNode, LSExpressionNode valueNode) {
         if (nameNode == null || valueNode == null) {
             throw new UnsupportedOperationException("nameNode and valueNode must not be null");
         }
@@ -738,6 +739,30 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
         return result;
     }
+
+    /**
+     * Returns an {@link LSWritePropertyNode} for the given parameters.
+     *
+     * @param receiverNode The receiver object of the property assignment
+     * @param nameNode     The name of the property being assigned
+     * @param valueNode    The value to be assigned
+     * @return An LSExpressionNode for the given parameters. null if receiverNode,
+     *         nameNode or valueNode is null.
+     */
+    public LSExpressionNode createWriteProperty(LazyScriptParser.AssignmentContext ctx, LSExpressionNode receiverNode,
+            LSExpressionNode nameNode, LSExpressionNode valueNode) {
+        if (receiverNode == null || nameNode == null || valueNode == null) {
+            throw new LSParseError(source, ctx, "One of receiverNode, nameNode or valueNode is null");
+        }
+
+        final LSExpressionNode result = LSWritePropertyNodeGen.create(receiverNode, nameNode, valueNode);
+
+        setSourceFromContext(result, ctx);
+        result.addExpressionTag();
+
+        return result;
+    }
+
 
     /**
      * Returns a {@link LSReadLocalVariableNode} if this read is a local variable or

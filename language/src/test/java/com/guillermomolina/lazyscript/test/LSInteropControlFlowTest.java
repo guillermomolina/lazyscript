@@ -63,16 +63,16 @@ public class LSInteropControlFlowTest {
 
     @Test
     public void testWhile() {
-        final Source src = Source.newBuilder("ls", "function testWhile(a) {while(a) {break;}} function main() {return testWhile;}", "testWhile.ls").buildLiteral();
+        final Source src = Source.newBuilder("ls", "function testWhile(a) {while(a) {break;}} return testWhile;", "testWhile.ls").buildLiteral();
         final Value fnc = context.eval(src);
         Assert.assertTrue(fnc.canExecute());
-        fnc.execute(false);
+        fnc.execute(fnc, false);
     }
 
     @Test
     public void testIf() {
-        final Source src = Source.newBuilder("ls", "function testIf(a) {if(a) {return 1;} else {return 0;}} function main() {return testIf;}", "testIf.ls").buildLiteral();
+        final Source src = Source.newBuilder("ls", "function testIf(a) {if(a) {return 1;} else {return 0;}} return testIf;", "testIf.ls").buildLiteral();
         final Value fnc = context.eval(src);
-        fnc.execute(false);
+        fnc.execute(fnc, false);
     }
 }

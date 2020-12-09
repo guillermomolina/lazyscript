@@ -65,8 +65,7 @@ public class LSReadArgumentNode extends LSExpressionNode {
     private final BranchProfile outOfBoundsTaken = BranchProfile.create();
 
     public LSReadArgumentNode(int index) {
-        /* First argument in frame is the outer frame, it is hidden from us that is the + 1 */
-        this.index = index + 1;
+        this.index = index;
     }
 
     @Override
