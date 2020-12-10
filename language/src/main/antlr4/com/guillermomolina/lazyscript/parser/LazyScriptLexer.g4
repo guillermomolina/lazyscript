@@ -1,17 +1,7 @@
 lexer grammar LazyScriptLexer;
 
-BREAK: 'break';
-CONTINUE: 'continue';
-ELSE: 'else';
-FUNCTION: 'function';
-IF: 'if';
-LET: 'let';
-RETURN: 'return';
-WHILE: 'while';
-
-NULL: 'null';
-TRUE: 'true';
-FALSE: 'false';
+COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
+LINE_COMMENT: '//' ~[\r\n\u2028\u2029]* -> channel(HIDDEN);
 
 LPAREN: '(';
 RPAREN: ')';
@@ -43,14 +33,9 @@ ASSIGN: '=';
 
 ARROW: '=>';
 
-WS: [ \t\r\n\u000C]+ -> skip;
-COMMENT: '/*' .*? '*/' -> skip;
-LINE_COMMENT: '//' ~[\r\n\u2028\u2029]* -> skip;
-
-IDENTIFIER: LETTER (LETTER | DIGIT)*;
-STRING_LITERAL: '"' STRING_CHAR* '"';
-
-/// Numeric _LITERALs
+NULL: 'null';
+TRUE: 'true';
+FALSE: 'false';
 
 DECIMAL_INTEGER_LITERAL: '0' | [1-9] [0-9_]*;
 HEX_INTEGER_LITERAL: '0' [xX] [0-9a-fA-F] [_0-9a-fA-F]*;
@@ -58,6 +43,20 @@ OCTAL_INTEGER_LITERAL: '0' [oO] [0-7] [_0-7]*;
 BINARY_INTEGER_LITERAL: '0' [bB] [01] [_01]*;
 DECIMAL_LITERAL:
 	('0' | [1-9] [0-9_]*) '.' [0-9] [0-9_]* ([eE] [+-]? [0-9_]+)?;
+
+BREAK: 'break';
+CONTINUE: 'continue';
+ELSE: 'else';
+FUNCTION: 'function';
+IF: 'if';
+RETURN: 'return';
+WHILE: 'while';
+
+WS: [\t\u000B\u000C\u0020\u00A0]+ -> channel(HIDDEN);
+EOL: [\r\n\u2028\u2029] -> channel(HIDDEN);
+
+IDENTIFIER: LETTER (LETTER | DIGIT)*;
+STRING_LITERAL: '"' STRING_CHAR* '"';
 
 fragment DIGIT: [0-9];
 fragment LETTER: [A-Z] | [a-z] | '_' | '$';

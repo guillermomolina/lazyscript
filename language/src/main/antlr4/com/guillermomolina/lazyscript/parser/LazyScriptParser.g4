@@ -51,13 +51,10 @@ statement:
 controlFlowStatement:
 	(
 		expression
-		| variableDeclarationStatement
 		| breakStatement
 		| continueStatement
 		| returnStatement
-	) SEMI;
-
-variableDeclarationStatement: LET identifier (ASSIGN expression)?;
+	) eos;
 
 functionDeclarationStatement:
 	FUNCTION identifier LPAREN parameterList? RPAREN block;
@@ -123,12 +120,11 @@ numericLiteral:
 
 parenExpression: LPAREN expression RPAREN;
 
-blockLiteral:
-	LPAREN parameterList? RPAREN ARROW block;
+blockLiteral: LPAREN parameterList? RPAREN ARROW block;
 
 parameterList: identifier ( COMMA identifier)*;
 
-memberList: ( DOT identifier | LBRACK expression RBRACK) memberList?;
+memberList: (DOT identifier | LBRACK expression RBRACK) memberList?;
 
 call: (identifier | singleExpression memberList) LPAREN argumentList? RPAREN;
 
@@ -146,3 +142,5 @@ objectLiteral:
 propertyAssignment: propertyName COLON expression;
 
 propertyName: identifier | stringLiteral /*| numericLiteral */;
+
+eos: SEMI | EOL | EOF;
