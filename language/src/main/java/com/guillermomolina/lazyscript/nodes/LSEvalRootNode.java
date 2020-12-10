@@ -111,7 +111,6 @@ public final class LSEvalRootNode extends RootNode {
 
         LSFunction function = (LSFunction)functionNode.executeGeneric(frame);
         LSObjectUtil.putProperty(lobby, "main", function);
-        function.setEnclosingFrame(frame.materialize());
 
         try {
             return library.execute(function, argumentValues);

@@ -53,7 +53,6 @@ import com.oracle.truffle.api.dsl.Cached;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.ReportPolymorphism;
 import com.oracle.truffle.api.dsl.Specialization;
-import com.oracle.truffle.api.frame.MaterializedFrame;
 import com.oracle.truffle.api.interop.InteropLibrary;
 import com.oracle.truffle.api.library.ExportLibrary;
 import com.oracle.truffle.api.library.ExportMessage;
@@ -74,8 +73,6 @@ public final class LSFunction extends LSObject {
 
     /** The current implementation of this function. */
     private final RootCallTarget callTarget;
-
-    private MaterializedFrame enclosingFrame;
     
     /**
      * Manages the assumption that the {@link #callTarget} is stable. We use the utility class
@@ -101,14 +98,6 @@ public final class LSFunction extends LSObject {
 
     public Assumption getCallTargetStable() {
         return callTargetStable.getAssumption();
-    }
-
-    public MaterializedFrame getEnclosingFrame() {
-        return enclosingFrame;
-    }
-
-    public void setEnclosingFrame(MaterializedFrame enclosingFrame) {
-        this.enclosingFrame = enclosingFrame;
     }
 
     /**

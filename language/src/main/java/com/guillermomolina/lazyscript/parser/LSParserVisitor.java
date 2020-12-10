@@ -60,7 +60,6 @@ import com.guillermomolina.lazyscript.nodes.controlflow.LSFunctionBodyNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSIfNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSReturnNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSWhileNode;
-import com.guillermomolina.lazyscript.nodes.expression.LSInvokeFunctionNode;
 import com.guillermomolina.lazyscript.nodes.expression.LSInvokeMethodNode;
 import com.guillermomolina.lazyscript.nodes.expression.LSParenExpressionNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSArrayLiteralNode;
@@ -74,7 +73,6 @@ import com.guillermomolina.lazyscript.nodes.literals.LSNullLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSObjectLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSStringLiteralNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadArgumentNode;
-import com.guillermomolina.lazyscript.nodes.local.LSReadLocalVariableNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadLocalVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.local.LSReadRemoteVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNodeGen;
@@ -232,8 +230,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     @Override
     public Node visitFunctionDeclarationStatement(LazyScriptParser.FunctionDeclarationStatementContext ctx) {
         final String functionName = ctx.identifier().getText();
-        LSRootNode rootNode = createRootNode(functionName, LSLexicalScope.THIS, ctx.parameterList(),
-                ctx.block());
+        LSRootNode rootNode = createRootNode(functionName, LSLexicalScope.THIS, ctx.parameterList(), ctx.block());
         LSExpressionNode functionNode = new LSFunctionLiteralNode(functionName,
                 Truffle.getRuntime().createCallTarget(rootNode));
         setSourceFromContext(functionNode, ctx);
@@ -249,7 +246,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         */
 
         // This is the code to add the function as a property
-        final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(lexicalScope.getThisVariable());
+        final LSExpressionNode thisNode = createReadThis();
         final LSExpressionNode result = LSWritePropertyNodeGen.create(thisNode, nameNode, functionNode);
         setSourceFromContext(result, ctx);
 
@@ -261,7 +258,8 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     public Node visitBlockLiteral(LazyScriptParser.BlockLiteralContext ctx) {
         final String name = "anonymous";
         LSRootNode rootNode = createRootNode(name, LSLexicalScope.PARENT_SCOPE, ctx.parameterList(), ctx.block());
-        LSFunctionLiteralNode functionNode = new LSFunctionLiteralNode(name, Truffle.getRuntime().createCallTarget(rootNode));
+        LSFunctionLiteralNode functionNode = new LSFunctionLiteralNode(name,
+                Truffle.getRuntime().createCallTarget(rootNode));
         LSExpressionNode result = new LSBlockLiteralNode(functionNode);
         setSourceFromContext(result, ctx);
         result.addExpressionTag();
@@ -560,50 +558,21 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             throw new LSParseError(source, ctx, "invalid function target");
         }
         List<LSExpressionNode> argumentNodeList = new ArrayList<>();
+        if (receiverNode == null) {
+            argumentNodeList.add(createReadThis());
+        } else {
+            argumentNodeList.add(receiverNode);
+        }
         if (ctx.argumentList() != null) {
             for (LazyScriptParser.ExpressionContext expression : ctx.argumentList().expression()) {
                 argumentNodeList.add((LSExpressionNode) visit(expression));
             }
         }
-        LSExpressionNode result;
-        if (receiverNode == null) {
-            result = createCallNoReceiver(functionNameNode, argumentNodeList);
-        } else {
-            argumentNodeList.add(0, receiverNode);
-            result = new LSInvokeMethodNode(functionNameNode,
+        LSExpressionNode result = new LSInvokeMethodNode(functionNameNode,
                     argumentNodeList.toArray(new LSExpressionNode[argumentNodeList.size()]));
-        }
         result.addExpressionTag();
         setSourceFromContext(result, ctx);
         return result;
-    }
-
-    public LSExpressionNode createCallNoReceiver(LSExpressionNode nameNode, List<LSExpressionNode> argumentNodeList) {
-        if (nameNode == null || argumentNodeList == null) {
-            throw new UnsupportedOperationException("nameNode and valueNode must not be null");
-        }
-
-        String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
-        Pair<Integer, FrameSlot> variable = lexicalScope.getVariable(name);
-        int scopeDepth = variable.a;
-        FrameSlot frameSlot = variable.b;
-        if (frameSlot == null) {
-            /* If a variable called name is not found, try to call this.name() */
-            frameSlot = lexicalScope.getThisVariable();
-            final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(frameSlot);
-            argumentNodeList.add(0, thisNode);
-            return new LSInvokeMethodNode(nameNode,
-                    argumentNodeList.toArray(new LSExpressionNode[argumentNodeList.size()]));
-        }
-        final LSExpressionNode functionNode;
-        if (scopeDepth == 0) {
-            functionNode = LSReadLocalVariableNodeGen.create(frameSlot);
-        } else {
-            functionNode = LSReadRemoteVariableNodeGen.create(frameSlot, scopeDepth);
-        }
-        argumentNodeList.add(0, functionNode);
-        return new LSInvokeFunctionNode(functionNode,
-                argumentNodeList.toArray(new LSExpressionNode[argumentNodeList.size()]));
     }
 
     public LSExpressionNode createDotMember(LazyScriptParser.MemberListContext ctx, LSExpressionNode r,
@@ -736,20 +705,6 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         return result;
     }
 
-    /**
-     * Returns a {@link LSReadLocalVariableNode} if this read is a local variable or
-     * a {@link LSReadPropertyNode} if this read is from the object. In LazyScript,
-     * there are no global names.
-     *
-     * @param nameNode The name of the variable/function being read
-     * @return either:
-     *         <ul>
-     *         <li>A LSReadLocalVariableNode representing the local variable being
-     *         read.</li>
-     *         <li>A LSReadPropertyNode representing the property being read.</li>
-     *         <li>null if nameNode is null.</li>
-     *         </ul>
-     */
     public LSExpressionNode createRead(LSExpressionNode nameNode) {
         if (nameNode == null) {
             throw new UnsupportedOperationException("nameNode is null");
@@ -767,11 +722,31 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
                 result = LSReadRemoteVariableNodeGen.create(frameSlot, scopeDepth);
             }
         } else {
-            frameSlot = lexicalScope.getThisVariable();
-            final LSExpressionNode thisNode = LSReadLocalVariableNodeGen.create(frameSlot);
-            result = LSReadPropertyNodeGen.create(thisNode, nameNode);
+            if(name.equals(LSLexicalScope.THIS)) {
+                throw new UnsupportedOperationException("There is no this variable");
+            }
+            // There is no variable with that name, try the property "this.name"
+            result = LSReadPropertyNodeGen.create(createReadThis(), nameNode);
         }
         setSourceFromNode(result, nameNode);
+        result.addExpressionTag();
+        return result;
+    }
+
+    public LSExpressionNode createReadThis() {
+        String name = LSLexicalScope.THIS;
+        Pair<Integer, FrameSlot> variable = lexicalScope.getVariable(name);
+        int scopeDepth = variable.a;
+        FrameSlot frameSlot = variable.b;
+        final LSExpressionNode result;
+        if (frameSlot == null) {
+            throw new UnsupportedOperationException("There is no this variable");
+        }
+        if (scopeDepth == 0) {
+            result = LSReadLocalVariableNodeGen.create(frameSlot);
+        } else {
+            result = LSReadRemoteVariableNodeGen.create(frameSlot, scopeDepth);
+        }
         result.addExpressionTag();
         return result;
     }

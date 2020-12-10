@@ -42,7 +42,7 @@ package com.guillermomolina.lazyscript.nodes.local;
 
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.interop.NodeObjectDescriptor;
-import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
+import com.guillermomolina.lazyscript.runtime.objects.LSBlock;
 import com.oracle.truffle.api.dsl.Fallback;
 import com.oracle.truffle.api.dsl.NodeChild;
 import com.oracle.truffle.api.dsl.NodeField;
@@ -87,9 +87,9 @@ public abstract class LSWriteRemoteVariableNode extends LSExpressionNode {
 
         Frame lookupFrame = frame;
         for (int i = 0; i < this.getDepth(); i++) {
-            LSFunction function = (LSFunction)lookupFrame.getArguments()[0];
-            assert function instanceof LSFunction;
-            lookupFrame = function.getEnclosingFrame();
+            Object block = lookupFrame.getArguments()[0];
+            assert block instanceof LSBlock;
+            lookupFrame = ((LSBlock)block).getEnclosingFrame();
         }
 
         final FrameSlot slot = this.getSlot();

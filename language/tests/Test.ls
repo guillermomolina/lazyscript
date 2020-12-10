@@ -11,11 +11,11 @@ function f1(a) {
     }
     f2(a);
     b1 = (b) => {
-        b.println();
-        //this.x = x + b;
+        println();
+        this.x = x + b;
     };
     b1.println();
-    b1.invoke(a);
+    b1.invoke(10);
 }
 
 f1.println();

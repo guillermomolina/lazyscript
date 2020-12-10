@@ -38,7 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.nodes.expression;
+package com.guillermomolina.lazyscript.nodes.property;
 
 import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
@@ -49,6 +49,7 @@ import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -64,17 +65,21 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * @see InteropLibrary#execute(Object, Object...)
  */
 @NodeInfo(shortName = "invoke")
-public final class LSInvokeFunctionNode extends LSExpressionNode {
+public final class LSInvokePropertyNode extends LSExpressionNode {
 
     @Child
-    private LSExpressionNode functionNode;
+    private LSExpressionNode receiverNode;
+    @Child
+    private LSExpressionNode nameNode;
     @Children
     private final LSExpressionNode[] argumentNodes;
     @Child
     private InteropLibrary library;
 
-    public LSInvokeFunctionNode(LSExpressionNode functionNode, LSExpressionNode[] argumentNodes) {
-        this.functionNode = functionNode;
+    public LSInvokePropertyNode(final LSExpressionNode receiverNode, final LSExpressionNode nameNode,
+            final LSExpressionNode[] argumentNodes) {
+        this.receiverNode = receiverNode;
+        this.nameNode = nameNode;
         this.argumentNodes = argumentNodes;
         this.library = InteropLibrary.getFactory().createDispatched(3);
     }
@@ -90,19 +95,22 @@ public final class LSInvokeFunctionNode extends LSExpressionNode {
          */
         CompilerAsserts.compilationConstant(argumentNodes.length);
 
-        Object[] argumentValues = new Object[argumentNodes.length];
+        String name = (String) nameNode.executeGeneric(frame);
+
+        Object[] argumentValues = new Object[argumentNodes.length + 1];
+        Object receiver = receiverNode.executeGeneric(frame);
+        argumentValues[0] = receiver;
         for (int i = 0; i < argumentNodes.length; i++) {
-            argumentValues[i] = argumentNodes[i].executeGeneric(frame);
+            argumentValues[i + 1] = argumentNodes[i].executeGeneric(frame);
         }
 
-        Object function = functionNode.executeGeneric(frame);
-        ((LSFunction) function).setEnclosingFrame(frame.materialize());
-
         try {
+            LSFunction function = getContext().getFunction(receiver, name);
             return library.execute(function, argumentValues);
-        } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
+        } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException
+                | UnknownIdentifierException e) {
             /* Execute was not successful. */
-            throw LSUndefinedNameException.undefinedFunction(this, "unnamed");
+            throw LSUndefinedNameException.undefinedFunction(this, name);
         }
     }
 

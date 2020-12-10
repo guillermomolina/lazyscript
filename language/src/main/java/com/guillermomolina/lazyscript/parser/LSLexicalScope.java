@@ -86,10 +86,6 @@ public class LSLexicalScope {
         return frameDescriptor.findFrameSlot(name);
     }
 
-    public FrameSlot getThisVariable() {
-        return getLocalVariable(THIS);
-    }
-
     public boolean hasLocalVariable(final String name) {
         return getLocalVariable(name) != null;
     }
