@@ -38,9 +38,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.nodes.property;
+package com.guillermomolina.lazyscript.nodes.expression;
 
-import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
 import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
 import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
 import com.oracle.truffle.api.CompilerAsserts;
@@ -49,7 +48,6 @@ import com.oracle.truffle.api.instrumentation.StandardTags;
 import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
-import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
 import com.oracle.truffle.api.nodes.ExplodeLoop;
@@ -65,23 +63,23 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * @see InteropLibrary#execute(Object, Object...)
  */
 @NodeInfo(shortName = "invoke")
-public final class LSInvokePropertyNode extends LSExpressionNode {
+public final class LSInvokeFunctionNode extends LSExpressionNode {
 
     @Child
-    private LSExpressionNode receiverNode;
+    private LSExpressionNode receiver;
     @Child
-    private LSExpressionNode nameNode;
+    private LSExpressionNode functionNode;
     @Children
     private final LSExpressionNode[] argumentNodes;
     @Child
     private InteropLibrary library;
 
-    public LSInvokePropertyNode(final LSExpressionNode receiverNode, final LSExpressionNode nameNode, final LSExpressionNode[] argumentNodes) {
-        this.receiverNode = receiverNode;
-        this.nameNode = nameNode;
+    public LSInvokeFunctionNode(LSExpressionNode receiver, LSExpressionNode functionNode,
+            LSExpressionNode[] argumentNodes) {
+        this.receiver = receiver;
+        this.functionNode = functionNode;
         this.argumentNodes = argumentNodes;
         this.library = InteropLibrary.getFactory().createDispatched(3);
-        LSReadPropertyNodeGen.create(receiverNode, nameNode);
     }
 
     @ExplodeLoop
@@ -95,25 +93,21 @@ public final class LSInvokePropertyNode extends LSExpressionNode {
          */
         CompilerAsserts.compilationConstant(argumentNodes.length);
 
-        Object receiver = receiverNode.executeGeneric(frame);
-        String methodName = (String) nameNode.executeGeneric(frame);
-        LSFunction function;
-        try {
-            function = getContext().getFunction(receiver, methodName);
-        } catch (UnknownIdentifierException e) {
-            throw LSUndefinedNameException.undefinedFunction(this, methodName);
+        Object[] argumentValues = new Object[argumentNodes.length + 1];
+        argumentValues[0] = receiver.executeGeneric(frame);
+        for (int i = 0; i < argumentNodes.length; i++) {
+            argumentValues[i] = argumentNodes[i].executeGeneric(frame);
         }
 
-        Object[] argumentValues = new Object[argumentNodes.length + 1];
-        argumentValues[0] = receiver;
-        for (int i = 0; i < argumentNodes.length; i++) {
-            argumentValues[i + 1] = argumentNodes[i].executeGeneric(frame);
+        Object function = functionNode.executeGeneric(frame);
+        if(!(function instanceof LSFunction)) {
+            throw LSUndefinedNameException.undefinedFunction(this, "unnamed");
         }
 
         try {
             return library.execute(function, argumentValues);
         } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
-            throw LSUndefinedNameException.undefinedFunction(this, methodName);
+            throw LSUndefinedNameException.undefinedFunction(this, ((LSFunction)function).getName());
         }
     }
 

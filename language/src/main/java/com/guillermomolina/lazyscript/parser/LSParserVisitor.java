@@ -81,7 +81,7 @@ import com.guillermomolina.lazyscript.nodes.logic.LSLessThanNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSLogicalAndNode;
 import com.guillermomolina.lazyscript.nodes.logic.LSLogicalNotNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSLogicalOrNode;
-import com.guillermomolina.lazyscript.nodes.property.LSInvokePropertyNodeGen;
+import com.guillermomolina.lazyscript.nodes.property.LSInvokePropertyNode;
 import com.guillermomolina.lazyscript.nodes.property.LSReadPropertyNode;
 import com.guillermomolina.lazyscript.nodes.property.LSReadPropertyNodeGen;
 import com.guillermomolina.lazyscript.nodes.property.LSWritePropertyNode;
@@ -238,17 +238,17 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
         final LSExpressionNode nameNode = (LSExpressionNode) visit(ctx.identifier());
 
-        /* 
-        @formatter:off
         // This is the code to add the function as a variable
         LSExpressionNode result = createWriteVariable(nameNode, functionNode);
-        @formatter:on 
-        */
 
+        /* 
+        @formatter:off
         // This is the code to add the function as a property
         final LSExpressionNode thisNode = createReadThis();
         final LSExpressionNode result = LSWritePropertyNodeGen.create(thisNode, nameNode, functionNode);
         setSourceFromContext(result, ctx);
+        @formatter:on 
+        */
 
         result.addStatementTag();
         return result;
@@ -557,14 +557,34 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         if (functionNameNode == null) {
             throw new LSParseError(source, ctx, "invalid function target");
         }
-        final LSExpressionNode receiverNode = r == null? createReadThis(): r;
         List<LSExpressionNode> argumentNodeList = new ArrayList<>();
         if (ctx.argumentList() != null) {
             for (LazyScriptParser.ExpressionContext expression : ctx.argumentList().expression()) {
                 argumentNodeList.add((LSExpressionNode) visit(expression));
             }
         }
-        LSExpressionNode result = LSInvokePropertyNodeGen.create(receiverNode, functionNameNode,
+        if(r == null) {
+            String name = ((LSStringLiteralNode) functionNameNode).executeGeneric(null);
+            Pair<Integer, FrameSlot> variable = lexicalScope.getVariable(name);
+            int scopeDepth = variable.a;
+            FrameSlot frameSlot = variable.b;
+            if (frameSlot != null) {
+                final LSExpressionNode function;
+                if (scopeDepth == 0) {
+                    function = LSReadLocalVariableNodeGen.create(frameSlot);
+                } else {
+                    function = LSReadRemoteVariableNodeGen.create(frameSlot, scopeDepth);
+                }
+            } else {
+                if(name.equals(LSLexicalScope.THIS)) {
+                    throw new UnsupportedOperationException("There is no this variable");
+                }
+                // There is no variable with that name, try the property "this.name"
+                result = LSReadPropertyNodeGen.create(createReadThis(), nameNode);
+            }    
+        }
+
+        LSExpressionNode result = new LSInvokePropertyNode(receiverNode, functionNameNode,
                     argumentNodeList.toArray(new LSExpressionNode[argumentNodeList.size()]));
         result.addExpressionTag();
         setSourceFromContext(result, ctx);
