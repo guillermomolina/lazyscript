@@ -55,7 +55,6 @@ import com.guillermomolina.lazyscript.nodes.controlflow.LSBreakNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSContinueNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSFunctionBodyNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSIfNode;
-import com.guillermomolina.lazyscript.nodes.controlflow.LSInvokeNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSReturnNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSWhileNode;
 import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
@@ -82,6 +81,7 @@ import com.guillermomolina.lazyscript.nodes.logic.LSLessThanNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSLogicalAndNode;
 import com.guillermomolina.lazyscript.nodes.logic.LSLogicalNotNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSLogicalOrNode;
+import com.guillermomolina.lazyscript.nodes.property.LSInvokePropertyNode;
 import com.guillermomolina.lazyscript.nodes.property.LSReadPropertyNode;
 import com.guillermomolina.lazyscript.nodes.property.LSReadPropertyNodeGen;
 import com.guillermomolina.lazyscript.nodes.property.LSWritePropertyNode;
@@ -552,23 +552,19 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         throw new LSParseError(source, ctx, "Invalid assignment: " + ctx.getText());
     }
 
-    public LSExpressionNode createCall(LazyScriptParser.CallContext ctx, LSExpressionNode receiverNode,
+    public LSExpressionNode createCall(LazyScriptParser.CallContext ctx, LSExpressionNode r,
             LSExpressionNode functionNameNode) {
         if (functionNameNode == null) {
             throw new LSParseError(source, ctx, "invalid function target");
         }
+        final LSExpressionNode receiverNode = r == null? createReadThis(): r;
         List<LSExpressionNode> argumentNodeList = new ArrayList<>();
-        if (receiverNode == null) {
-            argumentNodeList.add(createReadThis());
-        } else {
-            argumentNodeList.add(receiverNode);
-        }
         if (ctx.argumentList() != null) {
             for (LazyScriptParser.ExpressionContext expression : ctx.argumentList().expression()) {
                 argumentNodeList.add((LSExpressionNode) visit(expression));
             }
         }
-        LSExpressionNode result = new LSInvokeNode(functionNameNode,
+        LSExpressionNode result = new LSInvokePropertyNode(receiverNode, functionNameNode,
                     argumentNodeList.toArray(new LSExpressionNode[argumentNodeList.size()]));
         result.addExpressionTag();
         setSourceFromContext(result, ctx);

@@ -43,11 +43,11 @@ Object[Object.a].println();
 
 Object.d = () => { println(); };
 Object.d.println();
-Object.d();
+Object.d.invoke();
 
 a = () => { println(); };
 a.println();
-a();
+a.invoke();
 
 function a(arg1) {
     arg1.println();
@@ -73,7 +73,7 @@ a = {
 a.println();
 a.prototype.println();
 a.b.println();
-a.b();
+a.b.invoke();
 a.c["0"].println();
 a.d[0].println();
 

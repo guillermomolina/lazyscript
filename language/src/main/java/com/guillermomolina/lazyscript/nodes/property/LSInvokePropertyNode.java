@@ -38,7 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.nodes.controlflow;
+package com.guillermomolina.lazyscript.nodes.property;
 
 import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
 import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
@@ -65,19 +65,23 @@ import com.oracle.truffle.api.nodes.NodeInfo;
  * @see InteropLibrary#execute(Object, Object...)
  */
 @NodeInfo(shortName = "invoke")
-public final class LSInvokeNode extends LSExpressionNode {
+public final class LSInvokePropertyNode extends LSExpressionNode {
 
     @Child
-    private LSExpressionNode methodNameNode;
+    private LSExpressionNode receiverNode;
+    @Child
+    private LSExpressionNode nameNode;
     @Children
     private final LSExpressionNode[] argumentNodes;
     @Child
     private InteropLibrary library;
 
-    public LSInvokeNode(LSExpressionNode methodNameNode, LSExpressionNode[] argumentNodes) {
-        this.methodNameNode = methodNameNode;
+    public LSInvokePropertyNode(final LSExpressionNode receiverNode, final LSExpressionNode nameNode, final LSExpressionNode[] argumentNodes) {
+        this.receiverNode = receiverNode;
+        this.nameNode = nameNode;
         this.argumentNodes = argumentNodes;
         this.library = InteropLibrary.getFactory().createDispatched(3);
+        LSReadPropertyNodeGen.create(receiverNode, nameNode);
     }
 
     @ExplodeLoop
@@ -91,19 +95,24 @@ public final class LSInvokeNode extends LSExpressionNode {
          */
         CompilerAsserts.compilationConstant(argumentNodes.length);
 
-        String methodName = (String) methodNameNode.executeGeneric(frame);
+        Object receiver = receiverNode.executeGeneric(frame);
+        String methodName = (String) nameNode.executeGeneric(frame);
+        LSFunction function;
+        try {
+            function = getContext().getFunction(receiver, methodName);
+        } catch (UnknownIdentifierException e) {
+            throw LSUndefinedNameException.undefinedFunction(this, methodName);
+        }
 
-        Object[] argumentValues = new Object[argumentNodes.length];
+        Object[] argumentValues = new Object[argumentNodes.length + 1];
+        argumentValues[0] = receiver;
         for (int i = 0; i < argumentNodes.length; i++) {
-            argumentValues[i] = argumentNodes[i].executeGeneric(frame);
+            argumentValues[i + 1] = argumentNodes[i].executeGeneric(frame);
         }
 
         try {
-            LSFunction function = getContext().getFunction(argumentValues[0], methodName);
             return library.execute(function, argumentValues);
-        } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException
-                | UnknownIdentifierException e) {
-            /* Execute was not successful. */
+        } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
             throw LSUndefinedNameException.undefinedFunction(this, methodName);
         }
     }

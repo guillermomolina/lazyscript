@@ -19,8 +19,8 @@ function f1(a) {
 }
 
 f1.println();
-//f1(10);
+f1(10);
 
 a = f1;
-a(20);
+//a(20);
 x.println()
