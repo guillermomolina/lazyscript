@@ -81,6 +81,9 @@ public abstract class LSReadRemoteVariableNode extends LSExpressionNode {
             assert block instanceof LSBlock;
             lookupFrame = ((LSBlock)block).getEnclosingFrame();
         }
+        if(lookupFrame == null) {
+            throw new UnsupportedOperationException();
+        }
         return getter.get(lookupFrame, this.getSlot());
     }
 

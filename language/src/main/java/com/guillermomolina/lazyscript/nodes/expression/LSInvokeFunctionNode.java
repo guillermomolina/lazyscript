@@ -96,18 +96,18 @@ public final class LSInvokeFunctionNode extends LSExpressionNode {
         Object[] argumentValues = new Object[argumentNodes.length + 1];
         argumentValues[0] = receiver.executeGeneric(frame);
         for (int i = 0; i < argumentNodes.length; i++) {
-            argumentValues[i] = argumentNodes[i].executeGeneric(frame);
+            argumentValues[i + 1] = argumentNodes[i].executeGeneric(frame);
         }
 
         Object function = functionNode.executeGeneric(frame);
-        if(!(function instanceof LSFunction)) {
+        if (!(function instanceof LSFunction)) {
             throw LSUndefinedNameException.undefinedFunction(this, "unnamed");
         }
 
         try {
             return library.execute(function, argumentValues);
         } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
-            throw LSUndefinedNameException.undefinedFunction(this, ((LSFunction)function).getName());
+            throw LSUndefinedNameException.undefinedFunction(this, ((LSFunction) function).getName());
         }
     }
 

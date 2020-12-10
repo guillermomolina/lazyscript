@@ -22,4 +22,5 @@ while (i < 20) {
   loop(10000);
   i = i + 1;
 }
-loop(10000).println();  
+r = loop(10000);
+r.println();  

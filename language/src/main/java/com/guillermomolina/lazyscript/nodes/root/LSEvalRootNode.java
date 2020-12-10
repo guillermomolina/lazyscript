@@ -101,17 +101,17 @@ public final class LSEvalRootNode extends RootNode {
     @Override
     public Object execute(VirtualFrame frame) {
         final LSContext context = lookupContextReference(LSLanguage.class).get();
-        LSObject lobby = context.getLobby();
+        LSObject global = context.getGlobalObject();
 
         Object[] frameArguments = frame.getArguments();
         Object[] argumentValues = new Object[frameArguments.length + 1];
-        argumentValues[0] = lobby;
+        argumentValues[0] = global;
         for (int i = 0; i < frameArguments.length; i++) {
             argumentValues[i + 1] = LSContext.fromForeignValue(frameArguments[i]);
         }
 
         LSFunction function = (LSFunction)functionNode.executeGeneric(frame);
-        LSObjectUtil.putProperty(lobby, "main", function);
+        LSObjectUtil.putProperty(global, "main", function);
 
         try {
             return library.execute(function, argumentValues);

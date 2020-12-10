@@ -58,6 +58,7 @@ import com.guillermomolina.lazyscript.nodes.controlflow.LSIfNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSReturnNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSWhileNode;
 import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSInvokeFunctionNode;
 import com.guillermomolina.lazyscript.nodes.expression.LSParenExpressionNode;
 import com.guillermomolina.lazyscript.nodes.expression.LSStatementNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSArrayLiteralNode;
@@ -479,11 +480,11 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     @Override
     public Node visitSingleExpression(LazyScriptParser.SingleExpressionContext ctx) {
         LSExpressionNode receiver = null;
-        LSExpressionNode assignmentName = null;
+        LSExpressionNode memberName = null;
         if (ctx.identifier() != null) {
-            assignmentName = (LSExpressionNode) visit(ctx.identifier());
+            memberName = (LSExpressionNode) visit(ctx.identifier());
             if (ctx.memberList() == null) {
-                return createRead(assignmentName);
+                return createRead(memberName);
             }
         } else if (ctx.nullLiteral() != null) {
             receiver = (LSExpressionNode) visit(ctx.nullLiteral());
@@ -507,11 +508,11 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         if (ctx.memberList() == null) {
             return receiver;
         }
-        return createMember(ctx.memberList(), receiver, null, assignmentName);
+        return createMember(ctx.memberList(), receiver, memberName);
     }
 
     public LSExpressionNode createMember(LazyScriptParser.MemberListContext ctx, LSExpressionNode receiver,
-            LSExpressionNode assignmentReceiver, LSExpressionNode assignmentName) {
+            LSExpressionNode assignmentName) {
         if (ctx.DOT() != null) {
             return createDotMember(ctx, receiver, assignmentName);
         }
@@ -563,41 +564,40 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
                 argumentNodeList.add((LSExpressionNode) visit(expression));
             }
         }
-        if(r == null) {
+        LSExpressionNode[] argumentNodes = argumentNodeList.toArray(new LSExpressionNode[argumentNodeList.size()]);
+        LSExpressionNode receiverNode = r;
+        if (receiverNode == null) {
+            receiverNode = createReadThis();
             String name = ((LSStringLiteralNode) functionNameNode).executeGeneric(null);
             Pair<Integer, FrameSlot> variable = lexicalScope.getVariable(name);
             int scopeDepth = variable.a;
             FrameSlot frameSlot = variable.b;
             if (frameSlot != null) {
-                final LSExpressionNode function;
+                final LSExpressionNode functionNode;
                 if (scopeDepth == 0) {
-                    function = LSReadLocalVariableNodeGen.create(frameSlot);
+                    functionNode = LSReadLocalVariableNodeGen.create(frameSlot);
                 } else {
-                    function = LSReadRemoteVariableNodeGen.create(frameSlot, scopeDepth);
+                    functionNode = LSReadRemoteVariableNodeGen.create(frameSlot, scopeDepth);
                 }
-            } else {
-                if(name.equals(LSLexicalScope.THIS)) {
-                    throw new UnsupportedOperationException("There is no this variable");
-                }
-                // There is no variable with that name, try the property "this.name"
-                result = LSReadPropertyNodeGen.create(createReadThis(), nameNode);
-            }    
+                LSExpressionNode result = new LSInvokeFunctionNode(receiverNode, functionNode, argumentNodes);
+                result.addExpressionTag();
+                setSourceFromContext(result, ctx);
+                return result;
+            }
         }
-
-        LSExpressionNode result = new LSInvokePropertyNode(receiverNode, functionNameNode,
-                    argumentNodeList.toArray(new LSExpressionNode[argumentNodeList.size()]));
+        LSExpressionNode result = new LSInvokePropertyNode(receiverNode, functionNameNode, argumentNodes);
         result.addExpressionTag();
         setSourceFromContext(result, ctx);
         return result;
     }
 
     public LSExpressionNode createDotMember(LazyScriptParser.MemberListContext ctx, LSExpressionNode r,
-            LSExpressionNode assignmentName) {
-        LSExpressionNode receiver = r == null ? createRead(assignmentName) : r;
-        LSExpressionNode nestedAssignmentName = (LSExpressionNode) visit(ctx.identifier());
-        LSExpressionNode result = createReadProperty(ctx, receiver, nestedAssignmentName);
+            LSExpressionNode memberName) {
+        LSExpressionNode receiver = r == null ? createRead(memberName) : r;
+        LSExpressionNode nestedMemberName = (LSExpressionNode) visit(ctx.identifier());
+        LSExpressionNode result = createReadProperty(ctx, receiver, nestedMemberName);
         if (ctx.memberList() != null) {
-            return createMember(ctx.memberList(), result, receiver, nestedAssignmentName);
+            return createMember(ctx.memberList(), result, nestedMemberName);
         }
         return result;
     }
@@ -605,10 +605,10 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     public LSExpressionNode createArrayMember(LazyScriptParser.MemberListContext ctx, LSExpressionNode r,
             LSExpressionNode assignmentName) {
         LSExpressionNode receiver = r == null ? createRead(assignmentName) : r;
-        LSExpressionNode nestedAssignmentName = (LSExpressionNode) visit(ctx.expression());
-        LSExpressionNode result = createReadProperty(ctx, receiver, nestedAssignmentName);
+        LSExpressionNode nestedMemberName = (LSExpressionNode) visit(ctx.expression());
+        LSExpressionNode result = createReadProperty(ctx, receiver, nestedMemberName);
         if (ctx.memberList() != null) {
-            return createMember(ctx.memberList(), result, receiver, nestedAssignmentName);
+            return createMember(ctx.memberList(), result, nestedMemberName);
         }
         return result;
     }
@@ -738,7 +738,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
                 result = LSReadRemoteVariableNodeGen.create(frameSlot, scopeDepth);
             }
         } else {
-            if(name.equals(LSLexicalScope.THIS)) {
+            if (name.equals(LSLexicalScope.THIS)) {
                 throw new UnsupportedOperationException("There is no this variable");
             }
             // There is no variable with that name, try the property "this.name"

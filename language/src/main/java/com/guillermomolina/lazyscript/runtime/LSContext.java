@@ -71,7 +71,6 @@ import com.guillermomolina.lazyscript.builtins.LSWrapPrimitiveBuiltinFactory;
 import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadArgumentNode;
 import com.guillermomolina.lazyscript.nodes.root.LSRootNode;
-import com.guillermomolina.lazyscript.runtime.interop.LSGlobalScope;
 import com.guillermomolina.lazyscript.runtime.objects.LSArray;
 import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
 import com.guillermomolina.lazyscript.runtime.objects.LSBlock;
@@ -114,10 +113,6 @@ public final class LSContext {
     @CompilationFinal private AllocationReporter allocationReporter;
 
     private static final Source BUILTIN_SOURCE = Source.newBuilder(LSLanguage.ID, "", "LS builtin").build();
-    //private final Map<NodeFactory<? extends LSBuiltinNode>, RootCallTarget> builtinTargets = new ConcurrentHashMap<>();
-    //private final Map<String, RootCallTarget> undefinedFunctions = new ConcurrentHashMap<>();
-
-    private final LSGlobalScope globalScope;
 
     private final LSObject objectPrototype;
     private final LSObject nullPrototype;
@@ -132,7 +127,7 @@ public final class LSContext {
     private final LSObject decimalPrototype;
     private final LSObject truePrototype;
     private final LSObject falsePrototype;
-    private final LSObject lobby;
+    private final LSObject globalObject;
 
     public LSContext(LSLanguage language, TruffleLanguage.Env env) {
         if (env != null) { // env could still be null
@@ -143,8 +138,6 @@ public final class LSContext {
 
         this.input = new BufferedReader(new InputStreamReader(env.in()));
         this.output = new PrintWriter(env.out(), true);
-
-        this.globalScope = new LSGlobalScope();
 
         this.objectPrototype = createObject(LSNull.INSTANCE);
         this.nullPrototype = createObject(objectPrototype);
@@ -160,7 +153,7 @@ public final class LSContext {
         this.stringPrototype = createObject(objectPrototype);
         this.functionPrototype = createObject(objectPrototype);
         this.blockPrototype = createObject(objectPrototype);
-        this.lobby = createObject(objectPrototype);
+        this.globalObject = createObject(objectPrototype);
         installBuiltins();
     }
 
@@ -242,18 +235,8 @@ public final class LSContext {
         return output;
     }
 
-    /**
-     * Returns the top context.
-     */
-    public LSObject getLobby() {
-        return lobby;
-    }
-
-    /**
-     * Returns the global scope.
-     */
-    public Object getGlobalScope() {
-        return globalScope;
+    public LSObject getGlobalObject() {
+        return globalObject;
     }
 
     /**
