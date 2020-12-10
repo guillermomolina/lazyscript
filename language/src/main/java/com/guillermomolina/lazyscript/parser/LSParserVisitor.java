@@ -81,7 +81,7 @@ import com.guillermomolina.lazyscript.nodes.logic.LSLessThanNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSLogicalAndNode;
 import com.guillermomolina.lazyscript.nodes.logic.LSLogicalNotNodeGen;
 import com.guillermomolina.lazyscript.nodes.logic.LSLogicalOrNode;
-import com.guillermomolina.lazyscript.nodes.property.LSInvokePropertyNode;
+import com.guillermomolina.lazyscript.nodes.property.LSInvokePropertyNodeGen;
 import com.guillermomolina.lazyscript.nodes.property.LSReadPropertyNode;
 import com.guillermomolina.lazyscript.nodes.property.LSReadPropertyNodeGen;
 import com.guillermomolina.lazyscript.nodes.property.LSWritePropertyNode;
@@ -564,7 +564,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
                 argumentNodeList.add((LSExpressionNode) visit(expression));
             }
         }
-        LSExpressionNode result = new LSInvokePropertyNode(receiverNode, functionNameNode,
+        LSExpressionNode result = LSInvokePropertyNodeGen.create(receiverNode, functionNameNode,
                     argumentNodeList.toArray(new LSExpressionNode[argumentNodeList.size()]));
         result.addExpressionTag();
         setSourceFromContext(result, ctx);
