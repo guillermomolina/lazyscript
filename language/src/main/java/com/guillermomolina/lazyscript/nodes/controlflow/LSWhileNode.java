@@ -40,12 +40,12 @@
  */
 package com.guillermomolina.lazyscript.nodes.controlflow;
 
+import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSStatementNode;
 import com.oracle.truffle.api.Truffle;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.LoopNode;
 import com.oracle.truffle.api.nodes.NodeInfo;
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
-import com.guillermomolina.lazyscript.nodes.LSStatementNode;
 
 @NodeInfo(shortName = "while", description = "The node implementing a while loop")
 public final class LSWhileNode extends LSStatementNode {

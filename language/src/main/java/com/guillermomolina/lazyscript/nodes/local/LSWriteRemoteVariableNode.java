@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.nodes.local;
 
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.interop.NodeObjectDescriptor;
 import com.guillermomolina.lazyscript.runtime.objects.LSBlock;
 import com.oracle.truffle.api.dsl.Fallback;

@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.guillermomolina.lazyscript.builtins.LSBuiltinNode;
-import com.guillermomolina.lazyscript.nodes.LSEvalRootNode;
+import com.guillermomolina.lazyscript.nodes.root.LSEvalRootNode;
 import com.guillermomolina.lazyscript.parser.LSParserVisitor;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.interop.LSLanguageView;

@@ -1,6 +1,6 @@
 package com.guillermomolina.lazyscript.nodes.literals;
 
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 
 public class LSBooleanLiteralNode extends LSExpressionNode {

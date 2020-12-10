@@ -38,86 +38,82 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.nodes;
+package com.guillermomolina.lazyscript.nodes.controlflow;
 
-import com.guillermomolina.lazyscript.LSLanguage;
-import com.guillermomolina.lazyscript.runtime.LSContext;
-import com.guillermomolina.lazyscript.runtime.LSObjectUtil;
+import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
 import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
 import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
-import com.guillermomolina.lazyscript.runtime.objects.LSObject;
+import com.oracle.truffle.api.CompilerAsserts;
 import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.instrumentation.StandardTags;
+import com.oracle.truffle.api.instrumentation.Tag;
 import com.oracle.truffle.api.interop.ArityException;
 import com.oracle.truffle.api.interop.InteropLibrary;
+import com.oracle.truffle.api.interop.UnknownIdentifierException;
 import com.oracle.truffle.api.interop.UnsupportedMessageException;
 import com.oracle.truffle.api.interop.UnsupportedTypeException;
-import com.oracle.truffle.api.nodes.RootNode;
+import com.oracle.truffle.api.nodes.ExplodeLoop;
+import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**
- * This class performs two additional tasks:
+ * The node for function invocation in LazyScript. Since LazyScript has first
+ * class functions, the {@link LSFunction target function} can be computed by an
+ * arbitrary expression. This node is responsible for evaluating this
+ * expression, as well as evaluating the {@link #argumentNodes arguments}. The
+ * actual invocation is delegated to a {@link InteropLibrary} instance.
  *
- * <ul>
- * <li>Lazily registration of functions on first execution. This fulfills the
- * semantics of "evaluating" source code in LazyScript.</li>
- * <li>Conversion of arguments to types understood by LazyScript. The LazyScript
- * source code can be evaluated from a different language, i.e., the caller can
- * be a node from a different language that uses types not understood by
- * LazyScript.</li>
- * </ul>
+ * @see InteropLibrary#execute(Object, Object...)
  */
-public final class LSEvalRootNode extends RootNode {
+@NodeInfo(shortName = "invoke")
+public final class LSInvokeNode extends LSExpressionNode {
+
     @Child
-    private LSExpressionNode functionNode;
+    private LSExpressionNode methodNameNode;
+    @Children
+    private final LSExpressionNode[] argumentNodes;
     @Child
     private InteropLibrary library;
 
-    public LSEvalRootNode(LSLanguage language, LSExpressionNode functionNode) {
-        super(language);
-        this.functionNode = functionNode;
+    public LSInvokeNode(LSExpressionNode methodNameNode, LSExpressionNode[] argumentNodes) {
+        this.methodNameNode = methodNameNode;
+        this.argumentNodes = argumentNodes;
         this.library = InteropLibrary.getFactory().createDispatched(3);
     }
 
+    @ExplodeLoop
     @Override
-    public boolean isInternal() {
-        return true;
-    }
+    public Object executeGeneric(VirtualFrame frame) {
+        /*
+         * The number of arguments is constant for one invoke node. During compilation,
+         * the loop is unrolled and the execute methods of all arguments are inlined.
+         * This is triggered by the ExplodeLoop annotation on the method. The compiler
+         * assertion below illustrates that the array length is really constant.
+         */
+        CompilerAsserts.compilationConstant(argumentNodes.length);
 
-    @Override
-    protected boolean isInstrumentable() {
-        return false;
-    }
+        String methodName = (String) methodNameNode.executeGeneric(frame);
 
-    @Override
-    public String getName() {
-        return "root eval";
-    }
-
-    @Override
-    public String toString() {
-        return getName();
-    }
-
-    @Override
-    public Object execute(VirtualFrame frame) {
-        final LSContext context = lookupContextReference(LSLanguage.class).get();
-        LSObject lobby = context.getLobby();
-
-        Object[] frameArguments = frame.getArguments();
-        Object[] argumentValues = new Object[frameArguments.length + 1];
-        argumentValues[0] = lobby;
-        for (int i = 0; i < frameArguments.length; i++) {
-            argumentValues[i + 1] = LSContext.fromForeignValue(frameArguments[i]);
+        Object[] argumentValues = new Object[argumentNodes.length];
+        for (int i = 0; i < argumentNodes.length; i++) {
+            argumentValues[i] = argumentNodes[i].executeGeneric(frame);
         }
-
-        LSFunction function = (LSFunction)functionNode.executeGeneric(frame);
-        LSObjectUtil.putProperty(lobby, "main", function);
 
         try {
+            LSFunction function = getContext().getFunction(argumentValues[0], methodName);
             return library.execute(function, argumentValues);
-        } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException e) {
+        } catch (ArityException | UnsupportedTypeException | UnsupportedMessageException
+                | UnknownIdentifierException e) {
             /* Execute was not successful. */
-            throw LSUndefinedNameException.undefinedFunction(this, "main");
+            throw LSUndefinedNameException.undefinedFunction(this, methodName);
         }
-
     }
+
+    @Override
+    public boolean hasTag(Class<? extends Tag> tag) {
+        if (tag == StandardTags.CallTag.class) {
+            return true;
+        }
+        return super.hasTag(tag);
+    }
+
 }

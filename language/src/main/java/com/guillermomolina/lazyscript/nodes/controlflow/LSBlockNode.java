@@ -45,8 +45,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.guillermomolina.lazyscript.nodes.LSScopedNode;
-import com.guillermomolina.lazyscript.nodes.LSStatementNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSScopedNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSStatementNode;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 import com.oracle.truffle.api.CompilerDirectives;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;

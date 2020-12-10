@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.nodes.property;
 
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.util.LSToMemberNode;
 import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
 import com.guillermomolina.lazyscript.runtime.objects.LSObject;

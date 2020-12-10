@@ -38,12 +38,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.nodes;
+package com.guillermomolina.lazyscript.nodes.expression;
 
 import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.NotImplementedException;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSBlockNode;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
+import com.guillermomolina.lazyscript.nodes.root.LSRootNode;
 import com.guillermomolina.lazyscript.runtime.LSContext;
 import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 import com.oracle.truffle.api.CompilerDirectives.CompilationFinal;

@@ -309,7 +309,6 @@ public class LSObject extends DynamicObject {
 
     @ExportMessage
     public final Object instantiate(Object[] args, @CachedLanguage LSLanguage language) {
-        // TODO: Redo this method
-        return language.getCurrentContext().createObject();
+        return LSLanguage.getCurrentContext().createObject();
     }
 }

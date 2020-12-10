@@ -38,7 +38,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.nodes;
+package com.guillermomolina.lazyscript.nodes.root;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +47,8 @@ import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.builtins.LSBuiltinNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSBlockNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSFunctionBodyNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSStatementNode;
 import com.guillermomolina.lazyscript.nodes.local.LSReadArgumentNode;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNode;
 import com.oracle.truffle.api.CompilerDirectives;

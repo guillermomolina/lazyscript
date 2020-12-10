@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.nodes.logic;
 
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
 import com.oracle.truffle.api.nodes.NodeInfo;
 
 /**

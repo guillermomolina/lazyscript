@@ -46,9 +46,6 @@ import java.util.List;
 
 import com.guillermomolina.lazyscript.LSLanguage;
 import com.guillermomolina.lazyscript.NotImplementedException;
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
-import com.guillermomolina.lazyscript.nodes.LSRootNode;
-import com.guillermomolina.lazyscript.nodes.LSStatementNode;
 import com.guillermomolina.lazyscript.nodes.arithmetic.LSAddNodeGen;
 import com.guillermomolina.lazyscript.nodes.arithmetic.LSDivNodeGen;
 import com.guillermomolina.lazyscript.nodes.arithmetic.LSMulNodeGen;
@@ -58,10 +55,12 @@ import com.guillermomolina.lazyscript.nodes.controlflow.LSBreakNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSContinueNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSFunctionBodyNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSIfNode;
+import com.guillermomolina.lazyscript.nodes.controlflow.LSInvokeNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSReturnNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSWhileNode;
-import com.guillermomolina.lazyscript.nodes.expression.LSInvokeMethodNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.expression.LSParenExpressionNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSStatementNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSArrayLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSBigIntegerLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSBlockLiteralNode;
@@ -87,6 +86,7 @@ import com.guillermomolina.lazyscript.nodes.property.LSReadPropertyNode;
 import com.guillermomolina.lazyscript.nodes.property.LSReadPropertyNodeGen;
 import com.guillermomolina.lazyscript.nodes.property.LSWritePropertyNode;
 import com.guillermomolina.lazyscript.nodes.property.LSWritePropertyNodeGen;
+import com.guillermomolina.lazyscript.nodes.root.LSRootNode;
 import com.guillermomolina.lazyscript.nodes.util.LSUnboxNodeGen;
 import com.guillermomolina.lazyscript.parser.LazyScriptParser.IdentifierContext;
 import com.oracle.truffle.api.RootCallTarget;
@@ -568,7 +568,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
                 argumentNodeList.add((LSExpressionNode) visit(expression));
             }
         }
-        LSExpressionNode result = new LSInvokeMethodNode(functionNameNode,
+        LSExpressionNode result = new LSInvokeNode(functionNameNode,
                     argumentNodeList.toArray(new LSExpressionNode[argumentNodeList.size()]));
         result.addExpressionTag();
         setSourceFromContext(result, ctx);

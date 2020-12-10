@@ -38,16 +38,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package com.guillermomolina.lazyscript.nodes;
+package com.guillermomolina.lazyscript.nodes.root;
 
-import com.oracle.truffle.api.dsl.NodeChild;
+import com.guillermomolina.lazyscript.LSLanguage;
+import com.guillermomolina.lazyscript.runtime.LSUndefinedNameException;
+import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
+import com.oracle.truffle.api.frame.VirtualFrame;
+import com.oracle.truffle.api.nodes.RootNode;
 
 /**
- * Utility base class for operations that take two arguments (per convention called "left" and
- * "right"). For concrete subclasses of this class, the Truffle DLL creates two child fields, and
- * the necessary constructors and logic to set them.
+ * The initial {@link RootNode} of {@link LSFunction functions} when they are created, i.e., when
+ * they are still undefined. Executing it throws an
+ * {@link LSUndefinedNameException#undefinedFunction exception}.
  */
-@NodeChild("leftNode")
-@NodeChild("rightNode")
-public abstract class LSBinaryNode extends LSExpressionNode {
+public class LSUndefinedFunctionRootNode extends LSRootNode {
+    public LSUndefinedFunctionRootNode(LSLanguage language, String name) {
+        super(language, null, null, null, name);
+    }
+
+    @Override
+    public Object execute(VirtualFrame frame) {
+        throw LSUndefinedNameException.undefinedFunction(null, getName());
+    }
 }

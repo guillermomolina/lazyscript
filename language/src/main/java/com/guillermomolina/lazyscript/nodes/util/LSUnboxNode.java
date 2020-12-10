@@ -42,8 +42,8 @@ package com.guillermomolina.lazyscript.nodes.util;
 
 import static com.oracle.truffle.api.CompilerDirectives.shouldNotReachHere;
 
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 import com.guillermomolina.lazyscript.nodes.LSTypes;
+import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
 import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
 import com.guillermomolina.lazyscript.runtime.objects.LSFunction;
 import com.guillermomolina.lazyscript.runtime.objects.LSNull;

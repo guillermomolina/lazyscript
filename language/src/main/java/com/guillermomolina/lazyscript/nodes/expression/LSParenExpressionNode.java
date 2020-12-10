@@ -43,7 +43,6 @@ package com.guillermomolina.lazyscript.nodes.expression;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 import com.oracle.truffle.api.nodes.UnexpectedResultException;
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
 
 /**
  * A {@link LSExpressionNode} that represents a parenthesized expression; it simply returns the

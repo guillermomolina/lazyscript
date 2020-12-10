@@ -76,6 +76,8 @@ public final class LSMain {
 
         if (file == null) {
             // @formatter:off
+            System.out.println("Welcome to LazyScript.");
+            System.out.println("Type in your program, end with Ctrl+D in an empty line.");
             source = Source.newBuilder(LazyScript, new InputStreamReader(System.in), "<stdin>").build();
             // @formatter:on
         } else {
@@ -94,7 +96,6 @@ public final class LSMain {
             err.println(e.getMessage());
             return 1;
         }
-        out.println("== running on " + context.getEngine());
 
         try {
             final Value result = context.eval(source);

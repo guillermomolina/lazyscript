@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.nodes.controlflow;
 
-import com.guillermomolina.lazyscript.nodes.LSStatementNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSStatementNode;
 import com.oracle.truffle.api.frame.VirtualFrame;
 import com.oracle.truffle.api.nodes.NodeInfo;
 

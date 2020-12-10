@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.nodes.local;
 
-import com.guillermomolina.lazyscript.nodes.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
 import com.guillermomolina.lazyscript.parser.LSParserVisitor;
 import com.guillermomolina.lazyscript.runtime.objects.LSNull;
 import com.oracle.truffle.api.frame.VirtualFrame;

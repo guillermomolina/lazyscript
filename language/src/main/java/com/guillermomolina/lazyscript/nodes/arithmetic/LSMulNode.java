@@ -40,7 +40,7 @@
  */
 package com.guillermomolina.lazyscript.nodes.arithmetic;
 
-import com.guillermomolina.lazyscript.nodes.LSBinaryNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSBinaryNode;
 import com.guillermomolina.lazyscript.runtime.LSException;
 import com.guillermomolina.lazyscript.runtime.objects.LSBigInteger;
 import com.oracle.truffle.api.dsl.Fallback;
