@@ -538,10 +538,17 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     @Override
     public Node visitCall(LazyScriptParser.CallContext ctx) {
+        LSExpressionNode result = (LSExpressionNode) visit(ctx.untailedCall());
         if(ctx.tailCall() != null) {
-            throw new NotImplementedException();
+            for(LazyScriptParser.TailCallContext tailCallCtx: ctx.tailCall()) {
+                LSExpressionNode functionNameNode = (LSExpressionNode) visit(tailCallCtx.identifier());
+                result = createCall(tailCallCtx.callConstruct(0), result, functionNameNode);    
+                if(tailCallCtx.callConstruct().size() > 1) {
+                    throw new NotImplementedException();
+                }
+            }
         }
-        return visit(ctx.untailedCall());
+        return result;
     }
 
     @Override

@@ -128,9 +128,9 @@ memberList: (DOT identifier | LBRACK expression RBRACK) memberList?;
 
 call: untailedCall tailCall*;
 
-tailCall: DOT identifier callConstruct+;
-
 untailedCall: (identifier | singleExpression memberList) callConstruct+;
+
+tailCall: DOT identifier callConstruct+;
 
 callConstruct: LPAREN argumentList? RPAREN;
 
@@ -138,7 +138,7 @@ assignment: (identifier | singleExpression memberList) ASSIGN expression;
 
 argumentList: expression (COMMA expression)*;
 
-arrayLiteral: (LBRACK elementList RBRACK);
+arrayLiteral: LBRACK elementList RBRACK;
 
 elementList: COMMA* expression? (COMMA+ expression)* COMMA*;
 
