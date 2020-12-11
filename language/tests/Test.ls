@@ -5,8 +5,6 @@ function f1(a) {
     return b1.invoke(a);
 }
 
-a = f1(10);
-a.println();
+f1(10).println();
 f2 = f1;
-a = f2(20);
-a.println();
+f2(20).println();

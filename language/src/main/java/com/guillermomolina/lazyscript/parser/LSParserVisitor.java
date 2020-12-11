@@ -228,6 +228,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         return LSWriteLocalVariableNodeGen.create(readArgNode, frameSlot, nameNode, true);
     }
 
+    @SuppressWarnings("java:S125")
     @Override
     public Node visitFunctionDeclarationStatement(LazyScriptParser.FunctionDeclarationStatementContext ctx) {
         final String functionName = ctx.identifier().getText();
@@ -537,23 +538,41 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     @Override
     public Node visitCall(LazyScriptParser.CallContext ctx) {
-        if (ctx.identifier() != null) {
-            LSExpressionNode functionNameNode = (LSExpressionNode) visit(ctx.identifier());
-            return createCall(ctx, null, functionNameNode);
+        if(ctx.tailCall() != null) {
+            throw new NotImplementedException();
         }
-        if (ctx.singleExpression() != null) {
-            LSExpressionNode receiverNode = (LSExpressionNode) visit(ctx.singleExpression());
-            if (ctx.memberList().identifier() != null) {
-                LSExpressionNode functionNameNode = (LSExpressionNode) visit(ctx.memberList().identifier());
-                return createCall(ctx, receiverNode, functionNameNode);
-            } // ctx.assignableMember().expression() != null
-            LSExpressionNode functionNameNode = (LSExpressionNode) visit(ctx.memberList().expression());
-            return createCall(ctx, receiverNode, functionNameNode);
-        }
-        throw new LSParseError(source, ctx, "Invalid assignment: " + ctx.getText());
+        return visit(ctx.untailedCall());
     }
 
-    public LSExpressionNode createCall(LazyScriptParser.CallContext ctx, LSExpressionNode r,
+    @Override
+    public Node visitUntailedCall(LazyScriptParser.UntailedCallContext ctx) {
+        LSExpressionNode result;
+        if (ctx.identifier() != null) {
+            // identifier()
+            LSExpressionNode functionNameNode = (LSExpressionNode) visit(ctx.identifier());
+            result = createCall(ctx.callConstruct(0), null, functionNameNode);
+        } else if (ctx.singleExpression() != null) {
+            // expression.member()
+            LSExpressionNode receiverNode = (LSExpressionNode) visit(ctx.singleExpression());
+            if (ctx.memberList().identifier() != null) {  
+                // expresion.identifier()
+                LSExpressionNode functionNameNode = (LSExpressionNode) visit(ctx.memberList().identifier());
+                result = createCall(ctx.callConstruct(0), receiverNode, functionNameNode);
+            } else {
+                // expression[expression]()
+                LSExpressionNode functionNameNode = (LSExpressionNode) visit(ctx.memberList().expression());
+                result = createCall(ctx.callConstruct(0), receiverNode, functionNameNode);
+            }
+        } else {
+            throw new LSParseError(source, ctx, "Invalid call: " + ctx.getText());
+        }
+        if(ctx.callConstruct().size() > 1) {
+            throw new NotImplementedException();
+        }
+        return result;
+    }
+
+    public LSExpressionNode createCall(LazyScriptParser.CallConstructContext ctx, LSExpressionNode r,
             LSExpressionNode functionNameNode) {
         if (functionNameNode == null) {
             throw new LSParseError(source, ctx, "invalid function target");

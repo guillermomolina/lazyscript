@@ -126,7 +126,13 @@ parameterList: identifier ( COMMA identifier)*;
 
 memberList: (DOT identifier | LBRACK expression RBRACK) memberList?;
 
-call: (identifier | singleExpression memberList) LPAREN argumentList? RPAREN;
+call: untailedCall tailCall*;
+
+tailCall: DOT identifier callConstruct+;
+
+untailedCall: (identifier | singleExpression memberList) callConstruct+;
+
+callConstruct: LPAREN argumentList? RPAREN;
 
 assignment: (identifier | singleExpression memberList) ASSIGN expression;
 
@@ -143,4 +149,4 @@ propertyAssignment: propertyName COLON expression;
 
 propertyName: identifier | stringLiteral /*| numericLiteral */;
 
-eos: SEMI | EOL | EOF;
+eos: SEMI | EOF | EOL;
