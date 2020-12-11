@@ -567,7 +567,6 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         LSExpressionNode[] argumentNodes = argumentNodeList.toArray(new LSExpressionNode[argumentNodeList.size()]);
         LSExpressionNode receiverNode = r;
         if (receiverNode == null) {
-            receiverNode = createReadThis();
             String name = ((LSStringLiteralNode) functionNameNode).executeGeneric(null);
             Pair<Integer, FrameSlot> variable = lexicalScope.getVariable(name);
             int scopeDepth = variable.a;
@@ -579,11 +578,13 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
                 } else {
                     functionNode = LSReadRemoteVariableNodeGen.create(frameSlot, scopeDepth);
                 }
+                receiverNode = new LSNullLiteralNode();
                 LSExpressionNode result = new LSInvokeFunctionNode(receiverNode, functionNode, argumentNodes);
                 result.addExpressionTag();
                 setSourceFromContext(result, ctx);
                 return result;
             }
+            receiverNode = createReadThis();
         }
         LSExpressionNode result = new LSInvokePropertyNode(receiverNode, functionNameNode, argumentNodes);
         result.addExpressionTag();
