@@ -36,74 +36,53 @@ parser grammar LazyScriptParser;
 
 options {
 	tokenVocab = LazyScriptLexer;
+	superClass = LSParserBase;
 }
 
 module: statement* EOF;
 
-block: LCURLY (statement)* RCURLY;
+statement: returnStatement | expressionStatement;
 
-statement:
-	functionDeclarationStatement
-	| whileStatement
-	| ifStatement
-	| controlFlowStatement;
+returnStatement: RETURN ({this.notEOL()}? expression)? eos;
 
-controlFlowStatement:
-	(
-		expression
-		| breakStatement
-		| continueStatement
-		| returnStatement
-	) eos;
+expressionStatement:
+	{this.notLCURLYAndNotFUNCTION()}? expression eos;
 
-functionDeclarationStatement:
-	FUNCTION identifier LPAREN parameterList? RPAREN block;
+eos: SEMI | EOF | {this.eolAhead()}?;
 
-whileStatement:
-	WHILE LPAREN condition = expression RPAREN block;
+expression:
+	expression DOT identifier
+	| expression arguments
+	| SUB expression
+	| expression operator=(MUL | DIV) expression
+	| expression operator=(ADD | SUB) expression
+	| expression operator=(LT | GT | LE | GE) expression
+	| expression operator=(EQUAL | NOT_EQUAL) expression
+	| expression operator=BITAND expression
+	| expression operator=BITOR expression
+	| expression operator=AND expression
+	| expression operator=OR expression
+	| <assoc = right> expression operator=ASSIGN expression
+	| thisLiteral
+	| identifier
+	| nullLiteral
+	| booleanLiteral
+	| stringLiteral
+	| numericLiteral
+	| objectLiteral
+	| functionLiteral
+	| blockLiteral
+	| parenExpression;
 
-breakStatement: BREAK;
-
-continueStatement: CONTINUE;
-
-ifStatement:
-	IF LPAREN condition = expression RPAREN block (ELSE block)?;
-
-returnStatement: RETURN expression?;
-
-expression: logicTerm ( OR logicTerm)*;
-
-logicTerm: logicFactor ( AND logicFactor)*;
-
-logicFactor:
-	left = arithmetic (
-		op = (LT | LE | GT | GE | EQUAL | NOT_EQUAL) right = arithmetic
-	)?;
-
-arithmetic: term (termOperator term)*;
-
-termOperator: ADD | SUB;
-
-term: factor ( factorOperator factor)*;
-
-factorOperator: MUL | DIV;
-
-factor: singleExpression | assignment | call;
-
-singleExpression:
-	(
-		identifier
-		| nullLiteral
-		| booleanLiteral
-		| stringLiteral
-		| numericLiteral
-		| arrayLiteral
-		| objectLiteral
-		| blockLiteral
-		| parenExpression
-	) memberList?;
+thisLiteral: THIS;
 
 identifier: IDENTIFIER;
+
+parenExpression: LPAREN expression RPAREN;
+
+arguments: LPAREN argumentList? RPAREN;
+
+argumentList: expression (COMMA expression)*;
 
 nullLiteral: NULL;
 
@@ -118,35 +97,18 @@ numericLiteral:
 	| OCTAL_INTEGER_LITERAL
 	| BINARY_INTEGER_LITERAL;
 
-parenExpression: LPAREN expression RPAREN;
-
-blockLiteral: LPAREN parameterList? RPAREN ARROW block;
-
-parameterList: identifier ( COMMA identifier)*;
-
-memberList: (DOT identifier | LBRACK expression RBRACK) memberList?;
-
-call: untailedCall tailCall*;
-
-untailedCall: (identifier | singleExpression memberList) callConstruct+;
-
-tailCall: DOT identifier callConstruct+;
-
-callConstruct: LPAREN argumentList? RPAREN;
-
-assignment: (identifier | singleExpression memberList) ASSIGN expression;
-
-argumentList: expression (COMMA expression)*;
-
-arrayLiteral: LBRACK elementList RBRACK;
-
-elementList: COMMA* expression? (COMMA+ expression)* COMMA*;
-
 objectLiteral:
 	LCURLY (propertyAssignment (COMMA propertyAssignment)*)? COMMA? RCURLY;
 
 propertyAssignment: propertyName COLON expression;
 
-propertyName: identifier | stringLiteral /*| numericLiteral */;
+propertyName: identifier | stringLiteral | numericLiteral;
 
-eos: SEMI | EOF | EOL;
+functionLiteral:
+	FUNCTION identifier LPAREN parameterList? RPAREN block;
+
+blockLiteral: LPAREN parameterList? RPAREN ARROW block;
+
+parameterList: identifier ( COMMA identifier)*;
+
+block: LCURLY statement* RCURLY;

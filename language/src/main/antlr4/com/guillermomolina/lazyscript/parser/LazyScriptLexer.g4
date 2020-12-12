@@ -36,6 +36,7 @@ ARROW: '=>';
 NULL: 'null';
 TRUE: 'true';
 FALSE: 'false';
+THIS: 'this';
 
 DECIMAL_INTEGER_LITERAL: '0' | [1-9] [0-9_]*;
 HEX_INTEGER_LITERAL: '0' [xX] [0-9a-fA-F] [_0-9a-fA-F]*;

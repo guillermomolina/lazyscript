@@ -8,7 +8,17 @@
             "input": "${file}",
             "grammar": "language/src/main/antlr4/com/guillermomolina/lazyscript/parser/LazyScriptParser.g4",
             "startRule": "module",
-            "printParseTree": true,
+            "printParseTree": false,
+            "visualParseTree": true
+        },
+        {
+            "type": "antlr-debug",
+            "name": "Debug ANTLR4 javascript grammar Current File",
+            "request": "launch",
+            "input": "${file}",
+            "grammar": "language/src/main/antlr4/com/guillermomolina/lazyscript/parser/JavaScriptParser.g4",
+            "startRule": "program",
+            "printParseTree": false,
             "visualParseTree": true
         },
         {
