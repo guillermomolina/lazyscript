@@ -351,6 +351,18 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     @Override
     public Node visitStatement(LazyScriptParser.StatementContext ctx) {
+        if (ctx.ifStatement() != null) {
+            return visit(ctx.ifStatement());
+        }
+        if (ctx.whileStatement() != null) {
+            return visit(ctx.whileStatement());
+        }
+        if (ctx.breakStatement() != null) {
+            return visit(ctx.breakStatement());
+        }
+        if (ctx.continueStatement() != null) {
+            return visit(ctx.continueStatement());
+        }
         if (ctx.returnStatement() != null) {
             return visit(ctx.returnStatement());
         }
