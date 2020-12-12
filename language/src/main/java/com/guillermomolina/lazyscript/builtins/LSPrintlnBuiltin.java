@@ -67,7 +67,8 @@ public abstract class LSPrintlnBuiltin extends LSBuiltinNode {
     public Object println(Object self,
                     @CachedLibrary(limit = "3") InteropLibrary interop,
                     @CachedContext(LSLanguage.class) LSContext context) {
-        context.getOutput().println(interop.toDisplayString(LSLanguageView.forValue(self)));
+        final Object value = interop.toDisplayString(LSLanguageView.forValue(self));
+        context.getOutput().println(value);
         return self;
     }
 

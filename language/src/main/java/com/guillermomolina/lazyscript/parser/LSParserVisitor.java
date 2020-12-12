@@ -56,6 +56,7 @@ import com.guillermomolina.lazyscript.nodes.controlflow.LSIfNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSReturnNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSWhileNode;
 import com.guillermomolina.lazyscript.nodes.expression.LSExpressionNode;
+import com.guillermomolina.lazyscript.nodes.expression.LSInvokeFunctionNode;
 import com.guillermomolina.lazyscript.nodes.expression.LSStatementNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSBigIntegerLiteralNode;
 import com.guillermomolina.lazyscript.nodes.literals.LSBlockLiteralNode;
@@ -71,9 +72,18 @@ import com.guillermomolina.lazyscript.nodes.local.LSReadLocalVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.local.LSReadRemoteVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteLocalVariableNodeGen;
 import com.guillermomolina.lazyscript.nodes.local.LSWriteRemoteVariableNodeGen;
+import com.guillermomolina.lazyscript.nodes.logic.LSEqualNodeGen;
+import com.guillermomolina.lazyscript.nodes.logic.LSLessOrEqualNodeGen;
+import com.guillermomolina.lazyscript.nodes.logic.LSLessThanNodeGen;
+import com.guillermomolina.lazyscript.nodes.logic.LSLogicalAndNode;
+import com.guillermomolina.lazyscript.nodes.logic.LSLogicalNotNodeGen;
+import com.guillermomolina.lazyscript.nodes.logic.LSLogicalOrNode;
+import com.guillermomolina.lazyscript.nodes.property.LSInvokePropertyNode;
 import com.guillermomolina.lazyscript.nodes.property.LSReadPropertyNodeGen;
+import com.guillermomolina.lazyscript.nodes.property.LSWritePropertyNodeGen;
 import com.guillermomolina.lazyscript.nodes.root.LSRootNode;
 import com.guillermomolina.lazyscript.nodes.util.LSUnboxNodeGen;
+import com.guillermomolina.lazyscript.parser.LazyScriptParser.ExpressionContext;
 import com.guillermomolina.lazyscript.parser.LazyScriptParser.IdentifierContext;
 import com.oracle.truffle.api.RootCallTarget;
 import com.oracle.truffle.api.Truffle;
@@ -345,19 +355,25 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     @Override
     public Node visitExpression(LazyScriptParser.ExpressionContext ctx) {
-        if (ctx.DOT() != null) {
-            throw new NotImplementedException();
+        if(ctx.parenExpression() != null) {
+            return visit(ctx.parenExpression().expression());
+        }
+        if (ctx.member() != null) {
+            return createMemberExpression(ctx);
         }
         if (ctx.arguments() != null) {
-            throw new NotImplementedException();
+            return createCallExpression(ctx);
         }
+        if (ctx.ASSIGN() != null) {
+            return createAssignExpression(ctx);
+        }        
         if (ctx.expression().size() == 1) {
             return createUnaryExpression(ctx);
         }
         if (ctx.expression().size() == 2) {
-            // Binary
             return createBinaryExpression(ctx);
         }
+        // literals
         return visitChildren(ctx);
     }
 
@@ -382,6 +398,30 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             case LazyScriptParser.DIV:
                 result = LSDivNodeGen.create(leftUnboxed, rightUnboxed);
                 break;
+            case LazyScriptParser.AND:
+                result = new LSLogicalAndNode(leftUnboxed, rightUnboxed);
+                break;
+            case LazyScriptParser.OR:
+                result = new LSLogicalOrNode(leftUnboxed, rightUnboxed);
+                break;
+            case LazyScriptParser.LT:
+                result = LSLessThanNodeGen.create(leftUnboxed, rightUnboxed);
+                break;
+            case LazyScriptParser.LE:
+                result = LSLessOrEqualNodeGen.create(leftUnboxed, rightUnboxed);
+                break;
+            case LazyScriptParser.GT:
+                result = LSLogicalNotNodeGen.create(LSLessOrEqualNodeGen.create(leftUnboxed, rightUnboxed));
+                break;
+            case LazyScriptParser.GE:
+                result = LSLogicalNotNodeGen.create(LSLessThanNodeGen.create(leftUnboxed, rightUnboxed));
+                break;
+            case LazyScriptParser.EQUAL:
+                result = LSEqualNodeGen.create(leftUnboxed, rightUnboxed);
+                break;
+            case LazyScriptParser.NOT_EQUAL:
+                result = LSLogicalNotNodeGen.create(LSEqualNodeGen.create(leftUnboxed, rightUnboxed));
+                break;
             default:
                 throw new LSParseError(source, ctx, "Invalid binary operator: " + ctx.operator.getText());
         }
@@ -390,243 +430,48 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         return result;
     }
 
-/* 
-@formatter:off
-    @Override
-    public Node visitExpression(LazyScriptParser.ExpressionContext ctx) {
-        LSExpressionNode leftNode = null;
-        for (final LazyScriptParser.LogicTermContext context : ctx.logicTerm()) {
-            final LSExpressionNode rightNode = (LSExpressionNode) visit(context);
-            if (leftNode == null) {
-                leftNode = rightNode;
-            } else {
-                final LSExpressionNode leftUnboxed = LSUnboxNodeGen.create(leftNode);
-                final LSExpressionNode rightUnboxed = LSUnboxNodeGen.create(rightNode);
-                leftNode = new LSLogicalOrNode(leftUnboxed, rightUnboxed);
-                setSourceFromContext(leftNode, ctx);
-                leftNode.addExpressionTag();
-            }
-        }
-        return leftNode;
+    LSExpressionNode createMemberExpression(LazyScriptParser.ExpressionContext ctx) {
+        final LSExpressionNode receiverNode = (LSExpressionNode) visit(ctx.expression(0));
+        final LSExpressionNode nameNode = (LSExpressionNode) visit(ctx.member().identifier());
+        return createReadProperty(ctx, receiverNode, nameNode);
     }
 
-    @Override
-    public Node visitLogicTerm(LazyScriptParser.LogicTermContext ctx) {
-        LSExpressionNode leftNode = null;
-        for (final LazyScriptParser.LogicFactorContext context : ctx.logicFactor()) {
-            final LSExpressionNode rightNode = (LSExpressionNode) visit(context);
-            if (leftNode == null) {
-                leftNode = rightNode;
-            } else {
-                final LSExpressionNode leftUnboxed = LSUnboxNodeGen.create(leftNode);
-                final LSExpressionNode rightUnboxed = LSUnboxNodeGen.create(rightNode);
-                leftNode = new LSLogicalAndNode(leftUnboxed, rightUnboxed);
-                setSourceFromContext(leftNode, ctx);
-                leftNode.addExpressionTag();
-            }
-        }
-        return leftNode;
-    }
-
-    @Override
-    public Node visitLogicFactor(LazyScriptParser.LogicFactorContext ctx) {
-        LSExpressionNode leftNode = (LSExpressionNode) visit(ctx.left);
-        if (ctx.op != null) {
-            final LSExpressionNode rightNode = (LSExpressionNode) visit(ctx.right);
-            final LSExpressionNode leftUnboxed = LSUnboxNodeGen.create(leftNode);
-            final LSExpressionNode rightUnboxed = LSUnboxNodeGen.create(rightNode);
-            final String operator = ctx.op.getText();
-            switch (operator) {
-                case "<":
-                    leftNode = LSLessThanNodeGen.create(leftUnboxed, rightUnboxed);
-                    break;
-                case "<=":
-                    leftNode = LSLessOrEqualNodeGen.create(leftUnboxed, rightUnboxed);
-                    break;
-                case ">":
-                    leftNode = LSLogicalNotNodeGen.create(LSLessOrEqualNodeGen.create(leftUnboxed, rightUnboxed));
-                    break;
-                case ">=":
-                    leftNode = LSLogicalNotNodeGen.create(LSLessThanNodeGen.create(leftUnboxed, rightUnboxed));
-                    break;
-                case "==":
-                    leftNode = LSEqualNodeGen.create(leftUnboxed, rightUnboxed);
-                    break;
-                case "!=":
-                    leftNode = LSLogicalNotNodeGen.create(LSEqualNodeGen.create(leftUnboxed, rightUnboxed));
-                    break;
-                default:
-                    throw new LSParseError(source, ctx, "Invalid logic operator: " + operator);
-            }
-            setSourceFromContext(leftNode, ctx);
-            leftNode.addExpressionTag();
-        }
-        return leftNode;
-    }
-
-    @Override
-    public Node visitArithmetic(LazyScriptParser.ArithmeticContext ctx) {
-        LSExpressionNode leftNode = null;
-        int index = 0;
-        for (final LazyScriptParser.TermContext termCtx : ctx.term()) {
-            final LSExpressionNode rightNode = (LSExpressionNode) visit(termCtx);
-            if (leftNode == null) {
-                leftNode = rightNode;
-            } else {
-                final LazyScriptParser.TermOperatorContext operatorCtx = ctx.termOperator(index++);
-                final LSExpressionNode leftUnboxed = LSUnboxNodeGen.create(leftNode);
-                final LSExpressionNode rightUnboxed = LSUnboxNodeGen.create(rightNode);
-                if (operatorCtx.ADD() != null) {
-                    leftNode = LSAddNodeGen.create(leftUnboxed, rightUnboxed);
-                } else if (operatorCtx.SUB() != null) {
-                    leftNode = LSSubNodeGen.create(leftUnboxed, rightUnboxed);
-                } else {
-                    throw new LSParseError(source, ctx, "Invalid term operator: " + operatorCtx.getText());
-                }
-                setSourceFromContext(leftNode, ctx);
-                leftNode.addExpressionTag();
-            }
-        }
-        return leftNode;
-    }
-
-    @Override
-    public Node visitTerm(LazyScriptParser.TermContext ctx) {
-        LSExpressionNode leftNode = null;
-        int index = 0;
-        for (final LazyScriptParser.FactorContext factorCtx : ctx.factor()) {
-            final LSExpressionNode rightNode = (LSExpressionNode) visit(factorCtx);
-            if (leftNode == null) {
-                leftNode = rightNode;
-            } else {
-                final LazyScriptParser.FactorOperatorContext operatorCtx = ctx.factorOperator(index++);
-                final LSExpressionNode leftUnboxed = LSUnboxNodeGen.create(leftNode);
-                final LSExpressionNode rightUnboxed = LSUnboxNodeGen.create(rightNode);
-                if (operatorCtx.MUL() != null) {
-                    leftNode = LSMulNodeGen.create(leftUnboxed, rightUnboxed);
-                } else if (operatorCtx.DIV() != null) {
-                    leftNode = LSDivNodeGen.create(leftUnboxed, rightUnboxed);
-                } else {
-                    throw new LSParseError(source, ctx, "Invalid factor operator: " + operatorCtx.getText());
-                }
-                setSourceFromContext(leftNode, ctx);
-                leftNode.addExpressionTag();
-            }
-        }
-        return leftNode;
-    }
-
-    @Override
-    public Node visitSingleExpression(LazyScriptParser.SingleExpressionContext ctx) {
-        LSExpressionNode receiver = null;
-        LSExpressionNode memberName = null;
-        if (ctx.identifier() != null) {
-            memberName = (LSExpressionNode) visit(ctx.identifier());
-            if (ctx.memberList() == null) {
-                return createRead(memberName);
-            }
-        } else if (ctx.nullLiteral() != null) {
-            receiver = (LSExpressionNode) visit(ctx.nullLiteral());
-        } else if (ctx.booleanLiteral() != null) {
-            receiver = (LSExpressionNode) visit(ctx.booleanLiteral());
-        } else if (ctx.stringLiteral() != null) {
-            receiver = (LSExpressionNode) visit(ctx.stringLiteral());
-        } else if (ctx.decimalLiteral() != null) {
-            receiver = (LSExpressionNode) visit(ctx.decimalLiteral());
-        } else if (ctx.integerLiteral() != null) {
-            receiver = (LSExpressionNode) visit(ctx.integerLiteral());
-        } else if (ctx.arrayLiteral() != null) {
-            receiver = (LSExpressionNode) visit(ctx.arrayLiteral());
-        } else if (ctx.objectLiteral() != null) {
-            receiver = (LSExpressionNode) visit(ctx.objectLiteral());
-        } else if (ctx.blockLiteral() != null) {
-            receiver = (LSExpressionNode) visit(ctx.blockLiteral());
-        } else if (ctx.parenExpression() != null) {
-            receiver = createParenExpression(ctx.parenExpression());
-        } else {
-            throw new LSParseError(source, ctx, "Invalid expression: " + ctx.getText());
-        }
-        if (ctx.memberList() == null) {
-            return receiver;
-        }
-        return createMember(ctx.memberList(), receiver, memberName);
-    }
-
-    public LSExpressionNode createMember(LazyScriptParser.MemberListContext ctx, LSExpressionNode receiver,
-            LSExpressionNode memberName) {
-        if (ctx.DOT() != null) {
-            return createDotMember(ctx, receiver, memberName);
-        }
-        if (ctx.LPAREN() != null) {
-            return createCall(ctx, receiver, memberName);
-        }
-        throw new LSParseError(source, ctx, "Invalid member expression");
-    }
-
-    public LSExpressionNode createParenExpression(LazyScriptParser.ParenExpressionContext ctx) {
-        LSExpressionNode expressionNode = (LSExpressionNode) visit(ctx.expression());
-        if (expressionNode == null) {
-            throw new LSParseError(source, ctx, "expressionNode is null");
+    public LSExpressionNode createReadProperty(LazyScriptParser.ExpressionContext ctx, LSExpressionNode receiverNode,
+            LSExpressionNode nameNode) {
+        if (receiverNode == null || nameNode == null) {
+            throw new LSParseError(source, ctx, "One of receiverNode or nameNode is null");
         }
 
-        int start = ctx.start.getStartIndex();
-        int length = ctx.stop.getStopIndex() - start + 1;
-        final LSParenExpressionNode result = new LSParenExpressionNode(expressionNode);
-        result.setSourceSection(start, length);
+        final LSExpressionNode result = LSReadPropertyNodeGen.create(receiverNode, nameNode);
+        setSourceFromContext(result, ctx);
+        result.addExpressionTag();
+
         return result;
     }
 
-    @Override
-    public Node visitCall(LazyScriptParser.CallContext ctx) {
-        LSExpressionNode result = (LSExpressionNode) visit(ctx.untailedCall());
-        if (ctx.tailCall() != null) {
-            for (LazyScriptParser.TailCallContext tailCallCtx : ctx.tailCall()) {
-                LSExpressionNode functionNameNode = (LSExpressionNode) visit(tailCallCtx.identifier());
-                result = createCall(tailCallCtx.callConstruct(0), result, functionNameNode);
-                if (tailCallCtx.callConstruct().size() > 1) {
-                    throw new NotImplementedException();
-                }
-            }
+    LSExpressionNode createCallExpression(LazyScriptParser.ExpressionContext ctx) {
+        final ExpressionContext receivcCtx = ctx.expression(0);
+        if(receivcCtx.member() != null) {
+            final LSExpressionNode receiverNode = (LSExpressionNode) visit(receivcCtx.expression(0));
+            final LSExpressionNode nameNode = (LSExpressionNode) visit(receivcCtx.member().identifier());
+            return createCall(ctx, receiverNode, nameNode);    
         }
-        return result;
+        if(receivcCtx.identifier() != null) {
+            final LSExpressionNode receiverNode = createReadThis();
+            final LSExpressionNode nameNode = (LSExpressionNode) visit(receivcCtx.identifier());
+            return createCall(ctx, receiverNode, nameNode);    
+        }
+        throw new NotImplementedException();
     }
 
-    @Override
-    public Node visitUntailedCall(LazyScriptParser.UntailedCallContext ctx) {
-        LSExpressionNode result;
-        if (ctx.identifier() != null) {
-            // identifier()
-            LSExpressionNode functionNameNode = (LSExpressionNode) visit(ctx.identifier());
-            result = createCall(ctx.callConstruct(0), null, functionNameNode);
-        } else if (ctx.singleExpression() != null) {
-            // expression.member()
-            LSExpressionNode receiverNode = (LSExpressionNode) visit(ctx.singleExpression());
-            if (ctx.memberList().identifier() != null) {
-                // expresion.identifier()
-                LSExpressionNode functionNameNode = (LSExpressionNode) visit(ctx.memberList().identifier());
-                result = createCall(ctx.callConstruct(0), receiverNode, functionNameNode);
-            } else {
-                // expression[expression]()
-                LSExpressionNode functionNameNode = (LSExpressionNode) visit(ctx.memberList().expression());
-                result = createCall(ctx.callConstruct(0), receiverNode, functionNameNode);
-            }
-        } else {
-            throw new LSParseError(source, ctx, "Invalid call: " + ctx.getText());
-        }
-        if (ctx.callConstruct().size() > 1) {
-            throw new NotImplementedException();
-        }
-        return result;
-    }
-
-    public LSExpressionNode createCall(LazyScriptParser.MemberListContext ctx, LSExpressionNode r,
+    public LSExpressionNode createCall(LazyScriptParser.ExpressionContext ctx, LSExpressionNode r,
             LSExpressionNode functionNameNode) {
         if (functionNameNode == null) {
             throw new LSParseError(source, ctx, "invalid function target");
         }
         List<LSExpressionNode> argumentNodeList = new ArrayList<>();
-        if (ctx.argumentList() != null) {
-            for (LazyScriptParser.ExpressionContext expression : ctx.argumentList().expression()) {
+        if (ctx.arguments().argumentList() != null) {
+            for (LazyScriptParser.ExpressionContext expression : ctx.arguments().argumentList().expression()) {
                 argumentNodeList.add((LSExpressionNode) visit(expression));
             }
         }
@@ -658,16 +503,24 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         return result;
     }
 
-    public LSExpressionNode createDotMember(LazyScriptParser.MemberListContext ctx, LSExpressionNode r,
-            LSExpressionNode memberName) {
-        LSExpressionNode receiver = r == null ? createRead(memberName) : r;
-        LSExpressionNode nestedMemberName = (LSExpressionNode) visit(ctx.identifier());
-        LSExpressionNode result = createReadProperty(ctx, receiver, nestedMemberName);
-        if (ctx.memberList() != null) {
-            return createMember(ctx.memberList(), result, nestedMemberName);
+    LSExpressionNode createAssignExpression(LazyScriptParser.ExpressionContext ctx) {
+        final ExpressionContext receivcCtx = ctx.expression(0);
+        if(receivcCtx.member() != null) {
+            final LSExpressionNode receiverNode = (LSExpressionNode) visit(receivcCtx.expression(0));
+            final LSExpressionNode nameNode = (LSExpressionNode) visit(receivcCtx.member().identifier());
+            LSExpressionNode valueNode = (LSExpressionNode) visit(ctx.expression(1));
+            return createWriteProperty(ctx, receiverNode, nameNode, valueNode);   
         }
-        return result;
+        if(receivcCtx.identifier() != null) {
+            final LSExpressionNode nameNode = (LSExpressionNode) visit(receivcCtx.identifier());
+            LSExpressionNode valueNode = (LSExpressionNode) visit(ctx.expression(1));
+            return createWriteVariable(nameNode, valueNode);
+        }
+        throw new NotImplementedException();
     }
+
+/* 
+@formatter:off
 
     public LSExpressionNode createArrayMember(LazyScriptParser.MemberListContext ctx, LSExpressionNode r,
             LSExpressionNode assignmentName) {
@@ -676,56 +529,6 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         LSExpressionNode result = createReadProperty(ctx, receiver, nestedMemberName);
         if (ctx.memberList() != null) {
             return createMember(ctx.memberList(), result, nestedMemberName);
-        }
-        return result;
-    }
-
-    public LSExpressionNode createReadProperty(LazyScriptParser.MemberListContext ctx, LSExpressionNode receiverNode,
-            LSExpressionNode nameNode) {
-        if (receiverNode == null || nameNode == null) {
-            throw new LSParseError(source, ctx, "One of receiverNode or nameNode is null");
-        }
-
-        final LSExpressionNode result = LSReadPropertyNodeGen.create(receiverNode, nameNode);
-        setSourceFromContext(result, ctx);
-        result.addExpressionTag();
-
-        return result;
-    }
-
-    @Override
-    public Node visitAssignmentExpression(LazyScriptParser.AssignmentExpressionContext ctx) {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public Node visitAssignment(LazyScriptParser.AssignmentContext ctx) {
-        if (ctx.identifier() != null) {
-            LSExpressionNode assignmentName = (LSExpressionNode) visit(ctx.identifier());
-            return createAssignment(ctx, null, assignmentName);
-        }
-        if (ctx.singleExpression() != null) {
-            LSExpressionNode receiver = (LSExpressionNode) visit(ctx.singleExpression());
-            if (ctx.memberList().identifier() != null) {
-                LSExpressionNode assignmentName = (LSExpressionNode) visit(ctx.memberList().identifier());
-                return createAssignment(ctx, receiver, assignmentName);
-            } // ctx.assignableMember().expression() != null
-            LSExpressionNode assignmentName = (LSExpressionNode) visit(ctx.memberList().expression());
-            return createAssignment(ctx, receiver, assignmentName);
-        }
-        throw new LSParseError(source, ctx, "Invalid assignment: " + ctx.getText());
-    }
-
-    public LSExpressionNode createAssignment(LazyScriptParser.AssignmentContext ctx,
-            LSExpressionNode assignmentReceiver, LSExpressionNode assignmentName) {
-        if (assignmentName == null) {
-            throw new LSParseError(source, ctx.expression(), "invalid assignment target");
-        }
-        LSExpressionNode result = (LSExpressionNode) visit(ctx.expression());
-        if (assignmentReceiver == null) {
-            result = createWriteVariable(assignmentName, result);
-        } else {
-            result = createWriteProperty(ctx, assignmentReceiver, assignmentName, result);
         }
         return result;
     }
@@ -763,9 +566,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         return result;
     }
 
-/*
-@formatter:off
-    public LSExpressionNode createWriteProperty(LazyScriptParser.AssignmentContext ctx, LSExpressionNode receiverNode,
+    public LSExpressionNode createWriteProperty(LazyScriptParser.ExpressionContext ctx, LSExpressionNode receiverNode,
             LSExpressionNode nameNode, LSExpressionNode valueNode) {
         if (receiverNode == null || nameNode == null || valueNode == null) {
             throw new LSParseError(source, ctx, "One of receiverNode, nameNode or valueNode is null");
@@ -778,8 +579,6 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
         return result;
     }
-@formatter:off
-*/
 
     public LSExpressionNode createRead(LSExpressionNode nameNode) {
         if (nameNode == null) {

@@ -51,9 +51,9 @@ expressionStatement:
 eos: SEMI | EOF | {this.eolAhead()}?;
 
 expression:
-	expression DOT identifier
+	expression member
 	| expression arguments
-	| SUB expression
+	| operator=SUB expression
 	| expression operator=(MUL | DIV) expression
 	| expression operator=(ADD | SUB) expression
 	| expression operator=(LT | GT | LE | GE) expression
@@ -73,6 +73,8 @@ expression:
 	| functionLiteral
 	| blockLiteral
 	| parenExpression;
+
+member: DOT identifier;
 
 thisLiteral: THIS;
 
