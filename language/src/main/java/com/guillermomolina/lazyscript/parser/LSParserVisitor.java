@@ -51,6 +51,8 @@ import com.guillermomolina.lazyscript.nodes.arithmetic.LSDivNodeGen;
 import com.guillermomolina.lazyscript.nodes.arithmetic.LSMulNodeGen;
 import com.guillermomolina.lazyscript.nodes.arithmetic.LSSubNodeGen;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSBlockNode;
+import com.guillermomolina.lazyscript.nodes.controlflow.LSBreakNode;
+import com.guillermomolina.lazyscript.nodes.controlflow.LSContinueNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSFunctionBodyNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSIfNode;
 import com.guillermomolina.lazyscript.nodes.controlflow.LSReturnNode;
@@ -651,8 +653,6 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         return result;
     }
 
-    /*
-@formatter:off
     @Override
     public Node visitBreakStatement(LazyScriptParser.BreakStatementContext ctx) {
         if (lexicalScope.isInLoop()) {
@@ -715,8 +715,6 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         setSourceFromContext(ifNode, ctx);
         return ifNode;
     }
-@formatter:on
-*/
 
     @Override
     public Node visitReturnStatement(LazyScriptParser.ReturnStatementContext ctx) {

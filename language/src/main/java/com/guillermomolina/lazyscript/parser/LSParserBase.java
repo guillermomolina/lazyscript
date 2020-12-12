@@ -22,6 +22,10 @@ public abstract class LSParserBase extends Parser {
         int nextTokenType = _input.LT(1).getType();
         return nextTokenType != LazyScriptParser.LCURLY && nextTokenType != LazyScriptParser.FUNCTION;
     }
+
+    protected boolean rcurly() {
+        return _input.LT(1).getType() == LazyScriptParser.RCURLY;
+    }
     
     /**
      * Returns {@code true} iff on the current index of the parser's

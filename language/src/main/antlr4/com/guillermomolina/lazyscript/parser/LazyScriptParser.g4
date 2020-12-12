@@ -41,14 +41,34 @@ options {
 
 module: statement* EOF;
 
-statement: returnStatement | expressionStatement;
+statement:
+	whileStatement
+	| ifStatement
+	| breakStatement
+	| continueStatement
+	| returnStatement
+	| expressionStatement;
+
+whileStatement:
+	WHILE LPAREN condition = expression RPAREN block;
+
+breakStatement: BREAK eos;
+
+continueStatement: CONTINUE eos;
+
+ifStatement:
+	IF LPAREN condition = expression RPAREN then = block (
+		ELSE block
+	)?;
+
+debuggerStatement: DEBUGGER eos;
 
 returnStatement: RETURN ({this.notEOL()}? expression)? eos;
 
 expressionStatement:
 	{this.notLCURLYAndNotFUNCTION()}? expression eos;
 
-eos: SEMI | EOF | {this.eolAhead()}?;
+eos: SEMI | EOF | {this.eolAhead()}? | {this.rcurly()}?;
 
 expression:
 	expression index
