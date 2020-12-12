@@ -51,28 +51,32 @@ expressionStatement:
 eos: SEMI | EOF | {this.eolAhead()}?;
 
 expression:
-	expression member
+	expression index
+	| expression member
 	| expression arguments
-	| operator=SUB expression
-	| expression operator=(MUL | DIV) expression
-	| expression operator=(ADD | SUB) expression
-	| expression operator=(LT | GT | LE | GE) expression
-	| expression operator=(EQUAL | NOT_EQUAL) expression
-	| expression operator=BITAND expression
-	| expression operator=BITOR expression
-	| expression operator=AND expression
-	| expression operator=OR expression
-	| <assoc = right> expression operator=ASSIGN expression
+	| operator = SUB expression
+	| expression operator = (MUL | DIV) expression
+	| expression operator = (ADD | SUB) expression
+	| expression operator = (LT | GT | LE | GE) expression
+	| expression operator = (EQUAL | NOT_EQUAL) expression
+	| expression operator = BITAND expression
+	| expression operator = BITOR expression
+	| expression operator = AND expression
+	| expression operator = OR expression
+	| <assoc = right> expression operator = ASSIGN expression
 	| thisLiteral
 	| identifier
 	| nullLiteral
 	| booleanLiteral
 	| stringLiteral
 	| numericLiteral
+	| arrayLiteral
 	| objectLiteral
 	| functionLiteral
 	| blockLiteral
 	| parenExpression;
+
+index: LBRACK expression RBRACK;
 
 member: DOT identifier;
 
@@ -98,6 +102,10 @@ numericLiteral:
 	| HEX_INTEGER_LITERAL
 	| OCTAL_INTEGER_LITERAL
 	| BINARY_INTEGER_LITERAL;
+
+arrayLiteral: LBRACK elementList RBRACK;
+
+elementList: COMMA* expression? (COMMA+ expression)* COMMA*;
 
 objectLiteral:
 	LCURLY (propertyAssignment (COMMA propertyAssignment)*)? COMMA? RCURLY;
