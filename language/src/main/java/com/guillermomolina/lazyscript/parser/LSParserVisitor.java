@@ -529,99 +529,52 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             final LSExpressionNode receiverNode = (LSExpressionNode) visit(receivcCtx.expression(0));
             final LSExpressionNode nameNode = (LSExpressionNode) visit(receivcCtx.member().identifier());
             LSExpressionNode valueNode = (LSExpressionNode) visit(ctx.expression(1));
-            return createWriteProperty(ctx, receiverNode, nameNode, valueNode);
+            return createAssign(ctx, receiverNode, nameNode, valueNode);
         }
         if (receivcCtx.index() != null) {
             final LSExpressionNode receiverNode = (LSExpressionNode) visit(receivcCtx.expression(0));
             final LSExpressionNode indexNode = (LSExpressionNode) visit(receivcCtx.index().expression());
             LSExpressionNode valueNode = (LSExpressionNode) visit(ctx.expression(1));
-            return createWriteProperty(ctx, receiverNode, indexNode, valueNode);
+            return createAssign(ctx, receiverNode, indexNode, valueNode);
         }
         if (receivcCtx.identifier() != null) {
             final LSExpressionNode nameNode = (LSExpressionNode) visit(receivcCtx.identifier());
             LSExpressionNode valueNode = (LSExpressionNode) visit(ctx.expression(1));
-            return createWriteVariable(nameNode, valueNode);
+            return createAssign(ctx, null, nameNode, valueNode);
         }
         throw new LSParseError(source, ctx, "Unsupported assignment expression");
     }
 
-    public LSExpressionNode createAssign(LazyScriptParser.ExpressionContext ctx, LSExpressionNode r,
+    public LSExpressionNode createAssign(LazyScriptParser.ExpressionContext ctx, LSExpressionNode receiverNode,
             LSExpressionNode nameNode, LSExpressionNode valueNode) {
         if (nameNode == null || valueNode == null) {
             throw new LSParseError(source, ctx, "nameNode and/or valueNode are null");
         }
 
-        LSExpressionNode receiverNode = r;
         if (receiverNode == null) {
             String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
             Pair<Integer, FrameSlot> variable = lexicalScope.getVariable(name);
             int scopeDepth = variable.a;
             FrameSlot frameSlot = variable.b;
-            if (frameSlot != null) {
-                final LSExpressionNode functionNode;
-                if (scopeDepth == 0) {
-                    functionNode = LSReadLocalVariableNodeGen.create(frameSlot);
-                } else {
-                    functionNode = LSReadRemoteVariableNodeGen.create(frameSlot, scopeDepth);
-                }
-                receiverNode = new LSNullLiteralNode();
-                LSExpressionNode result = new LSInvokeFunctionNode(receiverNode, functionNode, argumentNodes);
-                result.addExpressionTag();
-                setSourceFromContext(result, ctx);
-                return result;
+            boolean newVariable = false;
+            if (frameSlot == null) {
+                frameSlot = lexicalScope.addVariable(name);
+                newVariable = true;
+                scopeDepth = 0;
             }
-            receiverNode = createReadThis();
+            final LSExpressionNode result;
+            if (scopeDepth == 0) {
+                result = LSWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode, newVariable);
+            } else {
+                result = LSWriteRemoteVariableNodeGen.create(valueNode, frameSlot, nameNode, scopeDepth);
+            }
+            result.addExpressionTag();
+            setSourceFromContext(result, ctx);
+            return result;
         }
-        LSExpressionNode result = new LSInvokePropertyNode(receiverNode, functionNameNode, argumentNodes);
-        result.addExpressionTag();
-        setSourceFromContext(result, ctx);
-        return result;
-    }
-
-
-    public LSExpressionNode createWriteVariable(LSExpressionNode nameNode, LSExpressionNode valueNode) {
-        if (nameNode == null || valueNode == null) {
-            throw new UnsupportedOperationException("nameNode and valueNode must not be null");
-        }
-
-        String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
-        Pair<Integer, FrameSlot> variable = lexicalScope.getVariable(name);
-        int scopeDepth = variable.a;
-        FrameSlot frameSlot = variable.b;
-        final LSExpressionNode result;
-        boolean newVariable = false;
-        if (frameSlot == null) {
-            frameSlot = lexicalScope.addVariable(name);
-            newVariable = true;
-            scopeDepth = 0;
-        }
-        if (scopeDepth == 0) {
-            result = LSWriteLocalVariableNodeGen.create(valueNode, frameSlot, nameNode, newVariable);
-        } else {
-            result = LSWriteRemoteVariableNodeGen.create(valueNode, frameSlot, nameNode, scopeDepth);
-        }
-        if (!nameNode.hasSource() || !valueNode.hasSource()) {
-            throw new UnsupportedOperationException("nameNode and valueNode must have source defined");
-        }
-        final int start = nameNode.getSourceCharIndex();
-        final int length = valueNode.getSourceEndIndex() - start;
-        result.setSourceSection(start, length);
-        result.addExpressionTag();
-
-        return result;
-    }
-
-    public LSExpressionNode createWriteProperty(LazyScriptParser.ExpressionContext ctx, LSExpressionNode receiverNode,
-            LSExpressionNode nameNode, LSExpressionNode valueNode) {
-        if (receiverNode == null || nameNode == null || valueNode == null) {
-            throw new LSParseError(source, ctx, "One of receiverNode, nameNode or valueNode is null");
-        }
-
         final LSExpressionNode result = LSWritePropertyNodeGen.create(receiverNode, nameNode, valueNode);
-
         setSourceFromContext(result, ctx);
         result.addExpressionTag();
-
         return result;
     }
 
