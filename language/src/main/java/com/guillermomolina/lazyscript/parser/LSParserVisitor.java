@@ -171,19 +171,6 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         node.setSourceSection(start, stop - start + 1);
     }
 
-    /*
-    @formatter:off
-    private void setSourceFromNode(LSStatementNode targetNode, LSStatementNode sourceNode) {
-        assert targetNode != null;
-        assert sourceNode != null;
-        if (!sourceNode.hasSource()) {
-            throw new UnsupportedOperationException("sourceNode does not have source");
-        }
-        targetNode.setSourceSection(sourceNode.getSourceCharIndex(), sourceNode.getSourceLength());
-    }
-    @formatter:on
-    */
-
     public void pushScope(boolean inLoop) {
         lexicalScope = new LSLexicalScope(lexicalScope, inLoop);
     }
@@ -230,7 +217,6 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         return LSWriteLocalVariableNodeGen.create(readArgNode, frameSlot, nameNode, true);
     }
 
-    @SuppressWarnings("java:S125")
     @Override
     public Node visitFunctionLiteral(LazyScriptParser.FunctionLiteralContext ctx) {
         final String functionName = "function";
@@ -239,23 +225,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
                 Truffle.getRuntime().createCallTarget(rootNode));
         setSourceFromContext(functionNode, ctx);
         functionNode.addExpressionTag();
-
-        final LSExpressionNode nameNode = (LSExpressionNode) visit(ctx.identifier());
-
-        // This is the code to add the function as a variable
-        LSExpressionNode result = createWriteVariable(nameNode, functionNode);
-
-        /* 
-        @formatter:off
-        // This is the code to add the function as a property
-        final LSExpressionNode thisNode = createReadThis();
-        final LSExpressionNode result = LSWritePropertyNodeGen.create(thisNode, nameNode, functionNode);
-        setSourceFromContext(result, ctx);
-        @formatter:on 
-        */
-
-        result.addStatementTag();
-        return result;
+        return functionNode;
     }
 
     @Override
@@ -321,7 +291,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         }
 
         if (containsNull(bodyNodeList)) {
-            throw new NotImplementedException();
+            throw new UnsupportedOperationException("reached an unimplemented visit method");
         }
 
         List<LSStatementNode> flattenedNodeList = new ArrayList<>(bodyNodeList.size());
@@ -350,26 +320,8 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
     }
 
     @Override
-    public Node visitStatement(LazyScriptParser.StatementContext ctx) {
-        if (ctx.ifStatement() != null) {
-            return visit(ctx.ifStatement());
-        }
-        if (ctx.whileStatement() != null) {
-            return visit(ctx.whileStatement());
-        }
-        if (ctx.breakStatement() != null) {
-            return visit(ctx.breakStatement());
-        }
-        if (ctx.continueStatement() != null) {
-            return visit(ctx.continueStatement());
-        }
-        if (ctx.returnStatement() != null) {
-            return visit(ctx.returnStatement());
-        }
-        if (ctx.expressionStatement() != null) {
-            return visit(ctx.expressionStatement().expression());
-        }
-        throw new LSParseError(source, ctx, "Invalid statement: " + ctx.getText());
+    public Node visitExpressionStatement(LazyScriptParser.ExpressionStatementContext ctx) {
+        return visit(ctx.expression());
     }
 
     @Override
@@ -487,7 +439,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
 
     public LSExpressionNode createReadVariable(LazyScriptParser.ExpressionContext ctx, LSExpressionNode nameNode) {
         if (nameNode == null) {
-            throw new UnsupportedOperationException("nameNode is null");
+           throw new LSParseError(source, ctx, "Name node is null");
         }
 
         String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
@@ -526,11 +478,10 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             return createCall(ctx, receiverNode, indexNode);
         }
         if (receivcCtx.identifier() != null) {
-            final LSExpressionNode receiverNode = createReadThis();
             final LSExpressionNode nameNode = (LSExpressionNode) visit(receivcCtx.identifier());
-            return createCall(ctx, receiverNode, nameNode);
+            return createCall(ctx, null, nameNode);
         }
-        throw new NotImplementedException();
+        throw new LSParseError(source, ctx, "Unsuported call expression");
     }
 
     public LSExpressionNode createCall(LazyScriptParser.ExpressionContext ctx, LSExpressionNode r,
@@ -591,7 +542,7 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
             LSExpressionNode valueNode = (LSExpressionNode) visit(ctx.expression(1));
             return createWriteVariable(nameNode, valueNode);
         }
-        throw new NotImplementedException();
+        throw new LSParseError(source, ctx, "Unsupported assignment expression");
     }
 
     public LSExpressionNode createWriteVariable(LSExpressionNode nameNode, LSExpressionNode valueNode) {

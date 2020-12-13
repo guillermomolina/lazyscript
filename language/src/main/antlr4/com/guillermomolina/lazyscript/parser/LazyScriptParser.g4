@@ -134,8 +134,7 @@ propertyAssignment: propertyName COLON expression;
 
 propertyName: identifier | stringLiteral | numericLiteral;
 
-functionLiteral:
-	FUNCTION identifier LPAREN parameterList? RPAREN block;
+functionLiteral: FUNCTION LPAREN parameterList? RPAREN block;
 
 blockLiteral: LPAREN parameterList? RPAREN ARROW block;
 
