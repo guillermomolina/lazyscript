@@ -545,6 +545,40 @@ public class LSParserVisitor extends LazyScriptParserBaseVisitor<Node> {
         throw new LSParseError(source, ctx, "Unsupported assignment expression");
     }
 
+    public LSExpressionNode createAssign(LazyScriptParser.ExpressionContext ctx, LSExpressionNode r,
+            LSExpressionNode nameNode, LSExpressionNode valueNode) {
+        if (nameNode == null || valueNode == null) {
+            throw new LSParseError(source, ctx, "nameNode and/or valueNode are null");
+        }
+
+        LSExpressionNode receiverNode = r;
+        if (receiverNode == null) {
+            String name = ((LSStringLiteralNode) nameNode).executeGeneric(null);
+            Pair<Integer, FrameSlot> variable = lexicalScope.getVariable(name);
+            int scopeDepth = variable.a;
+            FrameSlot frameSlot = variable.b;
+            if (frameSlot != null) {
+                final LSExpressionNode functionNode;
+                if (scopeDepth == 0) {
+                    functionNode = LSReadLocalVariableNodeGen.create(frameSlot);
+                } else {
+                    functionNode = LSReadRemoteVariableNodeGen.create(frameSlot, scopeDepth);
+                }
+                receiverNode = new LSNullLiteralNode();
+                LSExpressionNode result = new LSInvokeFunctionNode(receiverNode, functionNode, argumentNodes);
+                result.addExpressionTag();
+                setSourceFromContext(result, ctx);
+                return result;
+            }
+            receiverNode = createReadThis();
+        }
+        LSExpressionNode result = new LSInvokePropertyNode(receiverNode, functionNameNode, argumentNodes);
+        result.addExpressionTag();
+        setSourceFromContext(result, ctx);
+        return result;
+    }
+
+
     public LSExpressionNode createWriteVariable(LSExpressionNode nameNode, LSExpressionNode valueNode) {
         if (nameNode == null || valueNode == null) {
             throw new UnsupportedOperationException("nameNode and valueNode must not be null");
